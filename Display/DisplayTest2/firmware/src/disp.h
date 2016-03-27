@@ -61,7 +61,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define PWM_INCREMENT       (0x1F)
+#define PWM_INCREMENT       (0x3F)
 #define DISPLAY_UPDATE      (500) /*Hz                                        */
 #define NUMBER_SLICES       (16)
 #define DISPLAY_QUANTA      (32)
@@ -187,10 +187,8 @@ typedef struct
     SYS_MODULE_OBJ timerModuleObject;
     SYS_MODULE_OBJ pmpModuleObject;
     union __attribute__ ((packed)){
-        DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE+4];
-        uint8_t  b8[2*(DISPLAY_BUFFER_SIZE+4)];
-        uint16_t b16[DISPLAY_BUFFER_SIZE+4];
-        uint32_t b32[(DISPLAY_BUFFER_SIZE+4)/2];
+        DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE+1];
+        uint8_t  b8[2*(DISPLAY_BUFFER_SIZE+1)];
     } sliceBuffer[2];
     PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     PIXEL_TYPE display[DISPLAY_ROWS][DISPLAY_COLUMNS];    

@@ -158,8 +158,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     {
         return false;
     }
-    dispData.timerDriverHandle = 
-        DRV_TMR_Open(dispData.timerIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
+    dispData.timerDriverHandle = DRV_TMR_Open(dispData.timerIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
     if (DRV_TMR_ClientStatus(dispData.timerDriverHandle) != DRV_TMR_CLIENT_STATUS_READY)
     {
         return false;
@@ -174,8 +173,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.pmpModuleObject = pmpModuleObj;
     dispData.pmpIndex = pmpIndex;
     
-    dispData.pmpDriverHandle = 
-        DRV_PMP_Open(dispData.pmpIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
+    dispData.pmpDriverHandle = DRV_PMP_Open(dispData.pmpIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
     if(dispData.pmpDriverHandle == DRV_HANDLE_INVALID)
     {
         return false;
@@ -240,19 +238,22 @@ void DISP_Tasks ( void )
                 uint32_t row,column;
                 uint8_t intensity=0;
                 memset(dispData.display,0,sizeof(dispData.display));
+#if false
                 dispData.display[10][0].red=0xff;
                 dispData.display[10][0].green = 0xff;
                 dispData.display[10][10].red=0xff;
-                //for(column=0;column<dispData.displayInfo.columns;column++)
-                //{
-                //    for(row=0;row<dispData.displayInfo.rows;row++)                    
-                //    {
-                //        dispData.display[row][column].green=intensity;
-                //        dispData.display[row][column].red=intensity;  
-                //        dispData.display[row][column].blue=intensity;  
-                //    }
-                //    intensity=intensity+0x01;
-                //}
+#else
+                for(column=0;column<dispData.displayInfo.columns;column++)
+                {
+                    for(row=0;row<dispData.displayInfo.rows;row++)                    
+                    {
+                        dispData.display[row][column].green=intensity;
+                        dispData.display[row][column].red=intensity;  
+                        dispData.display[row][column].blue=intensity;  
+                    }
+                    intensity=intensity+0x01;
+                }
+#endif
                 dispData.status.displayArrayFilled = true;
                 dispData.state = DISP_FILL_FIRST_SLICE;
             }
@@ -296,10 +297,10 @@ void DISP_Tasks ( void )
         {
             PLIB_PMP_AddressSet(dispData.pmpIndex,((uint16_t)dispData.status.slice)<<8);
             dispData.pQueue = DRV_PMP_Write(&dispData.pmpDriverHandle,
-                                                  0,
-                                                  dispData.sliceBuffer[dispData.status.bufferFilling].b32,
-                                                  DISPLAY_BUFFER_SIZE+1,
-                                                  0);             
+                                            0,
+                                            (uint32_t*)&dispData.sliceBuffer[dispData.status.bufferFilling],
+                                            DISPLAY_BUFFER_SIZE+1,
+                                            0);             
             dispData.status.bufferFilling ^= 1; /* switch the filling buffer  */
             dispData.status.firstSliceSent = true;
             dispData.state = DISP_WAIT_FILL_NEXT_SLICE;
