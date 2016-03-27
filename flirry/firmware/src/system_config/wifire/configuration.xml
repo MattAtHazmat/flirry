@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration version="1.0.7.9">
+  <General>
+    <HarmonyPath path="../../../microchip/harmony/v1_06_02"/>
+    <ForceOptimization flag="true"/>
+  </General>
+  <Manifest>
+    <Files>
+      <File>
+        <Name>sys_module.h</Name>
+        <Path>Header Files/framework/system/common</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_pic32mz.c</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
+        <Name>sys_ports.h</Name>
+        <Path>Header Files/framework/system/ports</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_cache_pic32mz.S</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
+        <Name>sys_devcon.c</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_cache.h</Name>
+        <Path>Header Files/framework/system/devcon</Path>
+      </File>
+      <File>
+        <Name>sys_ports.c</Name>
+        <Path>Source Files/framework/system/ports/src</Path>
+      </File>
+      <File>
+        <Name>driver.h</Name>
+        <Path>Header Files/framework/driver</Path>
+      </File>
+      <File>
+        <Name>sys_common.h</Name>
+        <Path>Header Files/framework/system/common</Path>
+      </File>
+      <File>
+        <Name>sys_devcon.h</Name>
+        <Path>Header Files/framework/system/devcon</Path>
+      </File>
+      <File>
+        <Name>system.h</Name>
+        <Path>Header Files/framework/system</Path>
+      </File>
+    </Files>
+    <Templates>
+      <Template>
+        <Name>drv_pmp_static.h</Name>
+        <Path>Header Files/app/system_config/wifire/framework/driver/pmp</Path>
+        <Checksum>799BFBF404CEF514B5929A7011B8FCD7</Checksum>
+      </Template>
+      <Template>
+        <Name>main.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
+        <Name>system_tasks.c</Name>
+        <Path>Source Files/app/system_config/wifire</Path>
+        <Checksum>778843FDCD629FF0E13E7473A29D42D6</Checksum>
+      </Template>
+      <Template>
+        <Name>system_interrupt.c</Name>
+        <Path>Source Files/app/system_config/wifire</Path>
+        <Checksum>7D143E1213C311BEAA0314B77FCAA46F</Checksum>
+      </Template>
+      <Template>
+        <Name>flircamera.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+      <Template>
+        <Name>system_definitions.h</Name>
+        <Path>Header Files/app/system_config/wifire</Path>
+        <Checksum>66E4BEEE09F54C23078948B557A0CFB8</Checksum>
+      </Template>
+      <Template>
+        <Name>leds.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+      <Template>
+        <Name>system_config.h</Name>
+        <Path>Header Files/app/system_config/wifire</Path>
+        <Checksum>5561AF4F1BBE1EB8DA7D8FA6B5A9621A</Checksum>
+      </Template>
+      <Template>
+        <Name>system_init.c</Name>
+        <Path>Source Files/app/system_config/wifire</Path>
+        <Checksum>03AE6E3E1F45FE632248666B83B27D22</Checksum>
+      </Template>
+      <Template>
+        <Name>leds.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
+        <Name>task.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
+        <Name>sys_ports_static.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/system/ports/src</Path>
+        <Checksum>CD73B6026C47DA1D1676A9791679D921</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_pmp_static.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/driver/pmp/src</Path>
+        <Checksum>D4D3FA20C24456EC6DE1FD8D21AE7B7D</Checksum>
+      </Template>
+      <Template>
+        <Name>display.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+      <Template>
+        <Name>system_exceptions.c</Name>
+        <Path>Source Files/app/system_config/wifire</Path>
+        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+      </Template>
+      <Template>
+        <Name>sys_clk_static.h</Name>
+        <Path>Header Files/app/system_config/wifire/framework/system/clk</Path>
+        <Checksum>999179DADE9ECD59953526F5E9F83ACC</Checksum>
+      </Template>
+      <Template>
+        <Name>sys_clk_static.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/system/clk/src</Path>
+        <Checksum>B77AF38194F288CDDB19E557A8F1D705</Checksum>
+      </Template>
+      <Template>
+        <Name>display.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
+        <Name>flircamera.c</Name>
+        <Path>Source Files/app</Path>
+      </Template>
+      <Template>
+        <Name>task.h</Name>
+        <Path>Header Files/app</Path>
+      </Template>
+    </Templates>
+    <Libraries>
+      <Library value="../../../../../microchip/harmony/v1_06_02/bin/framework/peripheral/PIC32MZ2048EFG100_peripherals.a"/>
+    </Libraries>
+  </Manifest>
+</configuration>
