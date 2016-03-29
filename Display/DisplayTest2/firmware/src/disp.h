@@ -62,7 +62,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_definitions.h"
 
 #define PWM_INCREMENT       (0x3F)
-#define DISPLAY_UPDATE      (500) /*Hz                                        */
+#define DISPLAY_UPDATE      (100) /*Hz                                        */
 #define NUMBER_SLICES       (16)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
@@ -85,6 +85,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #define SetOE()             LATCSET = _LATC_LATC1_MASK 
 #define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
 
+#define NUMBER_SPRITES      (3)
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Type Definitions                                                  */
@@ -161,6 +162,17 @@ typedef union {
 
 typedef struct
 {
+    struct {
+        struct {
+            int32_t x;
+            int32_t y;
+        } position;
+        struct {
+            int32_t x;
+            int32_t y;
+        } velocity;
+        PIXEL_TYPE color;
+    } sprite[NUMBER_SPRITES];
     union{
         uint32_t w;
         struct __attribute__ ((packed)) {
@@ -178,6 +190,7 @@ typedef struct
         uint8_t PWMLevel;
         uint32_t rows;
         uint32_t columns;
+        uint8_t numberSprites;
     } displayInfo;
     DISP_STATES state;
     SYS_MODULE_INDEX timerIndex; 

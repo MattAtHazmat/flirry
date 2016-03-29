@@ -201,7 +201,23 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.displayInfo.columns = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
     dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
-    //dispData.status.slice = 0x00;
+    dispData.displayInfo.numberSprites = NUMBER_SPRITES;
+
+    uint32_t sprite = 0;
+    for(sprite=0;sprite<dispData.displayInfo.numberSprites;sprite++)
+    {
+        dispData.sprite[sprite].position.x=(2*sprite)+dispData.displayInfo.columns<<24;
+        dispData.sprite[sprite].position.y=dispData.displayInfo.rows<<24;
+    }
+    dispData.sprite[0].color.blue=0x7f;
+    dispData.sprite[1].color.green=0x7f;
+    dispData.sprite[2].color.red=0x7f;
+    dispData.sprite[0].velocity.x=1<<16;
+    dispData.sprite[0].velocity.y=1<<16;
+    dispData.sprite[1].velocity.x=0b11<<15;
+    dispData.sprite[2].velocity.x=0b1<<12;
+    dispData.sprite[2].velocity.y=0b1<<15;
+
     ClearOE();
     ClearSTB();
     return true;
@@ -234,26 +250,7 @@ void DISP_Tasks ( void )
             }
             else if(!dispData.status.displayArrayFilled)
             {
-                /* fill up the array                                          */
-                uint32_t row,column;
-                uint8_t intensity=0;
                 memset(dispData.display,0,sizeof(dispData.display));
-#if false
-                dispData.display[10][0].red=0xff;
-                dispData.display[10][0].green = 0xff;
-                dispData.display[10][10].red=0xff;
-#else
-                for(column=0;column<dispData.displayInfo.columns;column++)
-                {
-                    for(row=0;row<dispData.displayInfo.rows;row++)                    
-                    {
-                        dispData.display[row][column].green=intensity;
-                        dispData.display[row][column].red=intensity;  
-                        dispData.display[row][column].blue=intensity;  
-                    }
-                    intensity=intensity+0x01;
-                }
-#endif
                 dispData.status.displayArrayFilled = true;
                 dispData.state = DISP_FILL_FIRST_SLICE;
             }
@@ -288,7 +285,37 @@ void DISP_Tasks ( void )
         {
             ClearSTB();
             if(!SendSlice())
-            {                
+            {       
+                uint8_t index;
+                memset(dispData.display,0,sizeof(dispData.display));
+                for(index=0;index<dispData.displayInfo.numberSprites;index++)
+                {
+                    dispData.sprite[index].position.x += dispData.sprite[index].velocity.x;
+                    if(dispData.sprite[index].position.x<0)
+                    {
+                        dispData.sprite[index].position.x = -dispData.sprite[index].position.x;
+                        dispData.sprite[index].velocity.x = -dispData.sprite[index].velocity.x;
+                    }
+                    else if(((dispData.sprite[index].position.x)>>24)>=dispData.displayInfo.columns)
+                    {
+                        dispData.sprite[index].position.x -= (dispData.displayInfo.columns<<24);
+                        dispData.sprite[index].velocity.x = -dispData.sprite[index].velocity.x;
+                    }
+                    dispData.sprite[index].position.y += dispData.sprite[index].velocity.y;
+                    if(dispData.sprite[index].position.y<0)
+                    {
+                        dispData.sprite[index].position.y = -dispData.sprite[index].position.y;
+                        dispData.sprite[index].velocity.y = -dispData.sprite[index].velocity.y;
+                    }
+                    else if(((dispData.sprite[index].position.y)>>24)>=dispData.displayInfo.rows)
+                    {
+                        dispData.sprite[index].position.y -= (dispData.displayInfo.rows<<24);
+                        dispData.sprite[index].velocity.y = -dispData.sprite[index].velocity.y;
+                    }
+                    dispData.display
+                                    [dispData.sprite[index].position.x>>24][dispData.sprite[index].position.y>>24].w = 
+                                        dispData.sprite[index].color.w;
+                }
                 break;
             }       
             /* otherwise, drop through                                        */
@@ -347,10 +374,6 @@ void DISP_FillSlice(DISP_DATA *displayData)
     for(column=0;column<(displayData->displayInfo.columns);column++)
     {
         row = displayData->status.slice;
-//        if(row==11 && column == 0)
-//        {
-//            Nop();//SYS_DEBUG_BreakPoint();
-//        }
         if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
         {
             displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= RED_0_MASK;
