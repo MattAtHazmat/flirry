@@ -160,16 +160,25 @@ typedef union {
     };
 } DISPLAY_PIXEL_TYPE;
 
+typedef union {
+    int32_t w;
+    struct __attribute__ ((packed)) {
+        unsigned :16;
+        int8_t value;
+        unsigned :8;
+    };
+} int32_b_TYPE;
+
 typedef struct
 {
     struct {
         struct {
-            int32_t x;
-            int32_t y;
+            int32_b_TYPE row;
+            int32_b_TYPE column;
         } position;
         struct {
-            int32_t x;
-            int32_t y;
+            int32_b_TYPE row;
+            int32_b_TYPE column;
         } velocity;
         PIXEL_TYPE color;
     } sprite[NUMBER_SPRITES];
@@ -188,8 +197,8 @@ typedef struct
     struct {
         uint8_t PWMIncrement;
         uint8_t PWMLevel;
-        uint32_t rows;
-        uint32_t columns;
+        int32_b_TYPE rows;
+        int32_b_TYPE columns;
         uint8_t numberSprites;
     } displayInfo;
     DISP_STATES state;

@@ -197,26 +197,35 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     PMAEN = _PMAEN_PTEN14_MASK | 0xFFC;
     /* Place the App state machine in its initial state.                      */
     dispData.state = DISP_STATE_INIT;
-    dispData.displayInfo.rows = DISPLAY_ROWS;
-    dispData.displayInfo.columns = DISPLAY_COLUMNS;
+    dispData.displayInfo.rows.value = DISPLAY_ROWS;
+    dispData.displayInfo.columns.value = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
     dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
     dispData.displayInfo.numberSprites = NUMBER_SPRITES;
-
-    uint32_t sprite = 0;
-    for(sprite=0;sprite<dispData.displayInfo.numberSprites;sprite++)
-    {
-        dispData.sprite[sprite].position.x=(2*sprite)+dispData.displayInfo.columns<<24;
-        dispData.sprite[sprite].position.y=dispData.displayInfo.rows<<24;
-    }
-    dispData.sprite[0].color.blue=0x7f;
+    dispData.sprite[0].position.row.value=0;
+    dispData.sprite[0].position.column.value=0;
+    dispData.sprite[0].color.red=0x7f;
+    dispData.sprite[1].position.row.value=2;
+    dispData.sprite[1].position.column.value=2;
     dispData.sprite[1].color.green=0x7f;
-    dispData.sprite[2].color.red=0x7f;
-    dispData.sprite[0].velocity.x=1<<16;
-    dispData.sprite[0].velocity.y=1<<16;
-    dispData.sprite[1].velocity.x=0b11<<15;
-    dispData.sprite[2].velocity.x=0b1<<12;
-    dispData.sprite[2].velocity.y=0b1<<15;
+    dispData.sprite[2].position.row.value=4;
+    dispData.sprite[2].position.column.value=4;
+    dispData.sprite[2].color.blue=0x7f;
+    //uint32_t sprite = 0;
+    
+//    for(sprite=0;sprite<dispData.displayInfo.numberSprites;sprite++)
+//    {
+//        dispData.sprite[sprite].position.row.value=(2*sprite)+10;
+//        dispData.sprite[sprite].position.column.value=(2*sprite)+10;
+//    }
+//    dispData.sprite[0].color.blue=0x7f;
+//    dispData.sprite[1].color.green=0x7f;
+//    dispData.sprite[2].color.red=0x7f;
+//    dispData.sprite[0].velocity.column.w =-(1<<8);
+//    dispData.sprite[0].velocity.row.w = 1<<8;
+//    dispData.sprite[1].velocity.row.w= 0b11<<7;
+//    dispData.sprite[2].velocity.row.w = 0b1<<4;
+//    dispData.sprite[2].velocity.column.w = 0b1<<7;
 
     ClearOE();
     ClearSTB();
@@ -290,30 +299,34 @@ void DISP_Tasks ( void )
                 memset(dispData.display,0,sizeof(dispData.display));
                 for(index=0;index<dispData.displayInfo.numberSprites;index++)
                 {
-                    dispData.sprite[index].position.x += dispData.sprite[index].velocity.x;
-                    if(dispData.sprite[index].position.x<0)
-                    {
-                        dispData.sprite[index].position.x = -dispData.sprite[index].position.x;
-                        dispData.sprite[index].velocity.x = -dispData.sprite[index].velocity.x;
-                    }
-                    else if(((dispData.sprite[index].position.x)>>24)>=dispData.displayInfo.columns)
-                    {
-                        dispData.sprite[index].position.x -= (dispData.displayInfo.columns<<24);
-                        dispData.sprite[index].velocity.x = -dispData.sprite[index].velocity.x;
-                    }
-                    dispData.sprite[index].position.y += dispData.sprite[index].velocity.y;
-                    if(dispData.sprite[index].position.y<0)
-                    {
-                        dispData.sprite[index].position.y = -dispData.sprite[index].position.y;
-                        dispData.sprite[index].velocity.y = -dispData.sprite[index].velocity.y;
-                    }
-                    else if(((dispData.sprite[index].position.y)>>24)>=dispData.displayInfo.rows)
-                    {
-                        dispData.sprite[index].position.y -= (dispData.displayInfo.rows<<24);
-                        dispData.sprite[index].velocity.y = -dispData.sprite[index].velocity.y;
-                    }
-                    dispData.display
-                                    [dispData.sprite[index].position.x>>24][dispData.sprite[index].position.y>>24].w = 
+//                    dispData.sprite[index].position.row.w += dispData.sprite[index].velocity.row.w;
+//                    if(dispData.sprite[index].position.row.value < 0)
+//                    {
+//                        dispData.sprite[index].position.row.w *= -1;
+//                        dispData.sprite[index].velocity.row.w *= -1;
+//                    }
+//                    else if(((dispData.sprite[index].position.row.value))>=dispData.displayInfo.rows.value)
+//                    {
+//                        dispData.sprite[index].position.row.w -= (dispData.displayInfo.columns.w);
+//                        dispData.sprite[index].velocity.row.w *= -1;
+//                    }
+//                    dispData.sprite[index].position.column.w += dispData.sprite[index].velocity.column.w;
+//                    if(dispData.sprite[index].position.column.value<0)
+//                    {
+//                        dispData.sprite[index].position.column.w *= -1;
+//                        dispData.sprite[index].velocity.column.w *= -1;
+//                    }
+//                    else if(((dispData.sprite[index].position.column.value))>= dispData.displayInfo.columns.value)
+//                    {
+//                        dispData.sprite[index].position.column.w -= (dispData.displayInfo.columns.w);
+//                        dispData.sprite[index].velocity.column.w *= -1;
+//                    }
+//                    dispData.sprite[index].position.row.value &= dispData.displayInfo.rows.value -1;
+//                    dispData.sprite[index].position.row.w &= 0x00ff0000;                    
+//                    dispData.sprite[index].position.column.value &= dispData.displayInfo.columns.value-1;
+//                    dispData.sprite[index].position.column.w &= 0x00ff0000;
+                    dispData.display[dispData.sprite[index].position.row.value]
+                                    [dispData.sprite[index].position.column.value].w = 
                                         dispData.sprite[index].color.w;
                 }
                 break;
@@ -371,7 +384,7 @@ void DISP_FillSlice(DISP_DATA *displayData)
     volatile uint32_t column;   
     /* start out with the entire pixel row as zero                            */
     memset(&displayData->sliceBuffer[displayData->status.bufferFilling],0,sizeof(displayData->sliceBuffer[0]));
-    for(column=0;column<(displayData->displayInfo.columns);column++)
+    for(column=0;column<(displayData->displayInfo.columns.value);column++)
     {
         row = displayData->status.slice;
         if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
@@ -386,7 +399,7 @@ void DISP_FillSlice(DISP_DATA *displayData)
         {
             displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= BLUE_0_MASK;
         }
-        row += (displayData->displayInfo.rows>>2);
+        row += NUMBER_SLICES;//(displayData->displayInfo.rows.upper>>2);
         if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
         {
            displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= RED_1_MASK;
@@ -399,7 +412,7 @@ void DISP_FillSlice(DISP_DATA *displayData)
         {
             displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= BLUE_1_MASK;
         }
-        row += (displayData->displayInfo.rows>>2);
+        row += NUMBER_SLICES;//(displayData->displayInfo.rows>>2);
         if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
         {
            displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= RED_2_MASK;
@@ -412,7 +425,7 @@ void DISP_FillSlice(DISP_DATA *displayData)
         {
             displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= BLUE_2_MASK;
         }
-        row += (displayData->displayInfo.rows>>2);
+        row += NUMBER_SLICES;//(displayData->displayInfo.rows>>2);
         if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
         {
            displayData->sliceBuffer[displayData->status.bufferFilling].pixel[column].w |= RED_3_MASK;
