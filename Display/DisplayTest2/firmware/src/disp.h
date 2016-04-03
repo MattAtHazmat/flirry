@@ -62,11 +62,13 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_definitions.h"
 
 #define PWM_INCREMENT       (0x3F)
-#define DISPLAY_UPDATE      (100) /*Hz                                        */
+#define DISPLAY_UPDATE      (240) /*Hz                                        */
 #define NUMBER_SLICES       (16)
+#define NUMBER_SLICES_BITS  (4)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
 #define DISPLAY_COLUMNS     (DISPLAY_QUANTA*3)
+#define COLUMNS_BITS        (7)
 #define RED_0_MASK          (0b00000001)
 #define GREEN_0_MASK        (0b00000010)
 #define BLUE_0_MASK         (0b00000100)
@@ -79,13 +81,16 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #define RED_3_MASK          (RED_0_MASK<<9)
 #define GREEN_3_MASK        (GREEN_0_MASK<<9)
 #define BLUE_3_MASK         (BLUE_0_MASK<<9)
-#define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS)
+#define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS+1)
 #define SetSTB()            LATDSET = _LATD_LATD10_MASK
 #define ClearSTB()          LATDCLR = _LATD_LATD10_MASK
 #define SetOE()             LATCSET = _LATC_LATC1_MASK 
 #define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
-
-#define NUMBER_SPRITES      (3)
+#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
+#define NUMBER_SPRITES      (64)
+#define DATA_WAIT           PMP_DATA_WAIT_ONE
+#define STROBE_WAIT         PMP_STROBE_WAIT_1
+#define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Type Definitions                                                  */
@@ -185,13 +190,13 @@ typedef struct
     union{
         uint32_t w;
         struct __attribute__ ((packed)) {
+            unsigned slice:4;
             unsigned nextSlice:1;
             unsigned timerOverrun:1;
             unsigned displayArrayFilled:1;
             unsigned timerStarted:1;
             unsigned firstSliceSent:1;
-            unsigned bufferFilling:1;
-            unsigned slice:4;
+            unsigned bufferFilling:1;            
         }status;
     };        
     struct {
@@ -209,8 +214,8 @@ typedef struct
     SYS_MODULE_OBJ timerModuleObject;
     SYS_MODULE_OBJ pmpModuleObject;
     union __attribute__ ((packed)){
-        DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE+1];
-        uint8_t  b8[2*(DISPLAY_BUFFER_SIZE+1)];
+        DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
+        uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
     } sliceBuffer[2];
     PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     PIXEL_TYPE display[DISPLAY_ROWS][DISPLAY_COLUMNS];    
