@@ -61,32 +61,32 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define PWM_INCREMENT       (0x3F)
+#define PWM_INCREMENT       (0x37)
 #define DISPLAY_UPDATE      (240) /*Hz                                        */
 #define NUMBER_SLICES       (16)
-#define NUMBER_SLICES_BITS  (4)
+//#define NUMBER_SLICES_BITS  (4)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
 #define DISPLAY_COLUMNS     (DISPLAY_QUANTA*3)
-#define COLUMNS_BITS        (7)
-#define RED_0_MASK          (0b00000001)
-#define GREEN_0_MASK        (0b00000010)
-#define BLUE_0_MASK         (0b00000100)
-#define RED_1_MASK          (RED_0_MASK<<3)
-#define GREEN_1_MASK        (GREEN_0_MASK<<3)
-#define BLUE_1_MASK         (BLUE_0_MASK<<3)
-#define RED_2_MASK          (RED_0_MASK<<6)
-#define GREEN_2_MASK        (GREEN_0_MASK<<6)
-#define BLUE_2_MASK         (BLUE_0_MASK<<6)
-#define RED_3_MASK          (RED_0_MASK<<9)
-#define GREEN_3_MASK        (GREEN_0_MASK<<9)
-#define BLUE_3_MASK         (BLUE_0_MASK<<9)
+//#define COLUMNS_BITS        (7)
+//#define RED_0_MASK          (0b00000001)
+//#define GREEN_0_MASK        (0b00000010)
+//#define BLUE_0_MASK         (0b00000100)
+//#define RED_1_MASK          (RED_0_MASK<<3)
+//#define GREEN_1_MASK        (GREEN_0_MASK<<3)
+//#define BLUE_1_MASK         (BLUE_0_MASK<<3)
+//#define RED_2_MASK          (RED_0_MASK<<6)
+//#define GREEN_2_MASK        (GREEN_0_MASK<<6)
+//#define BLUE_2_MASK         (BLUE_0_MASK<<6)
+//#define RED_3_MASK          (RED_0_MASK<<9)
+//#define GREEN_3_MASK        (GREEN_0_MASK<<9)
+//#define BLUE_3_MASK         (BLUE_0_MASK<<9)
 #define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS+1)
-#define SetSTB()            LATDSET = _LATD_LATD10_MASK
-#define ClearSTB()          LATDCLR = _LATD_LATD10_MASK
+#define SetSTB()            LATDCLR = _LATD_LATD10_MASK
+#define ClearSTB()          LATDSET = _LATD_LATD10_MASK
 #define SetOE()             LATCSET = _LATC_LATC1_MASK 
 #define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
-#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
+//#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
 #define NUMBER_SPRITES      (64)
 #define DATA_WAIT           PMP_DATA_WAIT_ONE
 #define STROBE_WAIT         PMP_STROBE_WAIT_1
@@ -190,13 +190,12 @@ typedef struct
     union{
         uint32_t w;
         struct __attribute__ ((packed)) {
-            unsigned slice:4;
+            unsigned bufferFilling:1; 
             unsigned nextSlice:1;
             unsigned timerOverrun:1;
             unsigned displayArrayFilled:1;
             unsigned timerStarted:1;
-            unsigned firstSliceSent:1;
-            unsigned bufferFilling:1;            
+            unsigned firstSliceSent:1;                       
         }status;
     };        
     struct {
@@ -206,6 +205,14 @@ typedef struct
         int32_b_TYPE columns;
         uint8_t numberSprites;
     } displayInfo;
+    union {
+        struct {
+            unsigned :8;
+            unsigned slice:4;
+            unsigned :4;
+        };
+        uint16_t address;
+    };
     DISP_STATES state;
     SYS_MODULE_INDEX timerIndex; 
     DRV_PMP_INDEX pmpIndex;
