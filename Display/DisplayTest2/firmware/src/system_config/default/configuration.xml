@@ -116,12 +116,13 @@
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
         <Checksum>899C3FABAA6487739B8AA8474BA98D2E</Checksum>
+        <ProjectFileChecksum>B5470F00BBF2F971914B62EDE4A37305</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>945CC77ED5D076D337CD46C4950084AA</Checksum>
-        <ProjectFileChecksum>7FCA5BFEB8E864CA37415D9CE5189E4F</ProjectFileChecksum>
+        <Checksum>03D25FD0F8DA7B47343EC476093CA3FC</Checksum>
+        <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>main.c</Name>
@@ -137,12 +138,13 @@
         <Name>disp.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>CA151B5BD75E161B8F956D4905B8111C</Checksum>
-        <ProjectFileChecksum>990C692759F86A679D7A9D29285CB91D</ProjectFileChecksum>
+        <ProjectFileChecksum>FD1C58BB5CAB12D0B1CC126C12A96A66</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>5635459FCDCB2161FDB24DB9DA5BD618</Checksum>
+        <Checksum>9D4E2DDC48D560BF5DBDA2BF10F1A945</Checksum>
+        <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
@@ -167,13 +169,13 @@
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
-        <Checksum>E8C935BED4628875A8C3428DDD07355C</Checksum>
+        <Checksum>45DCC5FDCEA03577B1B40B781BCC20C5</Checksum>
       </Template>
       <Template>
         <Name>disp.h</Name>
         <Path>Header Files/app</Path>
         <Checksum>3D6583DD48D76236C4A8A9502A100E9D</Checksum>
-        <ProjectFileChecksum>B657C531B9A6A56DB337F81BE295C742</ProjectFileChecksum>
+        <ProjectFileChecksum>F31C3037144E361F0C4529364FD170BD</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>

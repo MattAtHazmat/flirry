@@ -61,8 +61,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define PWM_INCREMENT       (0x37)
-#define DISPLAY_UPDATE      (240) /*Hz                                        */
+#define PWM_INCREMENT       (0x3F)
+#define DISPLAY_UPDATE      (300) /*Hz                                        */
 #define NUMBER_SLICES       (16)
 //#define NUMBER_SLICES_BITS  (4)
 #define DISPLAY_QUANTA      (32)
@@ -82,14 +82,19 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 //#define GREEN_3_MASK        (GREEN_0_MASK<<9)
 //#define BLUE_3_MASK         (BLUE_0_MASK<<9)
 #define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS+1)
-#define SetSTB()            LATDCLR = _LATD_LATD10_MASK
-#define ClearSTB()          LATDSET = _LATD_LATD10_MASK
-#define SetOE()             LATCSET = _LATC_LATC1_MASK 
-#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
+#ifdef STROBE_ACTIVE_LOW
+    #define SetSTB()        LATDCLR = _LATD_LATD10_MASK
+    #define ClearSTB()      LATDSET = _LATD_LATD10_MASK
+#else
+    #define SetSTB()        LATDSET = _LATD_LATD10_MASK
+    #define ClearSTB()      LATDCLR = _LATD_LATD10_MASK
+#endif
+//#define SetOE()             LATCSET = _LATC_LATC1_MASK 
+//#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
 //#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
 #define NUMBER_SPRITES      (64)
-#define DATA_WAIT           PMP_DATA_WAIT_ONE
-#define STROBE_WAIT         PMP_STROBE_WAIT_1
+#define DATA_WAIT           PMP_DATA_WAIT_FOUR
+#define STROBE_WAIT         PMP_STROBE_WAIT_10
 #define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
 /******************************************************************************/
 /******************************************************************************/

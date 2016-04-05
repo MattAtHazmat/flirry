@@ -179,7 +179,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     }
     pmpConfig.pmpMode=  PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
 	/* Interrupt mode                                                         */
-    pmpConfig.intMode=PMP_INTERRUPT_NONE;
+    pmpConfig.intMode = PMP_INTERRUPT_NONE;
 	/* address/buffer increment mode                                          */
     pmpConfig.incrementMode= PMP_ADDRESS_AUTO_INCREMENT;
 	/* Endian modes                                                           */
@@ -192,8 +192,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     pmpConfig.waitStates.dataHoldWait = DATA_HOLD_WAIT;
     
     /* PMP chip select pins selection                                         */
-	pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-    //pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
+	//pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
+    pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
 	DRV_PMP_ModeConfig ( dispData.pmpDriverHandle, pmpConfig );
     PMCONbits.CSF = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
     PMAEN = 0x00000F00;//_PMAEN_PTEN14_MASK | 0xFFC;
@@ -210,7 +210,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     {
         dispData.sprite[sprite].position.row.value=sprite;
         dispData.sprite[sprite].position.column.value=sprite;
-        dispData.sprite[sprite].color.green=0x7f;
+        dispData.sprite[sprite].color.red=0x7f;
     }
 //    dispData.sprite[1].position.row.value=2;
 //    dispData.sprite[1].position.column.value=2;
@@ -231,7 +231,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
                         [dispData.sprite[index].position.column.value].w = 
                             dispData.sprite[index].color.w;
     }
-    ClearOE();
+    //ClearOE();
     ClearSTB();
     return true;
 }
