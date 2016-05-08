@@ -106,7 +106,7 @@
 {
     .polarity.addressLatchPolarity = PMP_POLARITY_ACTIVE_HIGH,
     .polarity.rwStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
-    .polarity.writeEnableStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
+    .polarity.writeEnableStrobePolarity = PMP_POLARITY_ACTIVE_HIGH,
     .polarity.chipselect1Polarity = PMP_POLARITY_ACTIVE_HIGH,
     .polarity.chipselect2Polarity = PMP_POLARITY_ACTIVE_LOW,
     .ports.readWriteStrobe = PORT_DISABLE,

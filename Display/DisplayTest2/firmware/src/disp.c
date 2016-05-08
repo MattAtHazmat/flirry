@@ -338,12 +338,13 @@ void DISP_Tasks ( void )
         }
         case DISP_FIRST_SEND_SLICE:
         {
+           
             PLIB_PMP_AddressSet(dispData.pmpIndex,dispData.address);
             dispData.pQueue = DRV_PMP_Write(
                 &dispData.pmpDriverHandle,
                 0,
                 (uint32_t*)&dispData.sliceBuffer[dispData.status.bufferFilling],
-                (DISPLAY_BUFFER_SIZE)*2, /* since it is in bytes*/
+                ((DISPLAY_BUFFER_SIZE)*2), /* since it is in bytes*/
                 0);             
             dispData.status.bufferFilling ^= 1; /* switch the filling buffer  */
             dispData.status.firstSliceSent = true;

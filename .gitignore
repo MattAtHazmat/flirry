@@ -30,3 +30,45 @@
 
 # Debug files
 *.dSYM/
+
+# MPLAB X
+
+*.d
+*.pre
+*.p1
+*.lst
+*.sym
+*.obj
+*.o
+*.sdb
+*.obj.dmp
+html/
+nbproject/private/
+nbproject/Package-*.bash
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+funclist
+nbproject/Makefile-*
+disassembly/
+*.map
+*.mk
+*.bash
+*.properties
+
+# PIC32 Datasheets and FRM
+
+Documentation/PIC32
+
+# Lepton Documentation
+
+Documentation/Lepton
+
+# documentation directory of saved web-pages
+
+Documentation/Web*
+/Display/DisplayTest2/firmware/DisplayTest2.X/nbproject/private/
+/camera/firmware/camera.X/nbproject/private/
