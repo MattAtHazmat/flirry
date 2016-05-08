@@ -115,8 +115,12 @@ typedef struct
 
     /* TODO: Define any additional data used by the application. */
     DRV_HANDLE handleTmrDrv;
-
+    struct {
+        DRV_HANDLE drvHandle;
+        DRV_I2C_BUFFER_HANDLE bufferHandle;
+    } i2c;
 } FLIR_DATA;
+
 
 
 // *****************************************************************************

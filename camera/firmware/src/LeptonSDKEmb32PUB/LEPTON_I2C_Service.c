@@ -73,9 +73,11 @@
 #include "LEPTON_I2C_Service.h"
 //#include "atxmega128a1_I2C.h"
 //#include "jova_I2C.h"
-#include "aardvark_I2C.h"
+//#include "aardvark_I2C.h"
 //#include "ftdi_I2C.h"
-
+/* I2C Drivers from harmony */
+#include "driver/i2c/drv_i2c.h"
+#include "flir.h"
 /******************************************************************************/
 /** LOCAL DEFINES                                                            **/
 /******************************************************************************/
@@ -99,7 +101,7 @@
 /******************************************************************************/
 /** EXPORTED PUBLIC DATA                                                     **/
 /******************************************************************************/
-
+extern FLIR_DATA flirData;
 /******************************************************************************/
 /** EXPORTED PUBLIC FUNCTIONS                                                **/
 /******************************************************************************/
@@ -109,13 +111,18 @@
 LEP_RESULT LEP_I2C_MasterOpen(LEP_UINT16 portID, 
                               LEP_UINT16 *portBaudRate)
 {
-    LEP_RESULT result;
+    LEP_RESULT result = LEP_OK;
 
-    /* Call the I2C Device-Specific Driver to open device as a
-    ** Master
-    */ 
-    result = DEV_I2C_MasterInit( portID, portBaudRate );
-
+    /* Call the I2C Device-Specific Driver to open device as a Master */ 
+    
+    //result = DEV_I2C_MasterInitDEV_I2C_MasterInit( portID, portBaudRate );
+     
+    flirData.i2c.drvHandle = DRV_I2C_Open(DRV_I2C_PERIPHERAL_ID_IDX0, 
+                                         DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_READWRITE);
+    if(flirData.i2c.drvHandle == DRV_HANDLE_INVALID)
+    {
+        result = LEP_ERROR_I2C_FAIL; /* or maybe LEP_ERROR? */
+    }
     return(result);
 }
 
@@ -127,7 +134,8 @@ LEP_RESULT LEP_I2C_MasterClose(LEP_CAMERA_PORT_DESC_T_PTR portDescriptorPtr)
 
     /* Do any device-specific calls to implement a close operation
     */ 
-	result = DEV_I2C_MasterClose();
+    DRV_I2C_Close(flirData.i2c.drvHandle);
+	//result = DEV_I2C_MasterClose();
     return(result);
 }
 
@@ -136,7 +144,7 @@ LEP_RESULT LEP_I2C_MasterClose(LEP_CAMERA_PORT_DESC_T_PTR portDescriptorPtr)
 LEP_RESULT LEP_I2C_MasterReset(LEP_CAMERA_PORT_DESC_T_PTR portDescriptorPtr )
 {
     LEP_RESULT result = LEP_OK;
-
+    DRV_I2C_QueueFlush(flirData.i2c.drvHandle);
     return(result);
 }
 
@@ -166,15 +174,48 @@ LEP_RESULT LEP_I2C_MasterReadData(LEP_UINT16 portID,
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
     LEP_UINT16 numWordsRead;
-
-    result = DEV_I2C_MasterReadData(portID,
-                                    deviceAddress,
-                                    subAddress,
-                                    dataPtr,
-                                    dataLength,
-                                    &numWordsRead,
-                                    &transactionStatus
-                                   );
+    uint8_t TXBuffer[2];
+    uint8_t RXBuffer[RX_BUFFER_SIZE];
+    uint32_t bytesToRead;
+    uint32_t bytesTransferred;
+    uint32_t index;
+    uint32_t RXBufferIndex;
+    bytesToRead = dataLength<<1;
+    if(bytesToRead>=RX_BUFFER_SIZE)
+    {
+        /* buffer isn't big enough */
+        result = LEP_ERROR_I2C_FAIL;
+        return(result);
+    }
+    TXBuffer[0] = (uint8_t)(subAddress>>8);
+    TXBuffer[1] = (uint8_t)(subAddress & 0xFF);
+    flirData.i2c.bufferHandle = DRV_I2C_TransmitThenReceive(flirData.i2c.drvHandle,
+                                            deviceAddress,
+                                            TXBuffer,
+                                            2,
+                                            RXBuffer,
+                                            bytesToRead,
+                                            NULL);
+    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,I2CHandle);
+    if (bytesTransferred!=(bytesToRead+2))
+    {
+        /* not enough bytes in the transfer */
+        result = LEP_ERROR_I2C_NACK_RECEIVED;
+    }
+    /* okay, now copy the data into dataPTR */
+    index=0;
+    RXBufferIndex=0;
+    do {
+        dataPtr[index++]=(RXBuffer[RXBufferIndex++]<<8)+RXBuffer[RXBufferIndex++];
+    } while (index<dataLength);
+    //result = DEV_I2C_MasterReadData(portID,
+    //                                deviceAddress,
+    //                                subAddress,
+    //                                dataPtr,
+    //                                dataLength,
+    //                                &numWordsRead,
+    //                                &transactionStatus
+    //                               );
 
     return(result);
 }
@@ -201,15 +242,39 @@ LEP_RESULT LEP_I2C_MasterWriteData(LEP_UINT16 portID,
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
     LEP_UINT16 numWordsWritten;
-
-    result = DEV_I2C_MasterWriteData(portID,
-                                     deviceAddress,
-                                     subAddress,
-                                     dataPtr,
-                                     dataLength,
-                                     &numWordsWritten,
-                                     &transactionStatus
-                                    );
+    uint8_t TXBuffer[TX_BUFFER_SIZE];
+    uint32_t TXBufferIndex=0;
+    uint32_t index=0;
+    uint32_t bytesTransferred;
+    if(dataLength<<1 >= TX_BUFFER_SIZE)
+    {
+        /* buffer isn't big enough */
+        result = LEP_ERROR_I2C_FAIL;
+        return(result);
+    }
+    do {
+        TXBuffer[TXBufferIndex++] = (uint8_t) dataPtr[index]>>8;
+        TXBuffer[TXBufferIndex++] = (uint8_t) dataPtr[index]&0xFF;
+    } while (++index<dataLength);
+    flirData.i2c.bufferHandle = DRV_I2C_Transmit(flirData.i2c.drvHandle, 
+                                                 deviceAddress, 
+                                                 TXBuffer, 
+                                                 TXBufferIndex, 
+                                                 NULL);
+    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,I2CHandle);
+    if (bytesTransferred!=TXBufferIndex)
+    {
+        /* not enough bytes in the transfer */
+        result = LEP_ERROR_I2C_NACK_RECEIVED;
+    }
+    //result = DEV_I2C_MasterWriteData(portID,
+    //                                 deviceAddress,
+    //                                 subAddress,
+    //                                 dataPtr,
+    //                                 dataLength,
+    //                                 &numWordsWritten,
+    //                                 &transactionStatus
+    //                                );
     return(result);
 }
 
@@ -220,14 +285,32 @@ LEP_RESULT LEP_I2C_MasterReadRegister(LEP_UINT16 portID,
                                       LEP_UINT16 *regValue)
 {
     LEP_RESULT result = LEP_OK;
-    LEP_UINT16 transactionStatus;
-
-    result = DEV_I2C_MasterReadRegister(portID,
-                                        deviceAddress,
-                                        regAddress,
-                                        regValue,
-                                        &transactionStatus
-                                       );
+    //LEP_UINT16 transactionStatus;
+    uint8_t TXBuffer[2];
+    uint8_t RXBuffer[2];
+    uint32_t bytesTransferred;
+    TXBuffer[0] = (uint8_t)(regAddress>>8);
+    TXBuffer[1] = (uint8_t)(regAddress & 0xFF);
+    flirData.i2c.bufferHandle = DRV_I2C_TransmitThenReceive(flirData.i2c.drvHandle,
+                                            deviceAddress,
+                                            TXBuffer,
+                                            2,
+                                            RXBuffer,
+                                            2,
+                                            NULL);
+    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,
+                                                flirData.i2c.bufferHandle);
+    if (bytesTransferred!=4)
+    {
+        /* not enough bytes in the transfer */
+        result = LEP_ERROR_I2C_NACK_RECEIVED;
+    }
+    //result = DEV_I2C_MasterReadRegister(portID,
+    //                                    deviceAddress,
+    //                                    regAddress,
+    //                                    regValue,
+    //                                    &transactionStatus
+    //                                   );
     return(result);
 }
 
@@ -239,13 +322,22 @@ LEP_RESULT LEP_I2C_MasterWriteRegister(LEP_UINT16 portID,
 {
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
-
-    result = DEV_I2C_MasterWriteRegister(portID,
-                                         deviceAddress,
-                                         regAddress,
-                                         regValue,
-                                         &transactionStatus
-                                        );
+    uint8_t TXBufferIndex=0;
+    TXBuffer[TXBufferIndex++] = regAddress>>8;
+    TXBuffer[TXBufferIndex++] = regAddress & 0xFF;
+    TXBuffer[TXBufferIndex++] = regValue>>8;
+    TXBuffer[TXBufferIndex++] = regValue & 0xFF;
+    flirData.i2c.bufferHandle = DRV_I2C_Transmit(flirData.i2c.drvHandle, 
+                                                 deviceAddress, 
+                                                 TXBuffer, 
+                                                 TXBufferIndex, 
+                                                 NULL);
+    //result = DEV_I2C_MasterWriteRegister(portID,
+    //                                     deviceAddress,
+    //                                     regAddress,
+    //                                     regValue,
+    //                                     &transactionStatus
+    //                                    );
     return(result);
 }
 
@@ -256,7 +348,12 @@ LEP_RESULT LEP_I2C_MasterStatus(LEP_UINT16 portID,
                                 LEP_UINT16 *portStatus )
 {
     LEP_RESULT result = LEP_OK;
-
+    SYS_STATUS I2CDriverStatus;
+    I2CDriverStatus = DRV_I2C_Status(flirData.i2c.drvHandle);
+    if(I2CDriverStatus != SYS_STATUS_READY)
+    {
+        result = LEP_ERROR_I2C_FAIL;
+    }
     return(result);
 }
 
