@@ -58,6 +58,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stdlib.h>
 #include "system_config.h"
 #include "system_definitions.h"
+#include "LEPTON_SDK.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
@@ -88,10 +89,9 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	FLIR_STATE_INIT=0,
+    FLIR_OPEN_PORT,
 	FLIR_STATE_SERVICE_TASKS,
-
-	/* TODO: Define states used by the application state machine. */
-
+    FLIR_ERROR,
 } FLIR_STATES;
 
 
@@ -119,8 +119,10 @@ typedef struct
         DRV_HANDLE drvHandle;
         DRV_I2C_BUFFER_HANDLE bufferHandle;
     } i2c;
+    struct {
+        LEP_CAMERA_PORT_DESC_T cameraPort;
+    }lepton;
 } FLIR_DATA;
-
 
 
 // *****************************************************************************

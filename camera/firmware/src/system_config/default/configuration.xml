@@ -7,6 +7,10 @@
   <Manifest>
     <Files>
       <File>
+        <Name>sys_devcon_cache_pic32mz.S</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
         <Name>drv_tmr.h</Name>
         <Path>Header Files/framework/driver/tmr</Path>
       </File>
@@ -15,60 +19,12 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
-        <Name>sys_dma.h</Name>
-        <Path>Header Files/framework/system/dma</Path>
-      </File>
-      <File>
-        <Name>drv_i2c.c</Name>
-        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
-      </File>
-      <File>
-        <Name>sys_ports.h</Name>
-        <Path>Header Files/framework/system/ports</Path>
-      </File>
-      <File>
-        <Name>drv_spi_internal.h</Name>
-        <Path>Header Files/framework/driver/spi/private/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_spi_sys_queue.h</Name>
-        <Path>Header Files/framework/driver/spi/private</Path>
-      </File>
-      <File>
-        <Name>drv_spi.h</Name>
-        <Path>Header Files/framework/driver/spi</Path>
-      </File>
-      <File>
-        <Name>driver.h</Name>
-        <Path>Header Files/framework/driver</Path>
-      </File>
-      <File>
-        <Name>sys_common.h</Name>
-        <Path>Header Files/framework/system/common</Path>
-      </File>
-      <File>
-        <Name>sys_int_pic32.c</Name>
-        <Path>Source Files/framework/system/int/src</Path>
-      </File>
-      <File>
-        <Name>drv_spi_sys_queue_fifo.c</Name>
-        <Path>Source Files/framework/driver/spi</Path>
-      </File>
-      <File>
-        <Name>sys_devcon_cache_pic32mz.S</Name>
-        <Path>Source Files/framework/system/devcon/src</Path>
-      </File>
-      <File>
         <Name>drv_tmr.c</Name>
         <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
       </File>
       <File>
-        <Name>drv_spi.c</Name>
-        <Path>Source Files/framework/driver/spi/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_spi_sys_queue_local_fifo.h</Name>
-        <Path>Header Files/framework/driver/spi/private</Path>
+        <Name>sys_tmr.h</Name>
+        <Path>Header Files/framework/system/tmr</Path>
       </File>
       <File>
         <Name>sys_devcon_cache.h</Name>
@@ -79,12 +35,20 @@
         <Path>Source Files/framework/system/ports/src</Path>
       </File>
       <File>
+        <Name>sys_tmr.c</Name>
+        <Path>Source Files/framework/system/tmr/src</Path>
+      </File>
+      <File>
         <Name>sys_devcon.h</Name>
         <Path>Header Files/framework/system/devcon</Path>
       </File>
       <File>
         <Name>system.h</Name>
         <Path>Header Files/framework/system</Path>
+      </File>
+      <File>
+        <Name>drv_i2c.c</Name>
+        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
       </File>
       <File>
         <Name>drv_i2c.h</Name>
@@ -99,8 +63,20 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
-        <Name>sys_dma.c</Name>
-        <Path>Source Files/framework/system/dma</Path>
+        <Name>sys_ports.h</Name>
+        <Path>Header Files/framework/system/ports</Path>
+      </File>
+      <File>
+        <Name>driver.h</Name>
+        <Path>Header Files/framework/driver</Path>
+      </File>
+      <File>
+        <Name>sys_common.h</Name>
+        <Path>Header Files/framework/system/common</Path>
+      </File>
+      <File>
+        <Name>sys_int_pic32.c</Name>
+        <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
         <Name>sys_int.h</Name>
@@ -116,7 +92,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>B55CE72F4955F8C90127DD0D96F94384</Checksum>
+        <Checksum>BC21818B8991888109F73AFF859A3E69</Checksum>
       </Template>
       <Template>
         <Name>main.c</Name>
@@ -131,12 +107,13 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>5AEA6361466B587DA3E69009C2FD935A</Checksum>
+        <Checksum>090E97867258CC94761B5F6EF2292798</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+        <ProjectFileChecksum>137B7AF2389C618C34FBE452D9E62EF8</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -145,34 +122,27 @@
         <ProjectFileChecksum>5517A870A806891BD9A654A3C7436958</ProjectFileChecksum>
       </Template>
       <Template>
-        <Name>drv_spi_master_dma_tasks.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>ABD3BFDDF06D27E49DE2E7D95DC3B9C6</Checksum>
-      </Template>
-      <Template>
         <Name>global_event.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>D2E55E3D097D44D37CEBD4D6CB2B05CE</Checksum>
       </Template>
       <Template>
-        <Name>drv_spi_tasks.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>DB10630DD163BF0833E31B966391D498</Checksum>
-      </Template>
-      <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>F7B95D9244894AD7B2769AAE0FE879BE</Checksum>
+        <Checksum>3C8396E3CB57E30CEF15FB3D7A19E9E3</Checksum>
+        <ProjectFileChecksum>8CEC43682CFD0A8D495EFE425A2DF262</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>flir.h</Name>
         <Path>Header Files/app</Path>
         <Checksum>6122A149C059A40827F0BF6A003CEF39</Checksum>
+        <ProjectFileChecksum>DF3C006B41DFD7FC8AA311503F36FA1F</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>0BC04F65A1EDB1D460D27BD7EDCDE186</Checksum>
+        <Checksum>A0B3C0351182F35D382369C92C6AEAEE</Checksum>
+        <ProjectFileChecksum>6568DFFDFE37434C5168550930F32621</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
@@ -182,22 +152,12 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>15D4B3DC3D20FF463C2A1F1B911DE4F1</Checksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_master_ebm_tasks.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>4C2C868738FD74E2D6A3C8A8FD6B1381</Checksum>
+        <Checksum>33F036BB736456C4F7560E13C89C95AB</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
         <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_api.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>4FF988138085F1E9771E88FD07FB9B64</Checksum>
       </Template>
     </Templates>
     <Libraries>

@@ -117,7 +117,7 @@ LEP_RESULT LEP_I2C_MasterOpen(LEP_UINT16 portID,
     
     //result = DEV_I2C_MasterInitDEV_I2C_MasterInit( portID, portBaudRate );
      
-    flirData.i2c.drvHandle = DRV_I2C_Open(DRV_I2C_PERIPHERAL_ID_IDX0, 
+    flirData.i2c.drvHandle = DRV_I2C_Open(DRV_I2C_INDEX_0, 
                                          DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_READWRITE);
     if(flirData.i2c.drvHandle == DRV_HANDLE_INVALID)
     {
@@ -171,6 +171,7 @@ LEP_RESULT LEP_I2C_MasterReadData(LEP_UINT16 portID,
                                   LEP_UINT16 *dataPtr,
                                   LEP_UINT16 dataLength)
 {
+    DRV_I2C_BUFFER_EVENT I2CStatus;
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
     LEP_UINT16 numWordsRead;
@@ -196,7 +197,13 @@ LEP_RESULT LEP_I2C_MasterReadData(LEP_UINT16 portID,
                                             RXBuffer,
                                             bytesToRead,
                                             NULL);
-    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,I2CHandle);
+    do
+    {
+        I2CStatus = DRV_I2C_TransferStatusGet(flirData.i2c.drvHandle,
+                                              flirData.i2c.bufferHandle);
+    } while(DRV_I2C_BUFFER_EVENT_COMPLETE != I2CStatus);
+    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,
+                                                flirData.i2c.bufferHandle);
     if (bytesTransferred!=(bytesToRead+2))
     {
         /* not enough bytes in the transfer */
@@ -261,7 +268,8 @@ LEP_RESULT LEP_I2C_MasterWriteData(LEP_UINT16 portID,
                                                  TXBuffer, 
                                                  TXBufferIndex, 
                                                  NULL);
-    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,I2CHandle);
+    bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,
+                                                flirData.i2c.bufferHandle);
     if (bytesTransferred!=TXBufferIndex)
     {
         /* not enough bytes in the transfer */
@@ -322,7 +330,8 @@ LEP_RESULT LEP_I2C_MasterWriteRegister(LEP_UINT16 portID,
 {
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
-    uint8_t TXBufferIndex=0;
+    uint8_t TXBuffer[4];
+    uint32_t TXBufferIndex=0;
     TXBuffer[TXBufferIndex++] = regAddress>>8;
     TXBuffer[TXBufferIndex++] = regAddress & 0xFF;
     TXBuffer[TXBufferIndex++] = regValue>>8;

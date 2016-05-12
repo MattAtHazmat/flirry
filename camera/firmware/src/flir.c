@@ -147,7 +147,7 @@ void FLIR_Initialize ( void )
 }
 
 
-/******************************************************************************
+/******************************************************************************0
   Function:
     void FLIR_Tasks ( void )
 
@@ -157,7 +157,7 @@ void FLIR_Initialize ( void )
 
 void FLIR_Tasks ( void )
 {
-
+    LEP_RESULT result;
     /* Check the application's current state. */
     switch ( flirData.state )
     {
@@ -175,12 +175,36 @@ void FLIR_Tasks ( void )
             if (appInitialized)
             {
                 TimerSetup();
-            
+                BSP_LEDOn(BSP_LED_1);
+                flirData.state = FLIR_OPEN_PORT;
+            }
+            break;
+        }
+        case FLIR_OPEN_PORT:
+        {
+            BSP_LEDOn(BSP_LED_2);
+            result = LEP_OpenPort(0,
+                                  LEP_CCI_TWI,
+                                    #ifdef BB_ENABLED
+                                        DRV_I2C_BIT_BANG_BAUD_RATE_IDX0
+                                    #else
+                                        DRV_I2C_BAUD_RATE_IDX0
+                                    #endif
+                                  /1000,&flirData.lepton.cameraPort);
+            if(result != LEP_OK)
+            {
+                flirData.state = FLIR_ERROR;
+            }
+            else
+            {
+                BSP_LEDOff(BSP_LED_1);
+                BSP_LEDOff(BSP_LED_2);
+                BSP_LEDOff(BSP_LED_3);
+                BSP_LEDOn(BSP_LED_4);
                 flirData.state = FLIR_STATE_SERVICE_TASKS;
             }
             break;
         }
-
         case FLIR_STATE_SERVICE_TASKS:
         {
             LedTask();
@@ -191,10 +215,13 @@ void FLIR_Tasks ( void )
         /* TODO: implement your application state machine.*/
         
 
-        /* The default state should never be executed. */
+        case FLIR_ERROR:
         default:
         {
-            /* TODO: Handle error in application's state machine. */
+            BSP_LEDOn(BSP_LED_1);
+            BSP_LEDOn(BSP_LED_2);
+            BSP_LEDOn(BSP_LED_3);
+            BSP_LEDOn(BSP_LED_4);
             break;
         }
     }

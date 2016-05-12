@@ -189,16 +189,13 @@ LEP_RESULT LEP_GetSysCameraUpTime( LEP_CAMERA_PORT_DESC_T_PTR portDescPtr,
    LEP_RESULT  result = LEP_OK;
    LEP_UINT16 attributeWordLength = 2; /* two 16-bit values */
 
-   /* Validate Parameter(s)
-   */
+   /* Validate Parameter(s)   */
    if( sysCameraUpTimePtr == NULL )
    {
       return( LEP_BAD_ARG_POINTER_ERROR );
    }
 
-   /* Perform Command
-   ** Reading the Camera's Serial Number
-   */
+   /* Perform Command   ** Reading the Camera's Serial Number   */
    result = LEP_GetAttribute( portDescPtr,
                               ( LEP_COMMAND_ID )LEP_CID_SYS_CAM_UPTIME,
                               ( LEP_ATTRIBUTE_T_PTR )sysCameraUpTimePtr,
@@ -212,8 +209,7 @@ LEP_RESULT LEP_GetSysAuxTemperatureCelcius( LEP_CAMERA_PORT_DESC_T_PTR portDescP
    LEP_RESULT  result = LEP_OK;
    LEP_SYS_AUX_TEMPERATURE_KELVIN_T unitsKelvin;
 
-   /* Validate Parameter(s)
-   */
+   /* Validate Parameter(s)   */
    if( auxTemperaturePtr == NULL )
    {
       return( LEP_BAD_ARG_POINTER_ERROR );
@@ -232,8 +228,7 @@ LEP_RESULT LEP_GetSysFpaTemperatureCelcius( LEP_CAMERA_PORT_DESC_T_PTR portDescP
    LEP_RESULT  result = LEP_OK;
    LEP_SYS_FPA_TEMPERATURE_KELVIN_T unitsKelvin;
 
-   /* Validate Parameter(s)
-   */
+   /* Validate Parameter(s)   */
    if( fpaTemperaturePtr == NULL )
    {
       return( LEP_BAD_ARG_POINTER_ERROR );
@@ -251,16 +246,13 @@ LEP_RESULT LEP_GetSysAuxTemperatureKelvin( LEP_CAMERA_PORT_DESC_T_PTR portDescPt
    LEP_RESULT  result = LEP_OK;
    LEP_UINT16 attributeWordLength = 1; /* one 16-bit values */
 
-   /* Validate Parameter(s)
-   */
+   /* Validate Parameter(s)   */
    if( auxTemperaturePtr == NULL )
    {
       return( LEP_BAD_ARG_POINTER_ERROR );
    }
 
-   /* Perform Command
-   ** Reading the Camera's Serial Number
-   */
+   /* Perform Command   ** Reading the Camera's Serial Number   */
    result = LEP_GetAttribute( portDescPtr,
                               ( LEP_COMMAND_ID )LEP_CID_SYS_AUX_TEMPERATURE_KELVIN,
                               ( LEP_ATTRIBUTE_T_PTR )auxTemperaturePtr,
@@ -274,16 +266,13 @@ LEP_RESULT LEP_GetSysFpaTemperatureKelvin( LEP_CAMERA_PORT_DESC_T_PTR portDescPt
    LEP_RESULT  result = LEP_OK;
    LEP_UINT16 attributeWordLength = 1; /* one 16-bit values */
 
-   /* Validate Parameter(s)
-   */
+   /* Validate Parameter(s)   */
    if( fpaTemperaturePtr == NULL )
    {
       return( LEP_BAD_ARG_POINTER_ERROR );
    }
 
-   /* Perform Command
-   ** Reading the Camera's Serial Number
-   */
+   /* Perform Command   ** Reading the Camera's Serial Number   */
    result = LEP_GetAttribute( portDescPtr,
                               ( LEP_COMMAND_ID )LEP_CID_SYS_FPA_TEMPERATURE_KELVIN,
                               ( LEP_ATTRIBUTE_T_PTR )fpaTemperaturePtr,
@@ -302,9 +291,7 @@ LEP_RESULT LEP_GetSysTelemetryEnableState( LEP_CAMERA_PORT_DESC_T_PTR portDescPt
       return( LEP_BAD_ARG_POINTER_ERROR );
    }
 
-   /* Perform Command
-   ** 
-   */
+   /* Perform Command   **    */
    result = LEP_GetAttribute( portDescPtr,
                               ( LEP_COMMAND_ID )LEP_CID_SYS_TELEMETRY_ENABLE_STATE,
                               ( LEP_ATTRIBUTE_T_PTR )enableStatePtr,
@@ -324,9 +311,7 @@ LEP_RESULT LEP_SetSysTelemetryEnableState( LEP_CAMERA_PORT_DESC_T_PTR portDescPt
       return( LEP_RANGE_ERROR );
    }
 
-   /* Perform Command
-   ** 
-   */
+   /* Perform Command   **    */
    result = LEP_SetAttribute( portDescPtr,
                               ( LEP_COMMAND_ID )LEP_CID_SYS_TELEMETRY_ENABLE_STATE,
                               ( LEP_ATTRIBUTE_T_PTR ) & enableState,

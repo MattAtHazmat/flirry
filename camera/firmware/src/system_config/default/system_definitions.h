@@ -56,11 +56,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/clk/sys_clk_static.h"
 #include "system/devcon/sys_devcon.h"
 #include "system/int/sys_int.h"
-#include "system/dma/sys_dma.h"
+#include "system/tmr/sys_tmr.h"
 #include "driver/tmr/drv_tmr.h"
 #include "driver/i2c/drv_i2c.h"
 #include "system/ports/sys_ports.h"
-#include "driver/spi/drv_spi.h"
 
 
 #include "flir.h"
@@ -98,12 +97,10 @@ extern "C" {
 typedef struct
 {
     SYS_MODULE_OBJ  sysDevcon;
-    SYS_MODULE_OBJ  sysDma;
+    SYS_MODULE_OBJ  sysTmr;
     SYS_MODULE_OBJ  drvTmr0;
+    SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvI2C0;
-
-    /*** SPI Object for Index 0 ***/
-    SYS_MODULE_OBJ				spiObjectIdx0;
 
 } SYSTEM_OBJECTS;
 

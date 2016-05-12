@@ -80,8 +80,9 @@ extern "C"
        #include <windows.h> 
        #define WINDOWSS 1;
     #else
-       #include <stdlib.h>
-       #include <stdbool.h>
+        #include <stdlib.h>
+        #include <stdbool.h>
+        #include <stdint.h>
     #endif
     
 /******************************************************************************/
@@ -97,7 +98,7 @@ extern "C"
 /** EXPORTED TYPE DEFINITIONS                                                **/
 /******************************************************************************/
 
-    #ifdef _STDINT_H
+    #ifdef _SYS_STDINT_H_
     typedef uint8_t             LEP_UINT8;
     typedef uint8_t             LEP_UCHAR;
     typedef int8_t              LEP_INT8;
@@ -156,8 +157,7 @@ extern "C"
     typedef unsigned char       LEP_BOOL, *LEP_BOOL_PTR;
     #endif        
 
-    /* NULL
-    */ 
+    /* NULL    */ 
     #ifndef NULL
         #define NULL '\0'
     #endif
@@ -200,8 +200,7 @@ extern "C"
     }LEP_ON_STATE;
 
 
-    /* Lepton physical tranport interfaces
-    */ 
+    /* Lepton physical tranport interfaces    */ 
     typedef enum LEP_CAMERA_PORT_E_TAG
     {
         LEP_CCI_TWI=0,
@@ -209,8 +208,7 @@ extern "C"
         LEP_END_CCI_PORTS
     }LEP_CAMERA_PORT_E, *LEP_CAMERA_PORT_E_PTR;
 
-    /* Lepton supported TWI  clock rates
-    */ 
+    /* Lepton supported TWI  clock rates    */ 
     typedef enum LEP_TWI_CLOCK_RATE_T_TAG
     {
         LEP_TWI_CLOCK_100KHZ=0,
@@ -220,8 +218,7 @@ extern "C"
 
     }LEP_TWI_CLOCK_RATE_T, *LEP_TWI_CLOCK_RATE_T_PTR;
 
-    /* Lepton supported SPI  clock rates
-    */ 
+    /* Lepton supported SPI  clock rates    */ 
     typedef enum LEP_SPI_CLOCK_RATE_T_TAG
     {
         LEP_SPI_CLOCK_2MHZ=0,
@@ -231,8 +228,7 @@ extern "C"
 
     }LEP_SPI_CLOCK_RATE_T, *LEP_SPI_CLOCK_RATE_T_PTR;
 
-    /* Communications Port Descriptor Type
-    */ 
+    /* Communications Port Descriptor Type    */ 
     typedef struct  LEP_CAMERA_PORT_DESC_T_TAG
     {
         LEP_UINT16  portID;
