@@ -4,10 +4,10 @@
 # NOCDDL
 #
 CND_BASEDIR=`pwd`
-# default configuration
-CND_ARTIFACT_DIR_default=dist/default/production
-CND_ARTIFACT_NAME_default=camera.X.production.hex
-CND_ARTIFACT_PATH_default=dist/default/production/camera.X.production.hex
-CND_PACKAGE_DIR_default=${CND_DISTDIR}/default/package
-CND_PACKAGE_NAME_default=camera.x.tar
-CND_PACKAGE_PATH_default=${CND_DISTDIR}/default/package/camera.x.tar
+# WiFire configuration
+CND_ARTIFACT_DIR_WiFire=dist/WiFire/production
+CND_ARTIFACT_NAME_WiFire=camera.X.production.hex
+CND_ARTIFACT_PATH_WiFire=dist/WiFire/production/camera.X.production.hex
+CND_PACKAGE_DIR_WiFire=${CND_DISTDIR}/WiFire/package
+CND_PACKAGE_NAME_WiFire=camera.x.tar
+CND_PACKAGE_PATH_WiFire=${CND_DISTDIR}/WiFire/package/camera.x.tar

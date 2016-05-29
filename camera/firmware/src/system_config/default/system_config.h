@@ -57,6 +57,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 /*  This section Includes other configuration headers necessary to completely
     define this configuration.
 */
+#include "bsp_config.h"
 
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
@@ -104,7 +105,7 @@ extern "C" {
 #define SYS_PORT_A_CNPD         0x0
 #define SYS_PORT_A_CNEN         0x0
 
-#define SYS_PORT_B_ANSEL        0x0
+#define SYS_PORT_B_ANSEL        0x7020
 #define SYS_PORT_B_TRIS         0xf7ff
 #define SYS_PORT_B_LAT          0x0
 #define SYS_PORT_B_ODC          0x0
@@ -173,10 +174,10 @@ extern "C" {
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
-#define DRV_TMR_PERIPHERAL_ID_IDX0          TMR_ID_1
-#define DRV_TMR_INTERRUPT_SOURCE_IDX0       INT_SOURCE_TIMER_1
-#define DRV_TMR_INTERRUPT_VECTOR_IDX0       INT_VECTOR_T1
-#define DRV_TMR_ISR_VECTOR_IDX0             _TIMER_1_VECTOR
+#define DRV_TMR_PERIPHERAL_ID_IDX0          TMR_ID_3
+#define DRV_TMR_INTERRUPT_SOURCE_IDX0       INT_SOURCE_TIMER_3
+#define DRV_TMR_INTERRUPT_VECTOR_IDX0       INT_VECTOR_T3
+#define DRV_TMR_ISR_VECTOR_IDX0             _TIMER_3_VECTOR
 #define DRV_TMR_INTERRUPT_PRIORITY_IDX0     INT_PRIORITY_LEVEL1
 #define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX0 INT_SUBPRIORITY_LEVEL0
 #define DRV_TMR_CLOCK_SOURCE_IDX0           DRV_TMR_CLKSOURCE_INTERNAL
@@ -201,6 +202,7 @@ extern "C" {
  // *****************************************************************************
 /* I2C Driver Configuration Options
 */
+#define BB_ENABLED
 #define DRV_I2C_INTERRUPT_MODE                    		true
 #define DRV_I2C_CLIENTS_NUMBER                    		1
 #define DRV_I2C_INSTANCES_NUMBER                  		1
@@ -211,28 +213,16 @@ extern "C" {
 #define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_8
 #define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_G
 #define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_7
-#define DRV_I2C_BIT_BANG_IDX0                           false
+#define DRV_I2C_BIT_BANG_IDX0                           true
+#define DRV_I2C_BIT_BANG_BAUD_RATE_IDX0                 50000
+#define DRV_I2C_BIT_BANG_TMR_MODULE_IDX0                TMR_ID_9
+#define DRV_I2C_BIT_BANG_INT_SRC_IDX0                   INT_SOURCE_TIMER_9
 #define DRV_I2C_STOP_IN_IDLE_IDX0                       false
 #define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
-#define DRV_I2C_BAUD_RATE_IDX0                    		50000
-#define DRV_I2C_BRG_CLOCK_IDX0	                  		100000000
+#define DRV_I2C_BAUD_RATE_IDX0                    		
+#define DRV_I2C_BRG_CLOCK_IDX0	                  		
 #define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
-#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_4_MASTER
-#define DRV_I2C_SLAVE_INT_SRC_IDX0                		
-#define DRV_I2C_ERR_MZ_INT_SRC_IDX0               		INT_SOURCE_I2C_4_BUS
-#define DRV_I2C_MASTER_INT_VECTOR_IDX0            		INT_VECTOR_I2C4_MASTER
-#define DRV_I2C_MASTER_ISR_VECTOR_IDX0                  _I2C4_MASTER_VECTOR
-#define DRV_I2C_MASTER_INT_PRIORITY_IDX0          		INT_PRIORITY_LEVEL1
-#define DRV_I2C_MASTER_INT_SUB_PRIORITY_IDX0      		INT_SUBPRIORITY_LEVEL0
-#define DRV_I2C_SLAVE_INT_VECTOR_IDX0             		INT_VECTOR_I2C4_SLAVE
-#define DRV_I2C_SLAVE_ISR_VECTOR_IDX0			  	    _I2C4_SLAVE_VECTOR
-#define DRV_I2C_SLAVE_INT_PRIORITY_IDX0           		
-#define DRV_I2C_SLAVE_INT_SUB_PRIORITY_IDX0       		
-#define DRV_I2C_ERR_INT_VECTOR_IDX0               		INT_VECTOR_I2C4_BUS
-#define DRV_I2C_ERR_ISR_VECTOR_IDX0                     _I2C4_BUS_VECTOR
-#define DRV_I2C_ERR_INT_PRIORITY_IDX0             		INT_PRIORITY_LEVEL1
-#define DRV_I2C_ERR_INT_SUB_PRIORITY_IDX0         		INT_SUBPRIORITY_LEVEL0
-#define DRV_I2C_POWER_STATE_IDX0                  		SYS_MODULE_POWER_RUN_FULL
+#define DRV_I2C_POWER_STATE_IDX0                  		
 
 
 // *****************************************************************************
@@ -240,6 +230,12 @@ extern "C" {
 // Section: Middleware & Other Library Configuration
 // *****************************************************************************
 // *****************************************************************************
+
+// *****************************************************************************
+/* BSP Configuration Options
+*/
+#define BSP_OSC_FREQUENCY 24000000
+
 
 
 
@@ -251,7 +247,7 @@ extern "C" {
 
 /*** Application Instance 0 Configuration ***/
 
-#define FLIR_LED            
+#define FLIR_LED            BSP_LED_3
 #define FLIR_TMR_DRV                       1
 #define FLIR_TMR_DRV_IS_PERIODIC           true
 #define FLIR_TMR_DRV_PERIOD                0xfe51

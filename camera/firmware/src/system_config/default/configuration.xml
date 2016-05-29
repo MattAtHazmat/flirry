@@ -19,6 +19,10 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
+        <Name>drv_i2c_bb.h</Name>
+        <Path>Header Files/framework/driver/i2c</Path>
+      </File>
+      <File>
         <Name>drv_tmr.c</Name>
         <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
       </File>
@@ -47,12 +51,8 @@
         <Path>Header Files/framework/system</Path>
       </File>
       <File>
-        <Name>drv_i2c.c</Name>
-        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_i2c.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
+        <Name>bsp_sys_init.c</Name>
+        <Path>Source Files/bsp/chipkit_wifire</Path>
       </File>
       <File>
         <Name>sys_module.h</Name>
@@ -67,6 +67,10 @@
         <Path>Header Files/framework/system/ports</Path>
       </File>
       <File>
+        <Name>drv_i2c_bb_a.h</Name>
+        <Path>Header Files/framework/driver/i2c</Path>
+      </File>
+      <File>
         <Name>driver.h</Name>
         <Path>Header Files/framework/driver</Path>
       </File>
@@ -77,6 +81,18 @@
       <File>
         <Name>sys_int_pic32.c</Name>
         <Path>Source Files/framework/system/int/src</Path>
+      </File>
+      <File>
+        <Name>drv_i2c_bb_a.c</Name>
+        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>bsp_config.h</Name>
+        <Path>Header Files/bsp/chipkit_wifire</Path>
+      </File>
+      <File>
+        <Name>drv_i2c_bb.c</Name>
+        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
       </File>
       <File>
         <Name>sys_int.h</Name>
@@ -92,7 +108,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>BC21818B8991888109F73AFF859A3E69</Checksum>
+        <Checksum>E26552F4D25A1296023D3E0669B89798</Checksum>
       </Template>
       <Template>
         <Name>main.c</Name>
@@ -107,7 +123,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>090E97867258CC94761B5F6EF2292798</Checksum>
+        <Checksum>F9170572DD3EF6D50EA1DF0D98073BBC</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -141,8 +157,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>A0B3C0351182F35D382369C92C6AEAEE</Checksum>
-        <ProjectFileChecksum>6568DFFDFE37434C5168550930F32621</ProjectFileChecksum>
+        <Checksum>000B5E0EF4AC9AC04C0D341080FBFE11</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
@@ -152,7 +167,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>33F036BB736456C4F7560E13C89C95AB</Checksum>
+        <Checksum>E00FAACA315CB10F36DEAF30D9D0FA48</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
@@ -160,6 +175,11 @@
         <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
       </Template>
     </Templates>
+    <CompilerItems>
+      <C32>
+        <Include value="../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire"/>
+      </C32>
+    </CompilerItems>
     <Libraries>
       <Library value="../../../../../microchip/harmony/v1_07_01/bin/framework/peripheral/PIC32MZ2048EFG100_peripherals.a"/>
     </Libraries>

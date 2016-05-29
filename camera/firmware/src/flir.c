@@ -139,7 +139,6 @@ static void TimerSetup( void )
 
 void FLIR_Initialize ( void )
 {
-    BSP_Initialize();
     /* Place the App state machine in its initial state. */
     flirData.state = FLIR_STATE_INIT;
 

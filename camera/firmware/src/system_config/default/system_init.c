@@ -93,9 +93,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #pragma config FDMTEN =     OFF
 /*** DEVCFG2 ***/
 
-#pragma config FPLLIDIV =   DIV_1
+#pragma config FPLLIDIV =   DIV_3
 #pragma config FPLLRNG =    RANGE_5_10_MHZ
-#pragma config FPLLICLK =   PLL_FRC
+#pragma config FPLLICLK =   PLL_POSC
 #pragma config FPLLMULT =   MUL_50
 #pragma config FPLLODIV =   DIV_2
 #pragma config UPLLFSEL =   FREQ_24MHZ
@@ -128,12 +128,17 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 const DRV_I2C_INIT drvI2C0InitData =
 {
     .i2cId = DRV_I2C_PERIPHERAL_ID_IDX0,
+    .i2cPerph = DRV_I2C_BIT_BANG_IDX0,
     .i2cMode = DRV_I2C_OPERATION_MODE_IDX0,
-    .baudRate = DRV_I2C_BAUD_RATE_IDX0,
+    .portSCL = DRV_SCL_PORT_IDX0,
+	.pinSCL  = DRV_SCL_PIN_POSITION_IDX0,
+	.portSDA = DRV_SDA_PORT_IDX0,
+	.pinSDA  = DRV_SDA_PIN_POSITION_IDX0,
+    .baudRate = DRV_I2C_BIT_BANG_BAUD_RATE_IDX0,
+	.tmrSource = DRV_I2C_BIT_BANG_TMR_MODULE_IDX0,
+	.tmrInterruptSource = DRV_I2C_BIT_BANG_INT_SRC_IDX0,
     .busspeed = DRV_I2C_SLEW_RATE_CONTROL_IDX0,
     .buslevel = DRV_I2C_SMBus_SPECIFICATION_IDX0,
-    .mstrInterruptSource = DRV_I2C_MASTER_INT_SRC_IDX0,
-    .errInterruptSource = DRV_I2C_ERR_MZ_INT_SRC_IDX0,
 };
 
 
@@ -237,23 +242,23 @@ void SYS_Initialize ( void* data )
     sysObj.sysDevcon = SYS_DEVCON_Initialize(SYS_DEVCON_INDEX_0, (SYS_MODULE_INIT*)&sysDevconInit);
     SYS_DEVCON_PerformanceConfig(SYS_CLK_SystemFrequencyGet());
     SYS_PORTS_Initialize();
+    /* Board Support Package Initialization */
+    BSP_Initialize();        
 
     /* Initialize Drivers */
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
 
 
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_MASTER, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_MASTER, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_BUS, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T9, INT_PRIORITY_LEVEL3);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T9, INT_SUBPRIORITY_LEVEL0);
 
 
 
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
 
-    SYS_INT_VectorPrioritySet(INT_VECTOR_T1, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_T1, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T3, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T3, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T2, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T2, INT_SUBPRIORITY_LEVEL0);
  

@@ -71,7 +71,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
     
-void __ISR(_TIMER_1_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
+void __ISR(_TIMER_3_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
@@ -83,16 +83,12 @@ void __ISR(_TIMER_2_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance1(void)
  
 
      
-void __ISR(_I2C4_MASTER_VECTOR, ipl1AUTO) _IntHandlerDrvI2CMasterInstance0(void)
+void __ISR(_TIMER_9_VECTOR, ipl3AUTO) _IntHandlerDrvI2CMasterInstance0(void)
 {
-    DRV_I2C_Tasks(sysObj.drvI2C0);
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_9);
+	DRV_I2C_BB_Tasks(sysObj.drvI2C0);
 }
       
-
-void __ISR(_I2C4_BUS_VECTOR, ipl1AUTO) _IntHandlerDrvI2CErrorInstance0(void)
-{
-    SYS_ASSERT(false, "I2C Driver Instance 0 Error");
-}
     
      
    
