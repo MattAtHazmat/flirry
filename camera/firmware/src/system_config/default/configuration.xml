@@ -7,8 +7,12 @@
   <Manifest>
     <Files>
       <File>
-        <Name>sys_devcon_cache_pic32mz.S</Name>
-        <Path>Source Files/framework/system/devcon/src</Path>
+        <Name>semphr.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>list.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>drv_tmr.h</Name>
@@ -23,52 +27,60 @@
         <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
-        <Name>drv_tmr.c</Name>
-        <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
+        <Name>queue.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>sys_tmr.h</Name>
         <Path>Header Files/framework/system/tmr</Path>
       </File>
       <File>
-        <Name>sys_devcon_cache.h</Name>
-        <Path>Header Files/framework/system/devcon</Path>
-      </File>
-      <File>
-        <Name>sys_ports.c</Name>
-        <Path>Source Files/framework/system/ports/src</Path>
-      </File>
-      <File>
         <Name>sys_tmr.c</Name>
         <Path>Source Files/framework/system/tmr/src</Path>
       </File>
       <File>
-        <Name>sys_devcon.h</Name>
-        <Path>Header Files/framework/system/devcon</Path>
+        <Name>croutine.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>system.h</Name>
-        <Path>Header Files/framework/system</Path>
+        <Name>StackMacros.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>bsp_sys_init.c</Name>
-        <Path>Source Files/bsp/chipkit_wifire</Path>
+        <Name>osal_freertos.c</Name>
+        <Path>Source Files/framework/osal/src</Path>
       </File>
       <File>
-        <Name>sys_module.h</Name>
-        <Path>Header Files/framework/system/common</Path>
-      </File>
-      <File>
-        <Name>sys_devcon_pic32mz.c</Name>
-        <Path>Source Files/framework/system/devcon/src</Path>
+        <Name>tasks.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>sys_ports.h</Name>
         <Path>Header Files/framework/system/ports</Path>
       </File>
       <File>
-        <Name>drv_i2c_bb_a.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
+        <Name>portmacro.h</Name>
+        <Path>Header Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>projdefs.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>ISR_Support.h</Name>
+        <Path>Header Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>portable.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>croutine.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>list.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>driver.h</Name>
@@ -83,6 +95,10 @@
         <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
+        <Name>event_groups.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
         <Name>drv_i2c_bb_a.c</Name>
         <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
       </File>
@@ -93,6 +109,86 @@
       <File>
         <Name>drv_i2c_bb.c</Name>
         <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_cache_pic32mz.S</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
+        <Name>drv_tmr.c</Name>
+        <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>FreeRTOS.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_cache.h</Name>
+        <Path>Header Files/framework/system/devcon</Path>
+      </File>
+      <File>
+        <Name>sys_ports.c</Name>
+        <Path>Source Files/framework/system/ports/src</Path>
+      </File>
+      <File>
+        <Name>sys_devcon.h</Name>
+        <Path>Header Files/framework/system/devcon</Path>
+      </File>
+      <File>
+        <Name>event_groups.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>system.h</Name>
+        <Path>Header Files/framework/system</Path>
+      </File>
+      <File>
+        <Name>bsp_sys_init.c</Name>
+        <Path>Source Files/bsp/chipkit_wifire</Path>
+      </File>
+      <File>
+        <Name>port_asm.S</Name>
+        <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>sys_module.h</Name>
+        <Path>Header Files/framework/system/common</Path>
+      </File>
+      <File>
+        <Name>sys_devcon_pic32mz.c</Name>
+        <Path>Source Files/framework/system/devcon/src</Path>
+      </File>
+      <File>
+        <Name>drv_i2c_bb_a.h</Name>
+        <Path>Header Files/framework/driver/i2c</Path>
+      </File>
+      <File>
+        <Name>timers.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>timers.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>task.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>heap_2.c</Name>
+        <Path>Source Files/FreeRTOS/portable/MemMang</Path>
+      </File>
+      <File>
+        <Name>mpu_wrappers.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>port.c</Name>
+        <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>queue.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>sys_int.h</Name>
@@ -108,12 +204,17 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>E26552F4D25A1296023D3E0669B89798</Checksum>
+        <Checksum>B325ACD255754EE1C565F4DFF8670009</Checksum>
       </Template>
       <Template>
         <Name>main.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>81A51474D8A80D41AD749DEAE4C1A7A3</Checksum>
+      </Template>
+      <Template>
+        <Name>system_interrupt_a.S</Name>
+        <Path>Source Files/app/system_config/default</Path>
+        <Checksum>66DBFDC7197A4E493BCA34C9EF548090</Checksum>
       </Template>
       <Template>
         <Name>global_event.h</Name>
@@ -123,7 +224,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>F9170572DD3EF6D50EA1DF0D98073BBC</Checksum>
+        <Checksum>9CF05973572975936CC8A00D560DCE0A</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -143,9 +244,14 @@
         <Checksum>D2E55E3D097D44D37CEBD4D6CB2B05CE</Checksum>
       </Template>
       <Template>
+        <Name>FreeRTOSConfig.h</Name>
+        <Path>Header Files/app/system_config/default</Path>
+        <Checksum>CBCCFD050FCC0AF8456A05508CFA98E8</Checksum>
+      </Template>
+      <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>3C8396E3CB57E30CEF15FB3D7A19E9E3</Checksum>
+        <Checksum>5A64BFAB36C32516C97B02493C484C9C</Checksum>
         <ProjectFileChecksum>8CEC43682CFD0A8D495EFE425A2DF262</ProjectFileChecksum>
       </Template>
       <Template>
@@ -157,7 +263,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>000B5E0EF4AC9AC04C0D341080FBFE11</Checksum>
+        <Checksum>B051ACFE0D4E438BA94709E6BF6281F4</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
@@ -167,7 +273,12 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>E00FAACA315CB10F36DEAF30D9D0FA48</Checksum>
+        <Checksum>364EBBFC706E2418E360943624063EC2</Checksum>
+      </Template>
+      <Template>
+        <Name>rtos_hooks.c</Name>
+        <Path>Source Files/app/system_config/default</Path>
+        <Checksum>FA52743264536E5207D2ADBE57B48D05</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
@@ -176,8 +287,16 @@
       </Template>
     </Templates>
     <CompilerItems>
+      <C32-AS>
+        <Include value="../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ"/>
+        <Include value="../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../src/system_config/default"/>
+      </C32-AS>
       <C32>
         <Include value="../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire"/>
+        <Include value="../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ"/>
+        <Include value="../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
+        <Include value="../src/system_config/default"/>
       </C32>
     </CompilerItems>
     <Libraries>

@@ -249,11 +249,6 @@ void SYS_Initialize ( void* data )
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
 
 
-    SYS_INT_VectorPrioritySet(INT_VECTOR_T9, INT_PRIORITY_LEVEL3);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_T9, INT_SUBPRIORITY_LEVEL0);
-
-
-
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
 
@@ -274,8 +269,6 @@ void SYS_Initialize ( void* data )
   
     /* Initialize Middleware */
 
-    /* Enable Global Interrupts */
-    SYS_INT_Enable();
 
     /* Initialize the Application */
     FLIR_Initialize();

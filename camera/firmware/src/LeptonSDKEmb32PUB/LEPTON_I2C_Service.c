@@ -199,6 +199,7 @@ LEP_RESULT LEP_I2C_MasterReadData(LEP_UINT16 portID,
                                             NULL);
     do
     {
+        taskYIELD();
         I2CStatus = DRV_I2C_TransferStatusGet(flirData.i2c.drvHandle,
                                               flirData.i2c.bufferHandle);
     } while(DRV_I2C_BUFFER_EVENT_COMPLETE != I2CStatus);
@@ -246,6 +247,7 @@ LEP_RESULT LEP_I2C_MasterWriteData(LEP_UINT16 portID,
                                    LEP_UINT16 *dataPtr,
                                    LEP_UINT16 dataLength)
 {
+    DRV_I2C_BUFFER_EVENT I2CStatus;
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
     LEP_UINT16 numWordsWritten;
@@ -268,6 +270,12 @@ LEP_RESULT LEP_I2C_MasterWriteData(LEP_UINT16 portID,
                                                  TXBuffer, 
                                                  TXBufferIndex, 
                                                  NULL);
+    do
+    {
+        taskYIELD();
+        I2CStatus = DRV_I2C_TransferStatusGet(flirData.i2c.drvHandle,
+                                              flirData.i2c.bufferHandle);
+    } while(DRV_I2C_BUFFER_EVENT_COMPLETE != I2CStatus);
     bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,
                                                 flirData.i2c.bufferHandle);
     if (bytesTransferred!=TXBufferIndex)
@@ -292,6 +300,7 @@ LEP_RESULT LEP_I2C_MasterReadRegister(LEP_UINT16 portID,
                                       LEP_UINT16 regAddress,
                                       LEP_UINT16 *regValue)
 {
+    DRV_I2C_BUFFER_EVENT I2CStatus;
     LEP_RESULT result = LEP_OK;
     //LEP_UINT16 transactionStatus;
     uint8_t TXBuffer[2];
@@ -306,6 +315,12 @@ LEP_RESULT LEP_I2C_MasterReadRegister(LEP_UINT16 portID,
                                             RXBuffer,
                                             2,
                                             NULL);
+    do
+    {
+        taskYIELD();
+        I2CStatus = DRV_I2C_TransferStatusGet(flirData.i2c.drvHandle,
+                                              flirData.i2c.bufferHandle);
+    } while(DRV_I2C_BUFFER_EVENT_COMPLETE != I2CStatus);
     bytesTransferred = DRV_I2C_BytesTransferred(flirData.i2c.drvHandle,
                                                 flirData.i2c.bufferHandle);
     if (bytesTransferred!=4)
@@ -328,6 +343,7 @@ LEP_RESULT LEP_I2C_MasterWriteRegister(LEP_UINT16 portID,
                                        LEP_UINT16 regAddress,
                                        LEP_UINT16 regValue)
 {
+    DRV_I2C_BUFFER_EVENT I2CStatus;
     LEP_RESULT result = LEP_OK;
     LEP_UINT16 transactionStatus;
     uint8_t TXBuffer[4];
@@ -341,6 +357,12 @@ LEP_RESULT LEP_I2C_MasterWriteRegister(LEP_UINT16 portID,
                                                  TXBuffer, 
                                                  TXBufferIndex, 
                                                  NULL);
+    do
+    {
+        taskYIELD();
+        I2CStatus = DRV_I2C_TransferStatusGet(flirData.i2c.drvHandle,
+                                              flirData.i2c.bufferHandle);
+    } while(DRV_I2C_BUFFER_EVENT_COMPLETE != I2CStatus);
     //result = DEV_I2C_MasterWriteRegister(portID,
     //                                     deviceAddress,
     //                                     regAddress,

@@ -146,7 +146,7 @@ extern "C" {
 #define SYS_PORT_F_CNEN         0x0
 
 #define SYS_PORT_G_ANSEL        0x0
-#define SYS_PORT_G_TRIS         0x7383
+#define SYS_PORT_G_TRIS         0x73A3//0x7383
 #define SYS_PORT_G_LAT          0x0
 #define SYS_PORT_G_ODC          0x0
 #define SYS_PORT_G_CNPU         0x0
@@ -203,7 +203,7 @@ extern "C" {
 /* I2C Driver Configuration Options
 */
 #define BB_ENABLED
-#define DRV_I2C_INTERRUPT_MODE                    		true
+#define DRV_I2C_INTERRUPT_MODE                    		false
 #define DRV_I2C_CLIENTS_NUMBER                    		1
 #define DRV_I2C_INSTANCES_NUMBER                  		1
 
@@ -230,6 +230,8 @@ extern "C" {
 // Section: Middleware & Other Library Configuration
 // *****************************************************************************
 // *****************************************************************************
+/*** OSAL Configuration ***/
+#define OSAL_USE_RTOS          1
 
 // *****************************************************************************
 /* BSP Configuration Options

@@ -139,6 +139,7 @@ static void TimerSetup( void )
 
 void FLIR_Initialize ( void )
 {
+    memset(&flirData,0,sizeof(flirData));
     /* Place the App state machine in its initial state. */
     flirData.state = FLIR_STATE_INIT;
 

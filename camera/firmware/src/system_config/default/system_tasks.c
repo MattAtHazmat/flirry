@@ -49,32 +49,93 @@
 /******************************************************************************/    
 #include "system_config.h"
 #include "system_definitions.h"
+#include "flir.h"
 
-/******************************************************************************/
-/******************************************************************************/
-// Section: System "Tasks" Routine                                            */
-/******************************************************************************/
-/******************************************************************************/
-/*  Function:                                                                 */
-/*    void SYS_Tasks ( void )                                                 */
-/*                                                                            */
-/*  Remarks:                                                                  */
-/*    See prototype in system/common/sys_module.h.                            */
-/*                                                                            */
-/******************************************************************************/
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: Local Prototypes
+// *****************************************************************************
+// *****************************************************************************
+
+
+ 
+static void _SYS_Tasks ( void );
+static void _FLIR_Tasks(void);
+
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: System "Tasks" Routine
+// *****************************************************************************
+// *****************************************************************************
+
+/*******************************************************************************
+  Function:
+void SYS_Tasks ( void )
+
+  Remarks:
+    See prototype in system/common/sys_module.h.
+*/
+
 void SYS_Tasks ( void )
 {
-    /* Maintain system services */
-    SYS_DEVCON_Tasks(sysObj.sysDevcon);
-    /* SYS_TMR Device layer tasks routine */ 
-    SYS_TMR_Tasks(sysObj.sysTmr);
+    /* Create OS Thread for Sys Tasks. */
+    xTaskCreate((TaskFunction_t) _SYS_Tasks,
+                "Sys Tasks",
+                4096, NULL, 2, NULL);
 
-    /* Maintain Device Drivers */
+    /* Create OS Thread for FLIR Tasks. */
+    xTaskCreate((TaskFunction_t) _FLIR_Tasks,
+                "FLIR Tasks",
+                4096, NULL, 1, NULL);
 
-    /* Maintain Middleware & Other Libraries */
+    /**************
+     * Start RTOS * 
+     **************/
+    vTaskStartScheduler(); /* This function never returns. */
+}
 
-    /* Maintain the application's state machine. */
-    FLIR_Tasks();
+
+/*******************************************************************************
+  Function:
+    void _SYS_Tasks ( void )
+
+  Summary:
+    Maintains state machines of system modules.
+*/
+static void _SYS_Tasks ( void)
+{
+    while(1)
+    {
+        /* Maintain system services */
+        SYS_DEVCON_Tasks(sysObj.sysDevcon);
+        /* SYS_TMR Device layer tasks routine */ 
+        SYS_TMR_Tasks(sysObj.sysTmr);
+        /* Maintain Device Drivers */
+        DRV_I2C_Tasks(sysObj.drvI2C0);
+        /* Maintain Middleware */
+        /* Task Delay */
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
+
+
+/*******************************************************************************
+  Function:
+    void _FLIR_Tasks ( void )
+
+  Summary:
+    Maintains state machine of FLIR.
+*/
+
+static void _FLIR_Tasks(void)
+{
+    while(1)
+    {
+        FLIR_Tasks();
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+    }
 }
 
 /******************************************************************************/
