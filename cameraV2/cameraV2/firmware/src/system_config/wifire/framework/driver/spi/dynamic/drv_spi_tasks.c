@@ -48,8 +48,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 
 
-
-int32_t DRV_SPI_ISRMasterEBM16BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )    
+int32_t DRV_SPI_ISRMasterEBM8BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )    
 {
     bool continueLoop;
     
@@ -114,14 +113,14 @@ int32_t DRV_SPI_ISRMasterEBM16BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInst
 
         if (bytesLeft != 0)
         {
-            DRV_SPI_MasterEBMReceive16BitISR(pDrvInstance);
+            DRV_SPI_MasterEBMReceive8BitISR(pDrvInstance);
             bytesLeft = currentJob->dataLeftToRx + currentJob->dummyLeftToRx;
         }
         
         if 
             (currentJob->dataLeftToTx +currentJob->dummyLeftToTx != 0)
         {
-            DRV_SPI_MasterEBMSend16BitISR(pDrvInstance);
+            DRV_SPI_MasterEBMSend8BitISR(pDrvInstance);
         }
         
         if (bytesLeft == 0)
@@ -201,6 +200,7 @@ int32_t DRV_SPI_ISRMasterEBM16BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInst
     SYS_INT_SourceStatusClear(pDrvInstance->txInterruptSource);
     return 0;
 }
+
 
 
 

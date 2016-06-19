@@ -97,7 +97,7 @@ static void TimerCallback (  uintptr_t context, uint32_t alarmCount )
 
 static void SPIReadCallback(uintptr_t context)
 {
-    flirData.spi.status.readComplete = true;
+    flirData.spi.status.flags.readComplete = true;
 }
 
 /******************************************************************************/
@@ -114,14 +114,14 @@ static void LedTask( void )
 
 /******************************************************************************/
 /* Application's Timer Setup Function                                         */
-static void TimerSetup( void )
+static bool TimerSetup( void )
 {
-    DRV_TMR_Alarm16BitRegister(flirData.handleTmrDrv, 
+    DRV_TMR_Alarm16BitRegister(flirData.timer.drvHandle, 
                                FLIR_TMR_DRV_PERIOD, 
                                FLIR_TMR_DRV_IS_PERIODIC,
                                (uintptr_t)NULL, 
                                TimerCallback);
-    DRV_TMR_Start(flirData.handleTmrDrv);
+    return DRV_TMR_Start(flirData.timer.drvHandle);
 }
 
 /******************************************************************************/
@@ -143,7 +143,7 @@ void FLIR_Initialize ( void )
     memset(&flirData,0,sizeof(flirData));
     /* Place the App state machine in its initial state.                      */
     flirData.state = FLIR_STATE_INIT;
-    flirData.handleTmrDrv = DRV_HANDLE_INVALID; 
+    flirData.timer.drvHandle = DRV_HANDLE_INVALID; 
     flirData.buffer.size.max.b8 = BUFFER_SIZE_8;
     flirData.buffer.size.max.b16 = BUFFER_SIZE_16;
     flirData.buffer.size.max.b32 = BUFFER_SIZE_32;
@@ -160,59 +160,81 @@ void FLIR_Initialize ( void )
 
 void FLIR_Tasks ( void )
 {
-    LEP_RESULT result;
     switch ( flirData.state )
     {
         case FLIR_STATE_INIT:
         {
-            bool appInitialized = true;
-       
-            if (flirData.handleTmrDrv == DRV_HANDLE_INVALID)
+            if (flirData.timer.drvHandle == DRV_HANDLE_INVALID)
             {
-                flirData.handleTmrDrv = DRV_TMR_Open(FLIR_TMR_DRV, DRV_IO_INTENT_EXCLUSIVE);
-                appInitialized &= ( DRV_HANDLE_INVALID != flirData.handleTmrDrv );
-            }
-        
-            if (appInitialized)
+                flirData.timer.drvHandle = DRV_TMR_Open(FLIR_TMR_DRV, DRV_IO_INTENT_EXCLUSIVE);
+                flirData.status.flags.timerConfigured = ( DRV_HANDLE_INVALID != flirData.timer.drvHandle );
+            }        
+            if (flirData.status.flags.timerConfigured)
             {
-                TimerSetup();
-                BSP_LEDOn(BSP_LED_1);
-                flirData.state = FLIR_OPEN_I2C_PORT;
+                flirData.status.flags.timerRunning = TimerSetup();
+                if(flirData.status.flags.timerRunning)
+                {
+                    flirData.state = FLIR_OPEN_SPI_PORT;
+                }
+                else
+                {
+                    flirData.state = FLIR_ERROR;
+                }
             }
             break;
         }
         case FLIR_OPEN_I2C_PORT:
         {
             BSP_LEDOn(BSP_LED_2);
-            result = LEP_OpenPort(0,
-                                  LEP_CCI_TWI,
-                                    #ifdef BB_ENABLED
-                                        DRV_I2C_BIT_BANG_BAUD_RATE_IDX0
-                                    #else
-                                        DRV_I2C_BAUD_RATE_IDX0
-                                    #endif
-                                  /1000,&flirData.lepton.cameraPort);
-            if(result != LEP_OK)
+            flirData.lepton.result = LEP_OpenPort(0,
+                                        LEP_CCI_TWI,
+                                          #ifdef BB_ENABLED
+                                              DRV_I2C_BIT_BANG_BAUD_RATE_IDX0
+                                          #else
+                                              DRV_I2C_BAUD_RATE_IDX0
+                                          #endif
+                                        /1000,&flirData.lepton.cameraPort);
+            flirData.status.flags.I2CConfigureAttempted = true;
+            if(flirData.lepton.result == LEP_OK)
             {
-                flirData.state = FLIR_ERROR;
+                flirData.status.flags.I2CConfigured = true;
+                flirData.status.flags.I2CRunning = true;
+            }
+            if(flirData.status.flags.SPIConfigureAttempted == false)
+            {
+                flirData.state= FLIR_OPEN_SPI_PORT;
             }
             else
             {
-                BSP_LEDOff(BSP_LED_1);
-                BSP_LEDOff(BSP_LED_2);
-                BSP_LEDOff(BSP_LED_3);
-                BSP_LEDOn(BSP_LED_4);
-                flirData.state = FLIR_OPEN_SPI_PORT;
+                flirData.state = FLIR_START;
             }
             break;
         }
         case FLIR_OPEN_SPI_PORT:
         {
-            if( OpenFLIRSPI(&flirData))
+            flirData.status.flags.SPIConfigured = OpenFLIRSPI(&flirData);
+            flirData.status.flags.SPIConfigureAttempted = true;
+            if(flirData.status.flags.I2CConfigureAttempted == false)
+            {
+                flirData.state= FLIR_OPEN_I2C_PORT;
+            }
+            else
+            {
+                flirData.state = FLIR_START;
+            }
+            break;
+        }
+        case FLIR_START:
+        {
+            if(flirData.status.flags.SPIRunning||flirData.status.flags.I2CRunning)
             {
                 flirData.state = FLIR_STATE_SERVICE_TASKS;
             }
-            break;
+            else
+            {
+                flirData.state = FLIR_ERROR;
+                break;
+            }
         }
         case FLIR_STATE_SERVICE_TASKS:
         {
@@ -258,7 +280,7 @@ bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size)
             flir->buffer.size.transfer.b8 = size;
             flir->buffer.size.transfer.b16 = size>>1;
             flir->buffer.size.transfer.b32 = size>>2;
-            flir->spi.status.readStarted=true;
+            flir->spi.status.flags.readStarted=true;
             SPIReadingStarted=true;
         }
     }
@@ -270,10 +292,10 @@ bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size)
 bool GetFLIRSPIReading(FLIR_DATA *flir)
 {
     bool SPIReadingReady=false;
-    if(flir->spi.status.readComplete)
+    if(flir->spi.status.flags.readComplete)
     {
-        flir->spi.status.readComplete = false;
-        flir->spi.status.readStarted = false;
+        flir->spi.status.flags.readComplete = false;
+        flir->spi.status.flags.readStarted = false;
         SPIReadingReady = true;
     }
     return SPIReadingReady;    

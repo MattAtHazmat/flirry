@@ -122,9 +122,9 @@ int32_t DRV_SPI_SetVTable(struct DRV_SPI_DRIVER_OBJECT * driverObject, const DRV
         return -1;
     }
 
-    if (pInit->commWidth == SPI_COMMUNICATION_WIDTH_16BITS)
+    if (pInit->commWidth == SPI_COMMUNICATION_WIDTH_8BITS)
     {
-        mode |= _SPI_DRV_VTABLE_16BIT;
+        mode |= _SPI_DRV_VTABLE_8BIT;
     }
     else
     {
@@ -133,8 +133,8 @@ int32_t DRV_SPI_SetVTable(struct DRV_SPI_DRIVER_OBJECT * driverObject, const DRV
     }
     switch (mode)
     {
-    case _SPI_DRV_VTABLE_I_M_E_16:
-        driverObject->vfMainTask = DRV_SPI_ISRMasterEBM16BitTasks;
+    case _SPI_DRV_VTABLE_I_M_E_8:
+        driverObject->vfMainTask = DRV_SPI_ISRMasterEBM8BitTasks;
         break;
     default:
         SYS_ASSERT(false, "\r\nInvalid SPI Configuration.");

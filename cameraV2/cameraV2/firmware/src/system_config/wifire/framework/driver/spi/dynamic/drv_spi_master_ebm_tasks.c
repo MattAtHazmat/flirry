@@ -48,14 +48,14 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stdbool.h>
 
 
-int32_t DRV_SPI_MasterEBMSend16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
+int32_t DRV_SPI_MasterEBMSend8BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
 {
     register SPI_MODULE_ID spiId = pDrvInstance->spiId;
     register DRV_SPI_JOB_OBJECT * currentJob = pDrvInstance->currentJob;
      
     /* Determine the maximum number of bytes we can send to the FIFO*/
         uint8_t symbolsInTransit = MAX(pDrvInstance->symbolsInProgress, PLIB_SPI_FIFOCountGet(spiId, SPI_FIFO_TYPE_TRANSMIT));
-        uint8_t bufferBytes = (PLIB_SPI_TX_16BIT_FIFO_SIZE(spiId) - symbolsInTransit) << 1;
+        uint8_t bufferBytes = PLIB_SPI_TX_8BIT_FIFO_SIZE(spiId) - symbolsInTransit;
     /* Figure out how much data we can send*/
     size_t dataUnits = MIN(currentJob->dataLeftToTx, bufferBytes);
     
@@ -67,16 +67,14 @@ int32_t DRV_SPI_MasterEBMSend16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstan
         bufferBytes -= dataUnits;
         currentJob->dataLeftToTx -= dataUnits;
         /* Set the location in the buffer of where to start sending from*/
-        uint16_t *bufferLoc = (uint16_t*)&(currentJob->txBuffer[currentJob->dataTxed]);
-        /* change the number of data units to be in units of 16 bits*/
-        dataUnits >>=1;
+        uint8_t *bufferLoc = &(currentJob->txBuffer[currentJob->dataTxed]);
         for (counter = 0; counter < dataUnits; counter++)
         {
             /* Send a unit/symbol of data*/
-            PLIB_SPI_BufferWrite16bit(spiId, bufferLoc[counter]);
+            PLIB_SPI_BufferWrite(spiId, bufferLoc[counter]);
         }
         /* Update the number of bytes transmitted*/
-        currentJob->dataTxed += dataUnits<<1;
+        currentJob->dataTxed += dataUnits;
         /* Adjust the symbols in progress */
         pDrvInstance->symbolsInProgress += dataUnits;
     }
@@ -86,11 +84,9 @@ int32_t DRV_SPI_MasterEBMSend16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstan
         currentJob->dummyLeftToTx -= dummyUnits;
         /* Adjust the symbols in progress */
         pDrvInstance->symbolsInProgress += dummyUnits;
-        /* change the number of dummy units to be in units of 16 bits*/
-        dummyUnits >>=1;
         for (counter = 0; counter < dummyUnits; counter++)
         {
-            PLIB_SPI_BufferWrite16bit(spiId, 0xffff);
+            PLIB_SPI_BufferWrite(spiId, 0xff);
         }
     }    
     if (currentJob->dataLeftToTx + currentJob->dummyLeftToTx == 0)
@@ -105,13 +101,13 @@ int32_t DRV_SPI_MasterEBMSend16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstan
     return 0;
 }
 
-int32_t DRV_SPI_MasterEBMReceive16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
+int32_t DRV_SPI_MasterEBMReceive8BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
 {
     register SPI_MODULE_ID spiId = pDrvInstance->spiId;
     register DRV_SPI_JOB_OBJECT * currentJob = pDrvInstance->currentJob;
     
     /* Figure out how many bytes are waiting to be received."*/
-    uint8_t bufferBytes = PLIB_SPI_FIFOCountGet(spiId, SPI_FIFO_TYPE_RECEIVE) << 1;
+    uint8_t bufferBytes = PLIB_SPI_FIFOCountGet(spiId, SPI_FIFO_TYPE_RECEIVE);
     /* Calculate the maximum number of data bytes that can be received*/
     size_t dataUnits = MIN(currentJob->dataLeftToRx, bufferBytes);
     size_t counter;
@@ -121,16 +117,14 @@ int32_t DRV_SPI_MasterEBMReceive16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvIns
         bufferBytes -= dataUnits;
         currentJob->dataLeftToRx -= dataUnits;
         /* Set the buffer location to receive bytes from the SPI to*/
-        uint16_t *bufferLoc = (uint16_t*)&(currentJob->rxBuffer[currentJob->dataRxed]);
-        /* Adjust the number of data units to be in units of 16 bits */
-        dataUnits >>=1;
+        uint8_t *bufferLoc = &(currentJob->rxBuffer[currentJob->dataRxed]);
         for (counter = 0; counter < dataUnits; counter++)
         {
             /* Receive the data from the SPI */
-            bufferLoc[counter] = PLIB_SPI_BufferRead16bit(spiId);
+            bufferLoc[counter] = PLIB_SPI_BufferRead(spiId);
         }
         /* Adjust the amount of data that has been received */
-        currentJob->dataRxed += dataUnits<<1;
+        currentJob->dataRxed += dataUnits;
         /* Update the symbols in progress so we can send more units later */
         pDrvInstance->symbolsInProgress -= dataUnits;
     }       
@@ -141,8 +135,6 @@ int32_t DRV_SPI_MasterEBMReceive16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvIns
     {
         /* Lower the number of dummy bytes to be received */
         currentJob->dummyLeftToRx -= dummyUnits;
-        /* Adjust the dummy units into units of 16 bites */
-        dummyUnits >>=1;
         pDrvInstance->symbolsInProgress -= dummyUnits;       
         for (counter = 0; counter < dummyUnits; counter++)
         {
@@ -150,7 +142,7 @@ int32_t DRV_SPI_MasterEBMReceive16BitISR( struct DRV_SPI_DRIVER_OBJECT * pDrvIns
                buffer because we have to keep track of how many symbols/units we
                have received, and the number may have increased since we checked
                how full the buffer is.*/
-            PLIB_SPI_BufferRead16bit(spiId);
+            PLIB_SPI_BufferRead(spiId);
         }
     }
     

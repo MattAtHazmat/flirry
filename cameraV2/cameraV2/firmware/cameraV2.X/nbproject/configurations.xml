@@ -357,7 +357,7 @@
         <property key="enable-unroll-loops" value="false"/>
         <property key="exclude-floating-point" value="false"/>
         <property key="extra-include-directories"
-                  value="../src;../src/wifire;../src/LeptonSDKEmb32PUB;../../../../../../microchip/harmony/v1_07_01/framework;../src/system_config/wifire/framework;../src/system_config/wifire;../../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire;../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ;../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
+                  value="../src/LeptonSDKEmb32PUB;../src;../src/system_config/wifire;../src/wifire;../../../../../../microchip/harmony/v1_07_01/framework;../src/system_config/wifire/framework;../../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire;../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ;../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
         <property key="isolate-each-function" value="true"/>
@@ -413,7 +413,7 @@
         <property key="generate-16-bit-code" value="false"/>
         <property key="generate-cross-reference-file" value="false"/>
         <property key="generate-micro-compressed-code" value="false"/>
-        <property key="heap-size" value="0"/>
+        <property key="heap-size" value="16383"/>
         <property key="input-libraries" value=""/>
         <property key="linker-symbols" value=""/>
         <property key="map-file" value="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"/>

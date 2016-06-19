@@ -91,6 +91,7 @@ typedef enum
 	FLIR_STATE_INIT=0,
     FLIR_OPEN_I2C_PORT,
     FLIR_OPEN_SPI_PORT,
+            FLIR_START,
 	FLIR_STATE_SERVICE_TASKS,
     FLIR_ERROR,
 } FLIR_STATES;
@@ -116,7 +117,9 @@ typedef enum
 typedef struct
 {
     FLIR_STATES state;
-    DRV_HANDLE handleTmrDrv;
+    struct {
+        DRV_HANDLE drvHandle;
+    } timer;
     struct {
         DRV_HANDLE drvHandle;
         DRV_I2C_BUFFER_HANDLE bufferHandle;        
@@ -127,15 +130,15 @@ typedef struct
         union{
             uint32_t w;
             struct{
-                unsigned configured:1;
                 unsigned readComplete:1;
                 unsigned writeComplete:1;
                 unsigned readStarted:1;
                 unsigned writeStarted:1;
-            };
+            }flags;
         }status;
     } spi;
     struct {
+        LEP_RESULT result;
         LEP_CAMERA_PORT_DESC_T cameraPort;
     }lepton;
     struct{
@@ -157,6 +160,21 @@ typedef struct
             } transfer;
         }size;
     }buffer;
+    union {
+        uint32_t w;
+        struct {
+            unsigned timerConfigured:1;
+            unsigned timerRunning:1;
+            unsigned I2CConfigured:1;
+            unsigned I2CRunning:1;
+            unsigned I2CConfigureAttempted:1;
+            unsigned usingI2C:1;
+            unsigned SPIConfigured:1;
+            unsigned SPIRunning:1;
+            unsigned SPIConfigureAttempted:1;
+            unsigned usingSPI:1;
+        }flags;
+    }status;
 } FLIR_DATA;
 
 

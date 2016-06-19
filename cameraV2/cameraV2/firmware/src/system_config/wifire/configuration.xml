@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<configuration version="1.0.7.16">
+<configuration version="1.0.8.7">
   <General>
     <HarmonyPath path="../../../../microchip/harmony/v1_07_01"/>
+    <Processor name="PIC32MZ2048EFG100"/>
     <ForceOptimization flag="true"/>
+    <MergeStrategy flag="USER_ALL"/>
   </General>
   <Manifest>
     <Files>
@@ -248,7 +250,7 @@
       <Template>
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>65E83C234ACCBDE9F28BEB7757A58EC8</Checksum>
+        <Checksum>BFE6B176C71773BD822376460D3320DC</Checksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
@@ -258,7 +260,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>44FE2989CEACC950263F2AD9826A1C26</Checksum>
+        <Checksum>3C58F126AD892BB57E4B1680FFC8E3F0</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
@@ -295,12 +297,12 @@
       <Template>
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>F54D839F12C69E79A590820B409B4CA3</Checksum>
+        <Checksum>B3A91E83D97E20F2E6AE74F22B6F32E1</Checksum>
       </Template>
       <Template>
         <Name>drv_spi_master_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>61EBF0FC9C93B77EA7BC6C45304286DC</Checksum>
+        <Checksum>4C2C868738FD74E2D6A3C8A8FD6B1381</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
@@ -330,6 +332,11 @@
         <Include value="../src/system_config/wifire"/>
       </C32-AS>
       <C32>
+        <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src"/>
+        <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src/system_config/wifire"/>
+        <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src/wifire"/>
+        <Include value="/home/mjb/microchip/harmony/v1_07_01/framework"/>
+        <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src/system_config/wifire/framework"/>
         <Include value="../../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire"/>
         <Include value="../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ"/>
         <Include value="../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
