@@ -11,6 +11,78 @@
         <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
+        <Name>queue.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>sys_tmr.c</Name>
+        <Path>Source Files/framework/system/tmr/src</Path>
+      </File>
+      <File>
+        <Name>croutine.c</Name>
+        <Path>Source Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>portmacro.h</Name>
+        <Path>Header Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>drv_spi.h</Name>
+        <Path>Header Files/framework/driver/spi</Path>
+      </File>
+      <File>
+        <Name>list.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>driver.h</Name>
+        <Path>Header Files/framework/driver</Path>
+      </File>
+      <File>
+        <Name>sys_int_pic32.c</Name>
+        <Path>Source Files/framework/system/int/src</Path>
+      </File>
+      <File>
+        <Name>bsp_config.h</Name>
+        <Path>Header Files/bsp/chipkit_wifire</Path>
+      </File>
+      <File>
+        <Name>drv_spi_sys_queue_fifo.c</Name>
+        <Path>Source Files/framework/driver/spi</Path>
+      </File>
+      <File>
+        <Name>drv_tmr.c</Name>
+        <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>system.h</Name>
+        <Path>Header Files/framework/system</Path>
+      </File>
+      <File>
+        <Name>bsp_sys_init.c</Name>
+        <Path>Source Files/bsp/chipkit_wifire</Path>
+      </File>
+      <File>
+        <Name>drv_i2c_bb_a.h</Name>
+        <Path>Header Files/framework/driver/i2c</Path>
+      </File>
+      <File>
+        <Name>timers.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>task.h</Name>
+        <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>port.c</Name>
+        <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
+      </File>
+      <File>
+        <Name>sys_int.h</Name>
+        <Path>Header Files/framework/system/int</Path>
+      </File>
+      <File>
         <Name>list.c</Name>
         <Path>Source Files/FreeRTOS</Path>
       </File>
@@ -23,12 +95,12 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
-        <Name>queue.h</Name>
-        <Path>Header Files/FreeRTOS</Path>
+        <Name>drv_i2c_bb.h</Name>
+        <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
-        <Name>croutine.c</Name>
-        <Path>Source Files/FreeRTOS</Path>
+        <Name>sys_tmr.h</Name>
+        <Path>Header Files/framework/system/tmr</Path>
       </File>
       <File>
         <Name>StackMacros.h</Name>
@@ -43,16 +115,8 @@
         <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>drv_i2c.c</Name>
-        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
-      </File>
-      <File>
         <Name>sys_ports.h</Name>
         <Path>Header Files/framework/system/ports</Path>
-      </File>
-      <File>
-        <Name>portmacro.h</Name>
-        <Path>Header Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
       </File>
       <File>
         <Name>projdefs.h</Name>
@@ -63,48 +127,52 @@
         <Path>Header Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
       </File>
       <File>
+        <Name>drv_spi_internal.h</Name>
+        <Path>Header Files/framework/driver/spi/private/dynamic</Path>
+      </File>
+      <File>
         <Name>portable.h</Name>
         <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>drv_spi_sys_queue.h</Name>
+        <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
         <Name>croutine.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>list.h</Name>
-        <Path>Header Files/FreeRTOS</Path>
-      </File>
-      <File>
-        <Name>driver.h</Name>
-        <Path>Header Files/framework/driver</Path>
-      </File>
-      <File>
         <Name>sys_common.h</Name>
         <Path>Header Files/framework/system/common</Path>
-      </File>
-      <File>
-        <Name>sys_int_pic32.c</Name>
-        <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
         <Name>event_groups.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>bsp_config.h</Name>
-        <Path>Header Files/bsp/chipkit_wifire</Path>
+        <Name>drv_i2c_bb_a.c</Name>
+        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>drv_i2c_bb.c</Name>
+        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
       </File>
       <File>
         <Name>sys_devcon_cache_pic32mz.S</Name>
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
-        <Name>drv_tmr.c</Name>
-        <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
-      </File>
-      <File>
         <Name>FreeRTOS.h</Name>
         <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>drv_spi.c</Name>
+        <Path>Source Files/framework/driver/spi/dynamic</Path>
+      </File>
+      <File>
+        <Name>drv_spi_sys_queue_local_fifo.h</Name>
+        <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
         <Name>sys_devcon_cache.h</Name>
@@ -123,20 +191,8 @@
         <Path>Source Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>system.h</Name>
-        <Path>Header Files/framework/system</Path>
-      </File>
-      <File>
-        <Name>bsp_sys_init.c</Name>
-        <Path>Source Files/bsp/chipkit_wifire</Path>
-      </File>
-      <File>
         <Name>port_asm.S</Name>
         <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
-      </File>
-      <File>
-        <Name>drv_i2c.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
         <Name>sys_module.h</Name>
@@ -147,16 +203,8 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
-        <Name>timers.h</Name>
-        <Path>Header Files/FreeRTOS</Path>
-      </File>
-      <File>
         <Name>timers.c</Name>
         <Path>Source Files/FreeRTOS</Path>
-      </File>
-      <File>
-        <Name>task.h</Name>
-        <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
         <Name>heap_2.c</Name>
@@ -167,16 +215,8 @@
         <Path>Header Files/FreeRTOS</Path>
       </File>
       <File>
-        <Name>port.c</Name>
-        <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
-      </File>
-      <File>
         <Name>queue.c</Name>
         <Path>Source Files/FreeRTOS</Path>
-      </File>
-      <File>
-        <Name>sys_int.h</Name>
-        <Path>Header Files/framework/system/int</Path>
       </File>
     </Files>
     <Templates>
@@ -193,7 +233,7 @@
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>7232C471DD395ED2FEDD70C7D42FAA81</Checksum>
+        <Checksum>D0E35AE57B0405F103269AE50E2EE930</Checksum>
       </Template>
       <Template>
         <Name>comms.h</Name>
@@ -203,22 +243,27 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>8D34C63ED471F2773277946F1DAB4001</Checksum>
+        <Checksum>584561F8DA811B4F7BA5ECA5A43B082B</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_tasks.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
+        <Checksum>65E83C234ACCBDE9F28BEB7757A58EC8</Checksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>45AE4ECD787A195457768D942AA298D1</Checksum>
+        <Checksum>B51318F06EF9D9564F33F905C0767A42</Checksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>6EB69D2DF8B3F5396A52016347701E3B</Checksum>
+        <Checksum>44FE2989CEACC950263F2AD9826A1C26</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>229FE7FD5B767F8649212CCFA61ABA43</Checksum>
+        <Checksum>C2735B98665967766A9EA0F0A65D703F</Checksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -234,7 +279,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>7EF7E288EC2E3FA29CFD37D88CD6A557</Checksum>
+        <Checksum>8F4E3DC5AA3EA2C096C9C8CCE7A487FB</Checksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
@@ -246,6 +291,16 @@
         <Path>Header Files/app</Path>
         <Checksum>6122A149C059A40827F0BF6A003CEF39</Checksum>
         <ProjectFileChecksum>ED6525F47916E2D34159179D288399E9</ProjectFileChecksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_api.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
+        <Checksum>F54D839F12C69E79A590820B409B4CA3</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_master_ebm_tasks.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
+        <Checksum>61EBF0FC9C93B77EA7BC6C45304286DC</Checksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>

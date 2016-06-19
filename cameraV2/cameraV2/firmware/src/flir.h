@@ -89,7 +89,8 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	FLIR_STATE_INIT=0,
-    FLIR_OPEN_PORT,
+    FLIR_OPEN_I2C_PORT,
+    FLIR_OPEN_SPI_PORT,
 	FLIR_STATE_SERVICE_TASKS,
     FLIR_ERROR,
 } FLIR_STATES;
@@ -108,17 +109,54 @@ typedef enum
     Application strings and buffers are be defined outside this structure.
  */
 
+#define BUFFER_SIZE_32  (256)
+#define BUFFER_SIZE_16  (BUFFER_SIZE_32*2)
+#define BUFFER_SIZE_8   (BUFFER_SIZE_32*4)
+
 typedef struct
 {
     FLIR_STATES state;
     DRV_HANDLE handleTmrDrv;
     struct {
         DRV_HANDLE drvHandle;
-        DRV_I2C_BUFFER_HANDLE bufferHandle;
+        DRV_I2C_BUFFER_HANDLE bufferHandle;        
     } i2c;
+    struct {
+        DRV_HANDLE drvHandle;
+        DRV_SPI_BUFFER_HANDLE bufferHandle;
+        union{
+            uint32_t w;
+            struct{
+                unsigned configured:1;
+                unsigned readComplete:1;
+                unsigned writeComplete:1;
+                unsigned readStarted:1;
+                unsigned writeStarted:1;
+            };
+        }status;
+    } spi;
     struct {
         LEP_CAMERA_PORT_DESC_T cameraPort;
     }lepton;
+    struct{
+        union{
+            uint8_t b8[BUFFER_SIZE_8];
+            uint16_t b16[BUFFER_SIZE_16];
+            uint32_t b32[BUFFER_SIZE_32];
+        };  
+        struct{
+            struct {
+                uint32_t b8;
+                uint32_t b16;
+                uint32_t b32;
+            } max;
+            struct {
+                uint32_t b8;
+                uint32_t b16;
+                uint32_t b32;
+            } transfer;
+        }size;
+    }buffer;
 } FLIR_DATA;
 
 
@@ -202,6 +240,9 @@ void FLIR_Initialize ( void );
 
 void FLIR_Tasks( void );
 
+bool OpenFLIRSPI(FLIR_DATA *flir);
+bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size);
+bool GetFLIRSPIReading(FLIR_DATA *flir);
 
 #endif /* _FLIR_H */
 

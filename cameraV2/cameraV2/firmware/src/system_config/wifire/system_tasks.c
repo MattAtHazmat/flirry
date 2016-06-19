@@ -122,6 +122,8 @@ static void _SYS_Tasks ( void)
     {
         /* Maintain system services */
         SYS_DEVCON_Tasks(sysObj.sysDevcon);
+    /* SYS_TMR Device layer tasks routine */ 
+    SYS_TMR_Tasks(sysObj.sysTmr);
 
         /* Maintain Device Drivers */
 

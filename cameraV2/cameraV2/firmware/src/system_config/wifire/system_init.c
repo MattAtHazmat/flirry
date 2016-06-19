@@ -128,17 +128,45 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 const DRV_I2C_INIT drvI2C0InitData =
 {
     .i2cId = DRV_I2C_PERIPHERAL_ID_IDX0,
+    .i2cPerph = DRV_I2C_BIT_BANG_IDX0,
     .i2cMode = DRV_I2C_OPERATION_MODE_IDX0,
-    .baudRate = DRV_I2C_BAUD_RATE_IDX0,
+    .portSCL = DRV_SCL_PORT_IDX0,
+	.pinSCL  = DRV_SCL_PIN_POSITION_IDX0,
+	.portSDA = DRV_SDA_PORT_IDX0,
+	.pinSDA  = DRV_SDA_PIN_POSITION_IDX0,
+    .baudRate = DRV_I2C_BIT_BANG_BAUD_RATE_IDX0,
+	.tmrSource = DRV_I2C_BIT_BANG_TMR_MODULE_IDX0,
+	.tmrInterruptSource = DRV_I2C_BIT_BANG_INT_SRC_IDX0,
     .busspeed = DRV_I2C_SLEW_RATE_CONTROL_IDX0,
     .buslevel = DRV_I2C_SMBus_SPECIFICATION_IDX0,
-    .mstrInterruptSource = DRV_I2C_MASTER_INT_SRC_IDX0,
-    .errInterruptSource = DRV_I2C_ERR_MZ_INT_SRC_IDX0,
 };
 
 
 
 
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="DRV_SPI Initialization Data"> 
+ /*** SPI Driver Initialization Data ***/
+  /*** Index 0  ***/
+ DRV_SPI_INIT drvSpi0InitData =
+ {
+    .spiId = DRV_SPI_SPI_ID_IDX0,
+    .taskMode = DRV_SPI_TASK_MODE_IDX0,
+    .spiMode = DRV_SPI_SPI_MODE_IDX0,
+    .allowIdleRun = DRV_SPI_ALLOW_IDLE_RUN_IDX0,
+    .spiProtocolType = DRV_SPI_SPI_PROTOCOL_TYPE_IDX0,
+    .commWidth = DRV_SPI_COMM_WIDTH_IDX0,
+    .spiClk = DRV_SPI_SPI_CLOCK_IDX0,
+    .baudRate = DRV_SPI_BAUD_RATE_IDX0,
+    .bufferType = DRV_SPI_BUFFER_TYPE_IDX0,
+    .clockMode = DRV_SPI_CLOCK_MODE_IDX0,
+    .inputSamplePhase = DRV_SPI_INPUT_PHASE_IDX0,
+    .txInterruptSource = DRV_SPI_TX_INT_SOURCE_IDX0,
+    .rxInterruptSource = DRV_SPI_RX_INT_SOURCE_IDX0,
+    .errInterruptSource = DRV_SPI_ERROR_INT_SOURCE_IDX0,
+    .queueSize = DRV_SPI_QUEUE_SIZE_IDX0,
+    .jobQueueReserveSize = DRV_SPI_RESERVED_JOB_IDX0,
+ };
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_Timer Initialization Data">
 /*** TMR Driver Initialization Data ***/
@@ -190,6 +218,15 @@ const SYS_DEVCON_INIT sysDevconInit =
 };
 
 // </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="SYS_TMR Initialization Data">
+/*** TMR Service Initialization Data ***/
+const SYS_TMR_INIT sysTmrInitData =
+{
+    .moduleInit = {SYS_MODULE_POWER_RUN_FULL},
+    .drvIndex = DRV_TMR_INDEX_0,
+    .tmrFreq = 1000, 
+};
+// </editor-fold>
 
 // *****************************************************************************
 // *****************************************************************************
@@ -235,12 +272,20 @@ void SYS_Initialize ( void* data )
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
 
 
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_MASTER, INT_PRIORITY_LEVEL3);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_MASTER, INT_SUBPRIORITY_LEVEL3);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_BUS, INT_PRIORITY_LEVEL3);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T9, INT_PRIORITY_LEVEL3);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T9, INT_SUBPRIORITY_LEVEL0);
 
 
+
+    /*** SPI Driver Index 0 initialization***/
+
+    SYS_INT_VectorPrioritySet(DRV_SPI_TX_INT_VECTOR_IDX0, DRV_SPI_TX_INT_PRIORITY_IDX0);
+    SYS_INT_VectorSubprioritySet(DRV_SPI_TX_INT_VECTOR_IDX0, DRV_SPI_TX_INT_SUB_PRIORITY_IDX0);
+    SYS_INT_VectorPrioritySet(DRV_SPI_RX_INT_VECTOR_IDX0, DRV_SPI_RX_INT_PRIORITY_IDX0);
+    SYS_INT_VectorSubprioritySet(DRV_SPI_RX_INT_VECTOR_IDX0, DRV_SPI_RX_INT_SUB_PRIORITY_IDX0);
+    SYS_INT_VectorPrioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_PRIORITY_IDX0);
+    SYS_INT_VectorSubprioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX0);
+    sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
 
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
@@ -256,6 +301,9 @@ void SYS_Initialize ( void* data )
 
     /*** Interrupt Service Initialization Code ***/
     SYS_INT_Initialize();
+
+    /*** TMR Service Initialization Code ***/
+    sysObj.sysTmr  = SYS_TMR_Initialize(SYS_TMR_INDEX_0, (const SYS_MODULE_INIT  * const)&sysTmrInitData);
   
     /* Initialize Middleware */
 

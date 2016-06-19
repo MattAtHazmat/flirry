@@ -92,13 +92,75 @@ IntVectorDrvTmrInstance1:
 
 
 
+/* SPI Instance 0 Interrupt */
+   .extern  IntHandlerSPIRxInstance0
+
+   .section	.vector_143,code, keep
+   .equ     __vector_dispatch_143, IntVectorSPIRxInstance0
+   .global  __vector_dispatch_143
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPIRxInstance0
+
+IntVectorSPIRxInstance0:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPIRxInstance0
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPIRxInstance0
+
+
+   .extern  IntHandlerSPITxInstance0
+
+   .section	.vector_144,code, keep
+   .equ     __vector_dispatch_144, IntVectorSPITxInstance0
+   .global  __vector_dispatch_144
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPITxInstance0
+
+IntVectorSPITxInstance0:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPITxInstance0
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPITxInstance0
+
+
+   .extern  IntHandlerSPIFaultInstance0
+
+   .section	.vector_142,code, keep
+   .equ     __vector_dispatch_142, IntVectorSPIFaultInstance0
+   .global  __vector_dispatch_142
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPIFaultInstance0
+
+IntVectorSPIFaultInstance0:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPIFaultInstance0
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPIFaultInstance0
+
+
+
 /* I2C Instance 0 Interrupt */
 
    .extern  IntHandlerDrvI2CMasterInstance0
 
-   .section	.vector_175,code, keep
-   .equ     __vector_dispatch_175, IntVectorDrvI2CMasterInstance0
-   .global  __vector_dispatch_175
+   .section	.vector_40,code, keep
+   .equ     __vector_dispatch_40, IntVectorDrvI2CMasterInstance0
+   .global  __vector_dispatch_40
    .set     nomicromips
    .set     noreorder
    .set     nomips16
@@ -112,26 +174,6 @@ IntVectorDrvI2CMasterInstance0:
     nop
     portRESTORE_CONTEXT
     .end	IntVectorDrvI2CMasterInstance0
-
-
-   .extern  IntHandlerDrvI2CErrorInstance0
-
-   .section	.vector_173,code, keep
-   .equ     __vector_dispatch_173, IntVectorDrvI2CErrorInstance0
-   .global  __vector_dispatch_173
-   .set     nomicromips
-   .set     noreorder
-   .set     nomips16
-   .set     noat
-   .ent  IntVectorDrvI2CErrorInstance0
-
-IntVectorDrvI2CErrorInstance0:
-    portSAVE_CONTEXT
-    la    s6,  IntHandlerDrvI2CErrorInstance0
-    jalr  s6
-    nop
-    portRESTORE_CONTEXT
-    .end	IntVectorDrvI2CErrorInstance0
 
 
 /*******************************************************************************
