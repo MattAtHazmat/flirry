@@ -130,7 +130,7 @@ static void _SYS_Tasks ( void)
         /* Maintain Middleware */
 
         /* Task Delay */
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 
@@ -148,7 +148,7 @@ static void _FLIR_Tasks(void)
     while(1)
     {
         FLIR_Tasks();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 
@@ -166,7 +166,7 @@ static void _COMMS_Tasks(void)
     while(1)
     {
         COMMS_Tasks();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
 

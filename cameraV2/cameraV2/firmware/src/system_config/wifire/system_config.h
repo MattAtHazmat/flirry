@@ -129,9 +129,9 @@ extern "C" {
 #define SYS_PORT_D_CNPD         0x0
 #define SYS_PORT_D_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x200
-#define SYS_PORT_G_TRIS         0x73c3
-#define SYS_PORT_G_LAT          0x0
+#define SYS_PORT_G_ANSEL        0x0
+#define SYS_PORT_G_TRIS         0x71c3
+#define SYS_PORT_G_LAT          0x200
 #define SYS_PORT_G_ODC          0x0
 #define SYS_PORT_G_CNPU         0x0
 #define SYS_PORT_G_CNPD         0x0
@@ -198,7 +198,7 @@ extern "C" {
 #define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_G
 #define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_7
 #define DRV_I2C_BIT_BANG_IDX0                           true
-#define DRV_I2C_BIT_BANG_BAUD_RATE_IDX0                 100000
+#define DRV_I2C_BIT_BANG_BAUD_RATE_IDX0                 50000
 #define DRV_I2C_BIT_BANG_TMR_MODULE_IDX0                TMR_ID_9
 #define DRV_I2C_BIT_BANG_INT_SRC_IDX0                   INT_SOURCE_TIMER_9
 #define DRV_I2C_STOP_IN_IDLE_IDX0                       false
@@ -236,7 +236,7 @@ extern "C" {
 #define DRV_SPI_SPI_PROTOCOL_TYPE_IDX0 		DRV_SPI_PROTOCOL_TYPE_STANDARD
 #define DRV_SPI_COMM_WIDTH_IDX0 			SPI_COMMUNICATION_WIDTH_8BITS
 #define DRV_SPI_SPI_CLOCK_IDX0 				CLK_BUS_PERIPHERAL_2
-#define DRV_SPI_BAUD_RATE_IDX0 				10000000
+#define DRV_SPI_BAUD_RATE_IDX0 				5000000
 #define DRV_SPI_BUFFER_TYPE_IDX0 			DRV_SPI_BUFFER_TYPE_ENHANCED
 #define DRV_SPI_CLOCK_MODE_IDX0 			DRV_SPI_CLOCK_MODE_IDLE_LOW_EDGE_RISE
 #define DRV_SPI_INPUT_PHASE_IDX0 			SPI_INPUT_SAMPLING_PHASE_IN_MIDDLE

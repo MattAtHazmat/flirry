@@ -93,6 +93,7 @@ typedef enum
     FLIR_OPEN_SPI_PORT,
             FLIR_START,
 	FLIR_STATE_SERVICE_TASKS,
+            FLIR_STATE_SUCCESS,
     FLIR_ERROR,
 } FLIR_STATES;
 
@@ -109,6 +110,92 @@ typedef enum
   Remarks:
     Application strings and buffers are be defined outside this structure.
  */
+#define VOSPI_HEADER_LENGTH     (4)
+#define VOSPI_PAYLOAD_LENGTH    (160)
+#define VOSPI_LENGTH            (VOSPI_HEADER_LENGTH+VOSPI_PAYLOAD_LENGTH)
+#define DISCARD                 (0x0f)
+typedef uint16_t PIXEL_TYPE;
+#define HORIZONTAL_SIZE         (VOSPI_PAYLOAD_LENGTH>>1)
+#define VERTICAL_SIZE           (60)
+
+typedef struct {
+    struct {
+        uint16_t horizontal;
+        uint16_t vertical;
+        struct {
+            uint16_t pixels;
+            uint16_t bytes;
+        }size;
+    }properties;
+    union{
+        PIXEL_TYPE vector[HORIZONTAL_SIZE*VERTICAL_SIZE];
+        PIXEL_TYPE pixel[VERTICAL_SIZE][HORIZONTAL_SIZE];
+    }image;
+}FLIR_IMAGE_TYPE;
+
+typedef struct __attribute__((packed)){
+    uint16_t telemetryRevision;
+    uint16_t uptime[2];
+    uint16_t status[2];
+    uint16_t serial[8];
+    uint16_t RESERVED1[4];
+    uint16_t frameCounter[2];
+    uint16_t frameMean;
+    uint16_t FPATemp;
+    uint16_t housingTempCounts;
+    uint16_t housingTempK;
+    uint16_t RESERVED2[2];
+    struct __attribute__((packed)){
+        uint16_t FFATemp;
+        uint16_t timeCounter[2];
+        uint16_t housingTempK;
+    }lastFFC;
+    uint16_t RESERVED3;
+    struct __attribute__((packed)){
+        struct __attribute__((packed)){
+            uint16_t top;
+            uint16_t left;
+            uint16_t bottom;
+            uint16_t right;
+        }ROI;
+        struct __attribute__((packed)){
+            uint16_t high;
+            uint16_t low;
+        }clipLimit;
+    }AGC;
+    uint16_t RESERVED4[34];
+    uint16_t FFCFramesLog2;
+    uint16_t RESERVED5[5];
+}TELEMETRY_A;
+
+typedef union __attribute__((packed)){
+    uint8_t b8[VOSPI_LENGTH];
+    uint16_t b16[VOSPI_LENGTH>>1];
+    struct __attribute__((packed)){
+        union __attribute__((packed)){
+            uint16_t b16;
+            uint8_t b8[2];
+            struct __attribute__((packed)){
+                unsigned:8;
+                unsigned discard:4;
+                unsigned MSBits:4;
+            };
+            struct __attribute__((packed)){
+                unsigned line:12;
+                unsigned:4;
+            };
+        }ID;
+        union __attribute__((packed)){
+            uint16_t b16;
+            uint8_t b8[2];
+        }CRC;
+        union __attribute__((packed)){ 
+            uint8_t b8[VOSPI_PAYLOAD_LENGTH];
+            uint16_t b16[VOSPI_PAYLOAD_LENGTH>>1];
+            TELEMETRY_A telemetry;
+        }payload;
+    };
+}VOSPI_TYPE;
 
 #define BUFFER_SIZE_32  (256)
 #define BUFFER_SIZE_16  (BUFFER_SIZE_32*2)
@@ -130,10 +217,8 @@ typedef struct
         union{
             uint32_t w;
             struct{
-                unsigned readComplete:1;
-                unsigned writeComplete:1;
-                unsigned readStarted:1;
-                unsigned writeStarted:1;
+                unsigned complete:1;
+                unsigned started:1;
             }flags;
         }status;
     } spi;
@@ -159,7 +244,30 @@ typedef struct
                 uint32_t b32;
             } transfer;
         }size;
-    }buffer;
+    }TXBuffer;
+    struct{
+        union{
+            uint8_t b8[BUFFER_SIZE_8];
+            uint16_t b16[BUFFER_SIZE_16];
+            uint32_t b32[BUFFER_SIZE_32];
+        };  
+        struct{
+            struct {
+                uint32_t b8;
+                uint32_t b16;
+                uint32_t b32;
+            } max;
+            struct {
+                uint32_t b8;
+                uint32_t b16;
+                uint32_t b32;
+            } transfer;
+        }size;
+        struct {
+            uint16_t calculated;
+            uint16_t packet;
+        }CRC;
+    }RXBuffer;
     union {
         uint32_t w;
         struct {
@@ -175,6 +283,8 @@ typedef struct
             unsigned usingSPI:1;
         }flags;
     }status;
+    VOSPI_TYPE VoSPI;
+    FLIR_IMAGE_TYPE image;
 } FLIR_DATA;
 
 
@@ -261,6 +371,11 @@ void FLIR_Tasks( void );
 bool OpenFLIRSPI(FLIR_DATA *flir);
 bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size);
 bool GetFLIRSPIReading(FLIR_DATA *flir);
+bool FLIRSPIWriteRead(FLIR_DATA *flir,uint32_t TXSize,int32_t RXSize);
+bool FLIRGetVoSPI(FLIR_DATA *flir);
+#define FLIRSPISlaveSelect()       LATGCLR = 1<<9
+#define FLIRSPISlaveDeselect()     LATGSET = 1<<9
+bool FLIRPopulateLine(FLIR_DATA *flir);
 
 #endif /* _FLIR_H */
 
