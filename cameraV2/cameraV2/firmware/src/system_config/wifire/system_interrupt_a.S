@@ -153,6 +153,110 @@ IntVectorSPIFaultInstance0:
     .end	IntVectorSPIFaultInstance0
 
 
+/* SPI Instance 1 Interrupt */
+   .extern  IntHandlerSPIRxInstance1
+
+   .section	.vector_110,code, keep
+   .equ     __vector_dispatch_110, IntVectorSPIRxInstance1
+   .global  __vector_dispatch_110
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPIRxInstance1
+
+IntVectorSPIRxInstance1:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPIRxInstance1
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPIRxInstance1
+
+
+   .extern  IntHandlerSPITxInstance1
+
+   .section	.vector_111,code, keep
+   .equ     __vector_dispatch_111, IntVectorSPITxInstance1
+   .global  __vector_dispatch_111
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPITxInstance1
+
+IntVectorSPITxInstance1:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPITxInstance1
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPITxInstance1
+
+
+   .extern  IntHandlerSPIFaultInstance1
+
+   .section	.vector_109,code, keep
+   .equ     __vector_dispatch_109, IntVectorSPIFaultInstance1
+   .global  __vector_dispatch_109
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSPIFaultInstance1
+
+IntVectorSPIFaultInstance1:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSPIFaultInstance1
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSPIFaultInstance1
+
+
+
+/* Sytem DMA Instance 0 Interrupt */
+   .extern  IntHandlerSysDmaInstance0
+
+   .section	.vector_134,code, keep
+   .equ     __vector_dispatch_134, IntVectorSysDmaInstance0
+   .global  __vector_dispatch_134
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSysDmaInstance0
+
+IntVectorSysDmaInstance0:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSysDmaInstance0
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSysDmaInstance0
+
+
+/* Sytem DMA Instance 1 Interrupt */
+   .extern  IntHandlerSysDmaInstance1
+
+   .section	.vector_135,code, keep
+   .equ     __vector_dispatch_135, IntVectorSysDmaInstance1
+   .global  __vector_dispatch_135
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorSysDmaInstance1
+
+IntVectorSysDmaInstance1:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerSysDmaInstance1
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorSysDmaInstance1
+
+
 
 /* I2C Instance 0 Interrupt */
 

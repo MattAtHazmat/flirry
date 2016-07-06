@@ -69,6 +69,10 @@
         <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
+        <Name>sys_dma.c</Name>
+        <Path>Source Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>timers.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
@@ -99,6 +103,10 @@
       <File>
         <Name>drv_i2c_bb.h</Name>
         <Path>Header Files/framework/driver/i2c</Path>
+      </File>
+      <File>
+        <Name>sys_dma.h</Name>
+        <Path>Header Files/framework/system/dma</Path>
       </File>
       <File>
         <Name>sys_tmr.h</Name>
@@ -249,31 +257,31 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>584561F8DA811B4F7BA5ECA5A43B082B</Checksum>
+        <Checksum>A0DBCA3EC7C5BE3739C6D5FE43CE016D</Checksum>
         <ProjectFileChecksum>7AAEB8BC3A7A39568128640FD82958AB</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>BFE6B176C71773BD822376460D3320DC</Checksum>
+        <Checksum>DB10630DD163BF0833E31B966391D498</Checksum>
         <ProjectFileChecksum>5F61F43892243FD3B2E75D21EFAB443A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>B51318F06EF9D9564F33F905C0767A42</Checksum>
+        <Checksum>78E794BF59373406BB9F1C6430C851DA</Checksum>
         <ProjectFileChecksum>C1FEBB5712356BEB760F5D9F5B3D5037</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>B6339BBD9DE0CF5C83179B79FE4E8F85</Checksum>
+        <Checksum>C1BCDF472152C2F561056968A30CBC71</Checksum>
         <ProjectFileChecksum>68197D20C739857478BAE4EF77E7949D</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>C2735B98665967766A9EA0F0A65D703F</Checksum>
+        <Checksum>10350C44BB4C7E5F6F597D9767AA042B</Checksum>
         <ProjectFileChecksum>9882BF29DE32B9A2DED8358CA6FE60E4</ProjectFileChecksum>
       </Template>
       <Template>
@@ -291,13 +299,19 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>8F4E3DC5AA3EA2C096C9C8CCE7A487FB</Checksum>
+        <Checksum>AC41E735076FCF5D36365ACF0987704B</Checksum>
         <ProjectFileChecksum>B9FDD2C34CB8C5094C02C55F3A678154</ProjectFileChecksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_master_dma_tasks.c</Name>
+        <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
+        <Checksum>ABD3BFDDF06D27E49DE2E7D95DC3B9C6</Checksum>
+        <ProjectFileChecksum>CCBCBD9BC724A86892E20F234BEC479F</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/system/ports/src</Path>
-        <Checksum>2503F28071B6487D1BB0BF8CA5080FDF</Checksum>
+        <Checksum>C9887E98E4DD316F7ADCFA393CF18D8A</Checksum>
         <ProjectFileChecksum>0C81FE071B4B4F12E07E8812D059B162</ProjectFileChecksum>
       </Template>
       <Template>
@@ -309,7 +323,7 @@
       <Template>
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>B3A91E83D97E20F2E6AE74F22B6F32E1</Checksum>
+        <Checksum>4FF988138085F1E9771E88FD07FB9B64</Checksum>
         <ProjectFileChecksum>C4E008BFB8862D17D5AAE6D084BFAA89</ProjectFileChecksum>
       </Template>
       <Template>

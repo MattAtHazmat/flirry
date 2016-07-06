@@ -88,12 +88,23 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	COMMS_STATE_INIT=0,
+    COMMS_STATE_INITIALIZE_SPI,
 	COMMS_STATE_SERVICE_TASKS,
-
-	/* TODO: Define states used by the application state machine. */
-
+    COMMS_TRANSMIT_IMAGE,
+    COMMS_TRANSMIT_IMAGE_HEADER,
+    COMMS_TRANSMIT_LINE,
+    COMMS_STATE_IMAGE_DONE,
+    COMMS_STATE_ERROR
 } COMMS_STATES;
 
+#define COMMS_BUFFER_SIZE       (0x100)
+#define COMMS_BUFFER_SIZE_8     COMMS_BUFFER_SIZE
+#define COMMS_BUFFER_SIZE_16    (COMMS_BUFFER_SIZE_8>>1)
+#define COMMS_BUFFER_SIZE_32    (COMMS_BUFFER_SIZE_8>>2)
+
+#define IMAGE_INFO_ID   (0xA5)
+#define IMAGE_LINE_ID   (0x5A)
+#define IMAGE_DONE_ID   (0x55)
 
 // *****************************************************************************
 /* Application Data
@@ -112,9 +123,45 @@ typedef struct
 {
     /* The application's current state */
     COMMS_STATES state;
-
-    /* TODO: Define any additional data used by the application. */
-
+    struct {
+        DRV_HANDLE drvHandle;
+        DRV_SPI_BUFFER_HANDLE bufferHandle;
+        struct{
+            unsigned complete:1;
+            unsigned started:1;
+        }status;            
+    } spi;
+    struct __attribute__((packed)) {
+        union{
+            uint8_t   b8[COMMS_BUFFER_SIZE_8];
+            uint16_t b16[COMMS_BUFFER_SIZE_16];
+            uint32_t b32[COMMS_BUFFER_SIZE_32];
+        };  
+        struct{
+            BUFFER_SIZE_TYPE max;
+            BUFFER_SIZE_TYPE transfer;
+        }size;
+    }TXBuffer;    
+    struct {
+        unsigned initialized:1;
+        unsigned SPIInitialized:1;
+    }status;
+    struct {
+        TaskHandle_t myHandle;
+        TaskHandle_t FLIRHandle;
+    }RTOS;
+    struct {
+        uint32_t receive;
+        uint32_t transmit;
+        uint32_t number;
+    }buffer;
+    FLIR_IMAGE_TYPE image;
+    uint32_t transmitLine;
+    struct {
+        uint32_t imagesReceived;
+        uint32_t imagesTransmitted;
+        uint32_t spiFailures;
+    }counters;
 } COMMS_DATA;
 
 
@@ -197,7 +244,15 @@ void COMMS_Initialize ( void );
  */
 
 void COMMS_Tasks( void );
+bool COMMS_TransmitImageHeader(COMMS_DATA *comms);
+bool COMMS_TransmitImageLine(COMMS_DATA *comms);
+bool COMMS_TransmitImageDone(COMMS_DATA *comms);
+bool COMMS_SPIWrite(COMMS_DATA *comms,uint32_t TXSize);
+bool COMMS_NotifyReady(COMMS_DATA *comms);
+uint32_t COMMS_WaitForImageReady(void);
 
+#define CommsSPISlaveSelect()       LATECLR = 1<<9
+#define CommsSPISlaveDeselect()     LATESET = 1<<9
 
 #endif /* _COMMS_H */
 

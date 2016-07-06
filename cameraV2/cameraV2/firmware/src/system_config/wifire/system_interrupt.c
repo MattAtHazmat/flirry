@@ -94,7 +94,31 @@ void IntHandlerSPIFaultInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
+void IntHandlerSPIRxInstance1(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
+}
+void IntHandlerSPITxInstance1(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
+}
+void IntHandlerSPIFaultInstance1(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
+}
 
+void IntHandlerSysDmaInstance0(void)
+{          
+    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_0);
+}
+
+void IntHandlerSysDmaInstance1(void)
+{          
+    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_1);
+}
+     
+
+     
 
      
 void IntHandlerDrvI2CMasterInstance0(void)
