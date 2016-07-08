@@ -92,7 +92,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 //#define SetOE()             LATCSET = _LATC_LATC1_MASK 
 //#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
 //#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
-#define NUMBER_SPRITES      (1)
+#define NUMBER_SPRITES      (10)
 #define DATA_WAIT           PMP_DATA_WAIT_FOUR
 #define STROBE_WAIT         PMP_STROBE_WAIT_10
 #define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
@@ -179,30 +179,26 @@ typedef union {
     };
 } int32_b_TYPE;
 
+typedef struct {
+    int32_b_TYPE row;
+    int32_b_TYPE column;
+} ROW_COLUMN_TYPE;
+
 typedef struct
 {
     struct {
-        struct {
-            int32_b_TYPE row;
-            int32_b_TYPE column;
-        } position;
-        struct {
-            int32_b_TYPE row;
-            int32_b_TYPE column;
-        } velocity;
+        ROW_COLUMN_TYPE position;
+        ROW_COLUMN_TYPE velocity;
         PIXEL_TYPE color;
     } sprite[NUMBER_SPRITES];
-    union{
-        uint32_t w;
-        struct __attribute__ ((packed)) {
+    struct __attribute__ ((packed)) {
             unsigned bufferFilling:1; 
             unsigned nextSlice:1;
             unsigned timerOverrun:1;
             unsigned displayArrayFilled:1;
             unsigned timerStarted:1;
             unsigned firstSliceSent:1;                       
-        }status;
-    };        
+    }status;   
     struct {
         uint8_t PWMIncrement;
         uint8_t PWMLevel;
@@ -219,17 +215,21 @@ typedef struct
         uint16_t address;
     };
     DISP_STATES state;
-    SYS_MODULE_INDEX timerIndex; 
-    DRV_PMP_INDEX pmpIndex;
-    DRV_HANDLE pmpDriverHandle;
-    DRV_HANDLE timerDriverHandle;
-    SYS_MODULE_OBJ timerModuleObject;
-    SYS_MODULE_OBJ pmpModuleObject;
+    struct {
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE driverHandle;
+        SYS_MODULE_OBJ moduleObject;
+    } timer;
+    struct {
+        DRV_PMP_INDEX index;
+        DRV_HANDLE driverHandle;
+        SYS_MODULE_OBJ moduleObject;
+        PMP_QUEUE_ELEMENT_OBJECT* pQueue;
+    } pmp;
     union __attribute__ ((packed)){
         DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
         uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
-    } sliceBuffer[2];
-    PMP_QUEUE_ELEMENT_OBJECT* pQueue;
+    } sliceBuffer[2];    
     PIXEL_TYPE display[DISPLAY_ROWS][DISPLAY_COLUMNS];    
 } DISP_DATA;
 

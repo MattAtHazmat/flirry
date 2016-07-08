@@ -427,7 +427,7 @@ bool OpenFLIRSPI(FLIR_DATA *flir)
     bool SPIReady = false;
     FLIRSPISlaveDeselect();
     flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
-                                       DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READWRITE);
+                                       DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != flir->spi.drvHandle)
     {
         SPIReady = true;

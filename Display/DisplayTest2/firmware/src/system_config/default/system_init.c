@@ -74,7 +74,7 @@
 #pragma config IESO =       ON
 #pragma config POSCMOD =    XT
 #pragma config OSCIOFNC =   OFF
-#pragma config FPBDIV =     DIV_1
+#pragma config FPBDIV =     DIV_2
 #pragma config FCKSM =      CSECMD
 #pragma config WDTPS =      PS1048576
 #pragma config FWDTEN =     OFF
@@ -106,16 +106,40 @@
 {
     .polarity.addressLatchPolarity = PMP_POLARITY_ACTIVE_HIGH,
     .polarity.rwStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
-    .polarity.writeEnableStrobePolarity = PMP_POLARITY_ACTIVE_HIGH,
+    .polarity.writeEnableStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
     .polarity.chipselect1Polarity = PMP_POLARITY_ACTIVE_HIGH,
     .polarity.chipselect2Polarity = PMP_POLARITY_ACTIVE_LOW,
-    .ports.readWriteStrobe = PORT_DISABLE,
+    .ports.readWriteStrobe = PORT_ENABLE,
     .ports.writeEnableStrobe = PORT_ENABLE,
     .moduleInit.value = SYS_MODULE_POWER_RUN_FULL,
     .pmpID            = PMP_ID_0,
     .stopInIdle       = false,
     .muxMode          = PMP_MUX_NONE
 };
+// </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="DRV_SPI Initialization Data"> 
+ /*** SPI Driver Initialization Data ***/
+  /*** Index 0  ***/
+ DRV_SPI_INIT drvSpi0InitData =
+ {
+    .spiId = DRV_SPI_SPI_ID_IDX0,
+    .taskMode = DRV_SPI_TASK_MODE_IDX0,
+    .spiMode = DRV_SPI_SPI_MODE_IDX0,
+    .allowIdleRun = DRV_SPI_ALLOW_IDLE_RUN_IDX0,
+    .spiProtocolType = DRV_SPI_SPI_PROTOCOL_TYPE_IDX0,
+    .spiSlaveSSPin = DRV_SPI_SPI_USE_SS_FOR_SLAVE_IDX0,
+    .commWidth = DRV_SPI_COMM_WIDTH_IDX0,
+    .spiClk = DRV_SPI_SPI_CLOCK_IDX0,
+    .baudRate = DRV_SPI_BAUD_RATE_IDX0,
+    .bufferType = DRV_SPI_BUFFER_TYPE_IDX0,
+    .clockMode = DRV_SPI_CLOCK_MODE_IDX0,
+    .inputSamplePhase = DRV_SPI_INPUT_PHASE_IDX0,
+    .txInterruptSource = DRV_SPI_TX_INT_SOURCE_IDX0,
+    .rxInterruptSource = DRV_SPI_RX_INT_SOURCE_IDX0,
+    .errInterruptSource = DRV_SPI_ERROR_INT_SOURCE_IDX0,
+    .queueSize = DRV_SPI_QUEUE_SIZE_IDX0,
+    .jobQueueReserveSize = DRV_SPI_RESERVED_JOB_IDX0,
+ };
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_Timer Initialization Data">
 /*** TMR Driver Initialization Data **                                        */
@@ -232,6 +256,13 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();  
     /* Initialize Drivers                                                     */
     sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
+
+    /*** SPI Driver Index 0 initialization***/
+
+    SYS_INT_VectorPrioritySet(DRV_SPI_INT_VECTOR_IDX0, DRV_SPI_INT_PRIORITY_IDX0);
+    SYS_INT_VectorSubprioritySet(DRV_SPI_INT_VECTOR_IDX0, DRV_SPI_INT_SUB_PRIORITY_IDX0);
+    sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
+
     sysObj.drvTmr0 = DRV_TMR_Initialize (DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T1, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T1, INT_SUBPRIORITY_LEVEL0); 
@@ -252,6 +283,7 @@ void SYS_Initialize ( void* data )
     {
         while(true);
     }
+    COMMS_Initialize();
     /* Enable Global Interrupts                                               */
     SYS_INT_Enable();
 }

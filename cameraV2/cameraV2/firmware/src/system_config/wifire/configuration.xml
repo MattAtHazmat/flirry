@@ -4,7 +4,7 @@
     <HarmonyPath path="../../../../microchip/harmony/v1_07_01"/>
     <Processor name="PIC32MZ2048EFG100"/>
     <ForceOptimization flag="true"/>
-    <MergeStrategy flag="ALL"/>
+    <MergeStrategy flag="USER_RECENT"/>
   </General>
   <Manifest>
     <Files>
@@ -69,10 +69,6 @@
         <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
-        <Name>sys_dma.c</Name>
-        <Path>Source Files/framework/system/dma</Path>
-      </File>
-      <File>
         <Name>timers.h</Name>
         <Path>Header Files/FreeRTOS</Path>
       </File>
@@ -103,10 +99,6 @@
       <File>
         <Name>drv_i2c_bb.h</Name>
         <Path>Header Files/framework/driver/i2c</Path>
-      </File>
-      <File>
-        <Name>sys_dma.h</Name>
-        <Path>Header Files/framework/system/dma</Path>
       </File>
       <File>
         <Name>sys_tmr.h</Name>
@@ -240,13 +232,11 @@
         <Name>main.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>81A51474D8A80D41AD749DEAE4C1A7A3</Checksum>
-        <ProjectFileChecksum>3F5A12905C03DFC6E4E669D680D20FEE</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
         <Checksum>EE40721EA2FDF1E26049615E29EC5144</Checksum>
-        <ProjectFileChecksum>2C2833D156685CDA79FAFCD4E332D4F4</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>comms.h</Name>
@@ -257,32 +247,28 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>A0DBCA3EC7C5BE3739C6D5FE43CE016D</Checksum>
-        <ProjectFileChecksum>7AAEB8BC3A7A39568128640FD82958AB</ProjectFileChecksum>
+        <Checksum>6D99FC8E7B4524E51EA0494D0ED167C6</Checksum>
       </Template>
       <Template>
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>DB10630DD163BF0833E31B966391D498</Checksum>
-        <ProjectFileChecksum>5F61F43892243FD3B2E75D21EFAB443A</ProjectFileChecksum>
+        <Checksum>BFE6B176C71773BD822376460D3320DC</Checksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>78E794BF59373406BB9F1C6430C851DA</Checksum>
+        <Checksum>A31E7D09D0CECE2057A744D693FA10F6</Checksum>
         <ProjectFileChecksum>C1FEBB5712356BEB760F5D9F5B3D5037</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>C1BCDF472152C2F561056968A30CBC71</Checksum>
-        <ProjectFileChecksum>68197D20C739857478BAE4EF77E7949D</ProjectFileChecksum>
+        <Checksum>5C4A7D96D3CDC6CA8BCD1684F2B485D3</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>10350C44BB4C7E5F6F597D9767AA042B</Checksum>
-        <ProjectFileChecksum>9882BF29DE32B9A2DED8358CA6FE60E4</ProjectFileChecksum>
+        <Checksum>3039727F37BB37DD52BCF3CA43FC929E</Checksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -294,25 +280,16 @@
         <Name>rtos_hooks.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
         <Checksum>FA52743264536E5207D2ADBE57B48D05</Checksum>
-        <ProjectFileChecksum>8D38705154B7F2514391FA4A6A7684A5</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
-        <Checksum>AC41E735076FCF5D36365ACF0987704B</Checksum>
-        <ProjectFileChecksum>B9FDD2C34CB8C5094C02C55F3A678154</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_master_dma_tasks.c</Name>
-        <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>ABD3BFDDF06D27E49DE2E7D95DC3B9C6</Checksum>
-        <ProjectFileChecksum>CCBCBD9BC724A86892E20F234BEC479F</ProjectFileChecksum>
+        <Checksum>BFA9EF9DBBAD79882DB747089895F926</Checksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/system/ports/src</Path>
-        <Checksum>C9887E98E4DD316F7ADCFA393CF18D8A</Checksum>
-        <ProjectFileChecksum>0C81FE071B4B4F12E07E8812D059B162</ProjectFileChecksum>
+        <Checksum>E9CF6BC0F1CEDD3AFCEA0DCD149C01BD</Checksum>
       </Template>
       <Template>
         <Name>flir.h</Name>
@@ -323,38 +300,32 @@
       <Template>
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
-        <Checksum>4FF988138085F1E9771E88FD07FB9B64</Checksum>
-        <ProjectFileChecksum>C4E008BFB8862D17D5AAE6D084BFAA89</ProjectFileChecksum>
+        <Checksum>B3A91E83D97E20F2E6AE74F22B6F32E1</Checksum>
       </Template>
       <Template>
         <Name>drv_spi_master_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/driver/spi/dynamic</Path>
         <Checksum>4C2C868738FD74E2D6A3C8A8FD6B1381</Checksum>
-        <ProjectFileChecksum>F958B068D97D6E287C8DAAD976AE843A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/wifire</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
-        <ProjectFileChecksum>5BE036667AB3B153FBE28AA4DEC84585</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>FreeRTOSConfig.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
         <Checksum>CBCCFD050FCC0AF8456A05508CFA98E8</Checksum>
-        <ProjectFileChecksum>BE5B7CEA5BF0426F5645B824EA50650E</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
         <Path>Header Files/app/system_config/wifire/framework/system/clk</Path>
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
-        <ProjectFileChecksum>AE4A251F7CD9116EF0D960A0F2F110BA</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/wifire/framework/system/clk/src</Path>
         <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
-        <ProjectFileChecksum>489A8B8358786954686AAD2A4419C220</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>

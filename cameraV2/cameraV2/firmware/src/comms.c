@@ -87,11 +87,37 @@ extern TaskHandle_t FLIRHandle;
 // *****************************************************************************
 // *****************************************************************************
 
-static void SPICallback(uintptr_t context)
+static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
-    CommsSPISlaveDeselect();
-    commsData.spi.status.started = false;
-    commsData.spi.status.complete = true;
+    //CommsSPISlaveInvert();// CommsSPISlaveDeselect();
+    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
+    {
+        CommsSPISlaveSelect();
+        commsData.spi.status.running = true;
+        commsData.spi.status.started = true;
+        commsData.spi.status.complete = false;
+    }
+    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    {
+        commsData.spi.status.error=true;
+    }        
+}
+
+static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+{
+    //CommsSPISlaveInvert();// CommsSPISlaveDeselect();
+    if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
+    {
+        CommsSPISlaveDeselect();
+        commsData.spi.status.running = false;
+        commsData.spi.status.started = false;
+        commsData.spi.status.complete = true;
+    }
+    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    {
+        commsData.spi.status.error=true;
+    }
+        
 }
 
 // *****************************************************************************
@@ -103,10 +129,20 @@ static void SPICallback(uintptr_t context)
 
 bool OpenDisplaySPI(COMMS_DATA *comms)
 {
-    CommsSPISlaveDeselect();
     comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_1,
-                                        DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READWRITE);
-    return (DRV_HANDLE_INVALID != comms->spi.drvHandle);
+                                        DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_WRITE);
+    if(DRV_HANDLE_INVALID != comms->spi.drvHandle)
+    {
+        DRV_SPI_CLIENT_DATA clientData;
+        clientData.baudRate = 0; /* not overriding the baud rate */
+        clientData.operationEnded = (void*)CommsSPICompletedCallback;
+        clientData.operationStarting = (void*)CommsSPIStartedCallback;
+        if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
+        {
+            /* success! */
+        }
+    }
+    return(DRV_HANDLE_INVALID != comms->spi.drvHandle);
 }
 
 // *****************************************************************************
@@ -206,7 +242,7 @@ void COMMS_Tasks ( void )
             }
             else
             {
-                commsData.counters.spiFailures++;
+                commsData.counters.failure.header++;
             }
             break;
         }
@@ -222,7 +258,7 @@ void COMMS_Tasks ( void )
             }
             else
             {
-                commsData.counters.spiFailures++;
+                commsData.counters.failure.line++;
             }
             break;
         }
@@ -236,7 +272,7 @@ void COMMS_Tasks ( void )
             }
             else
             {
-                commsData.counters.spiFailures++;
+                commsData.counters.failure.done++;
             }
             break;
         }
@@ -261,12 +297,13 @@ void COMMS_Tasks ( void )
 bool COMMS_TransmitImageHeader(COMMS_DATA *comms)
 {
     bool success = false;
-    uint32_t txLength=0;
-    comms->TXBuffer.b8[txLength++] = IMAGE_INFO_ID;
-    comms->TXBuffer.b8[txLength++] = sizeof(IMAGE_INFO_TYPE);    
-    memcpy(&comms->TXBuffer.b8[txLength],&comms->image.properties,sizeof(IMAGE_INFO_TYPE));
-    txLength += sizeof(IMAGE_INFO_TYPE);
-    success = COMMS_SPIWrite(comms,txLength);
+
+    memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+    comms->TXBuffer.b8[ID_LOCATION] = IMAGE_INFO_ID;
+    comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(sizeof(IMAGE_INFO_TYPE)>>8));   
+    comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xff&(sizeof(IMAGE_INFO_TYPE)));
+    memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.properties,sizeof(IMAGE_INFO_TYPE));
+    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE));
     return success;
 }
 
@@ -275,18 +312,16 @@ bool COMMS_TransmitImageHeader(COMMS_DATA *comms)
 bool COMMS_TransmitImageLine(COMMS_DATA *comms)
 {
     bool success = false;
-    uint32_t txLength=0;
     uint32_t lineLength;
-    comms->TXBuffer.b8[txLength++] = IMAGE_LINE_ID;
-    comms->TXBuffer.b8[txLength++] = 0xff & (comms->image.properties.dimensions.horizontal>>8);
-    comms->TXBuffer.b8[txLength++] = 0xff & (comms->image.properties.dimensions.horizontal);
-    comms->TXBuffer.b8[txLength++] = 0xff & (comms->transmitLine>>8);
-    comms->TXBuffer.b8[txLength++] = 0xff & comms->transmitLine;
+    memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+    comms->TXBuffer.b8[ID_LOCATION] = IMAGE_LINE_ID;
+    comms->TXBuffer.b8[LINE_LSB_LOCATION] = 0xff & comms->transmitLine;
+    comms->TXBuffer.b8[LINE_MSB_LOCATION] = 0xff & (comms->transmitLine>>8);    
     lineLength = comms->image.properties.dimensions.horizontal * sizeof(PIXEL_TYPE);
-    memcpy(&comms->TXBuffer.b8[txLength],
-           &comms->image.buffer[comms->buffer.transmit].pixel[comms->transmitLine][0],lineLength);
-    txLength += lineLength;
-    success = COMMS_SPIWrite(comms,txLength);
+    memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.buffer[comms->buffer.transmit].pixel[comms->transmitLine][0],lineLength);
+    comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xFF&(lineLength));
+    comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(lineLength)>>8); 
+    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH + lineLength);
     return success;
 }
 
@@ -295,10 +330,11 @@ bool COMMS_TransmitImageLine(COMMS_DATA *comms)
 bool COMMS_TransmitImageDone(COMMS_DATA *comms)
 {
     bool success = false;
-    uint32_t txLength=0;
-    comms->TXBuffer.b8[txLength++] = IMAGE_DONE_ID;
-    comms->TXBuffer.b8[txLength++] = 0;  
-    success = COMMS_SPIWrite(comms,txLength);
+    memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+    comms->TXBuffer.b8[ID_LOCATION] = IMAGE_DONE_ID;
+    comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = 0;   
+    comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = 0;
+    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH);
     return success;
 }
 
@@ -307,32 +343,29 @@ bool COMMS_TransmitImageDone(COMMS_DATA *comms)
 bool COMMS_SPIWrite(COMMS_DATA *comms,uint32_t TXSize)
 {
     bool success = false;
-    CommsSPISlaveDeselect();
-    /* blocking */
-    if(TXSize < comms->TXBuffer.size.max.b8)
+    if(comms->spi.status.running == false)
     {
-        CommsSPISlaveSelect();
-        if(DRV_SPI_BUFFER_HANDLE_INVALID != 
-           DRV_SPI_BufferAddWrite(comms->spi.drvHandle,
-                                  comms->TXBuffer.b8,
-                                  TXSize,
-                                  (void*)SPICallback,
-                                  NULL))
+        if(TXSize < comms->TXBuffer.size.max.b8)
         {
-            comms->TXBuffer.size.transfer.b8  = TXSize;
-            comms->TXBuffer.size.transfer.b16 = TXSize>>1;
-            comms->TXBuffer.size.transfer.b32 = TXSize>>2;
-            comms->spi.status.started=true;
-            do {
-                taskYIELD();
-            }while(!comms->spi.status.complete);
-            success = true;
-        }
-        else
-        {
-            CommsSPISlaveDeselect();
-        }
-    }
+            //CommsSPISlaveSelect();
+            if(DRV_SPI_BUFFER_HANDLE_INVALID != 
+               DRV_SPI_BufferAddWrite(comms->spi.drvHandle,
+                                      comms->TXBuffer.b8,
+                                      TXSize,
+                                      (void*)CommsSPICompletedCallback,
+                                      NULL))
+            {
+                comms->TXBuffer.size.transfer.b8  = TXSize;
+                comms->TXBuffer.size.transfer.b16 = TXSize>>1;
+                comms->TXBuffer.size.transfer.b32 = TXSize>>2;
+                comms->spi.status.started=true;
+                do {
+                    taskYIELD();
+                }while(!comms->spi.status.complete);
+                success = true;
+            }            
+        }    
+    }   
     return success;
 } 
 

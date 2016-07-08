@@ -151,29 +151,29 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     memset(&dispData,0,sizeof(dispData));
     /* set up the timer driver                                                */
     /* save the timer driver object and module index in the app's structure   */
-    dispData.timerModuleObject = tmrModuleObj;
-    dispData.timerIndex = tmrIndex;
-    if(DRV_TMR_Status(dispData.timerModuleObject)!=SYS_STATUS_READY)
+    dispData.timer.moduleObject = tmrModuleObj;
+    dispData.timer.index = tmrIndex;
+    if(DRV_TMR_Status(dispData.timer.moduleObject)!=SYS_STATUS_READY)
     {
         return false;
     }
-    dispData.timerDriverHandle = DRV_TMR_Open(dispData.timerIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
-    if (DRV_TMR_ClientStatus(dispData.timerDriverHandle) != DRV_TMR_CLIENT_STATUS_READY)
+    dispData.timer.driverHandle = DRV_TMR_Open(dispData.timer.index,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
+    if (DRV_TMR_ClientStatus(dispData.timer.driverHandle) != DRV_TMR_CLIENT_STATUS_READY)
     {
         return false;
     }
-    divider = DRV_TMR_CounterFrequencyGet(dispData.timerDriverHandle)/(DISPLAY_UPDATE*NUMBER_SLICES);    
-    if(!DRV_TMR_AlarmRegister(dispData.timerDriverHandle,divider,true,0,TimerAlarmCallback))
+    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISPLAY_UPDATE*NUMBER_SLICES);    
+    if(!DRV_TMR_AlarmRegister(dispData.timer.driverHandle,divider,true,0,TimerAlarmCallback))
     {
         return false;
     }
     /* set up the parallel master port (PMP)                                  */
     /* save the pmp driver object and module index in the app's structure     */
-    dispData.pmpModuleObject = pmpModuleObj;
-    dispData.pmpIndex = pmpIndex;
+    dispData.pmp.moduleObject = pmpModuleObj;
+    dispData.pmp.index = pmpIndex;
     
-    dispData.pmpDriverHandle = DRV_PMP_Open(dispData.pmpIndex,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
-    if(dispData.pmpDriverHandle == DRV_HANDLE_INVALID)
+    dispData.pmp.driverHandle = DRV_PMP_Open(dispData.pmp.index,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
+    if(dispData.pmp.driverHandle == DRV_HANDLE_INVALID)
     {
         return false;
     }
@@ -194,7 +194,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     /* PMP chip select pins selection                                         */
 	//pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
     pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
-	DRV_PMP_ModeConfig ( dispData.pmpDriverHandle, pmpConfig );
+	DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
     PMCONbits.CSF = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
     PMAEN = 0x00000F00;//_PMAEN_PTEN14_MASK | 0xFFC;
     /* Place the App state machine in its initial state.                      */
@@ -211,6 +211,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
         dispData.sprite[sprite].position.row.value=sprite;
         dispData.sprite[sprite].position.column.value=sprite;
         dispData.sprite[sprite].color.red=0x7f;
+        dispData.sprite[sprite].color.blue=+sprite*10;
     }
 //    dispData.sprite[1].position.row.value=2;
 //    dispData.sprite[1].position.column.value=2;
@@ -251,13 +252,13 @@ void DISP_Tasks ( void )
     {
         /* appears to break if the tasks gets called before anything has      */
         /* been put in the queue                                              */
-        DRV_PMP_Tasks(dispData.pmpModuleObject);
+        DRV_PMP_Tasks(dispData.pmp.moduleObject);
     }
     switch ( dispData.state )
     {
         case DISP_STATE_INIT:
         {   
-            if(dispData.pmpDriverHandle == DRV_HANDLE_INVALID)
+            if(dispData.pmp.driverHandle == DRV_HANDLE_INVALID)
             {
                 dispData.state = DISP_ERROR;
             }
@@ -267,14 +268,14 @@ void DISP_Tasks ( void )
                 dispData.status.displayArrayFilled = true;
                 dispData.state = DISP_FILL_FIRST_SLICE;
             }
-            if(dispData.timerDriverHandle == DRV_HANDLE_INVALID)
+            if(dispData.timer.driverHandle == DRV_HANDLE_INVALID)
             {
                 dispData.state = TIMER_ERROR;
             }
             else
             {
                 /* start the timer                                            */
-                if(!dispData.status.timerStarted && DRV_TMR_Start(dispData.timerDriverHandle))
+                if(!dispData.status.timerStarted && DRV_TMR_Start(dispData.timer.driverHandle))
                 {
                     dispData.status.timerStarted=true;
                 }
@@ -287,7 +288,7 @@ void DISP_Tasks ( void )
         }
         case DISP_FILL_FIRST_SLICE:
         {
-            if(DRV_PMP_ClientStatus(dispData.pmpDriverHandle)==DRV_PMP_CLIENT_STATUS_OPEN)
+            if(DRV_PMP_ClientStatus(dispData.pmp.driverHandle)==DRV_PMP_CLIENT_STATUS_OPEN)
             {
                 DISP_FillSlice(&dispData);
                 dispData.state = DISP_FIRST_SEND_SLICE;
@@ -339,9 +340,9 @@ void DISP_Tasks ( void )
         case DISP_FIRST_SEND_SLICE:
         {
            
-            PLIB_PMP_AddressSet(dispData.pmpIndex,dispData.address);
-            dispData.pQueue = DRV_PMP_Write(
-                &dispData.pmpDriverHandle,
+            PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address);
+            dispData.pmp.pQueue = DRV_PMP_Write(
+                &dispData.pmp.driverHandle,
                 0,
                 (uint32_t*)&dispData.sliceBuffer[dispData.status.bufferFilling],
                 ((DISPLAY_BUFFER_SIZE)*2), /* since it is in bytes*/
@@ -360,7 +361,7 @@ void DISP_Tasks ( void )
         }
         case DISP_SENDING_SLICE:
         {
-            if(DRV_PMP_TransferStatus(dispData.pQueue)==PMP_TRANSFER_FINISHED)
+            if(DRV_PMP_TransferStatus(dispData.pmp.pQueue)==PMP_TRANSFER_FINISHED)
             {
                 SetSTB();
                 dispData.state = DISP_WAIT_SEND_SLICE;

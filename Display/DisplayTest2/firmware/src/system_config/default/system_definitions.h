@@ -61,10 +61,12 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "driver/tmr/drv_tmr.h"
 #include "driver/pmp/drv_pmp.h"
 #include "system/ports/sys_ports.h"
+#include "driver/spi/drv_spi.h"
 #include "system/debug/sys_debug.h"
 
 
 #include "disp.h"
+#include "comms.h"
 
 
 // DOM-IGNORE-BEGIN
@@ -104,6 +106,9 @@ typedef struct
     SYS_MODULE_OBJ  drvPMP0;
     SYS_MODULE_OBJ  sysDebug;
     SYS_MODULE_OBJ  sysConsole0;
+
+    /*** SPI Object for Index 0 ***/
+    SYS_MODULE_OBJ				spiObjectIdx0;
 
 } SYSTEM_OBJECTS;
 

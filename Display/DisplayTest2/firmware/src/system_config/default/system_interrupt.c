@@ -62,6 +62,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <xc.h>
 #include <sys/attribs.h>
 #include "disp.h"
+#include "comms.h"
 #include "system_definitions.h"
 
 // *****************************************************************************
@@ -75,7 +76,12 @@ void __ISR(_TIMER_1_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
-  
+ 
+void __ISR(_SPI_1_VECTOR, ipl1AUTO) _IntHandlerSPIInstance0(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx0);
+}
+ 
 /*******************************************************************************
  End of File
 */

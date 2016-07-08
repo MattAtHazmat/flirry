@@ -83,6 +83,7 @@ void SYS_Tasks ( void )
 
     /* Maintain the application's state machine. */
     DISP_Tasks();
+    COMMS_Tasks();
 }
 
 

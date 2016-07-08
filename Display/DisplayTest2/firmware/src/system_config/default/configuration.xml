@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<configuration version="1.0.7.16">
+<configuration version="1.0.8.7">
   <General>
-    <HarmonyPath path="../../../../microchip/harmony/v1_07"/>
+    <HarmonyPath path="../../../../microchip/harmony/v1_07_01"/>
+    <Processor name="PIC32MX795F512L"/>
     <ForceOptimization flag="true"/>
+    <MergeStrategy flag="USER_RECENT"/>
   </General>
   <Manifest>
     <Files>
@@ -47,6 +49,18 @@
         <Path>Source Files/bsp/pic32mx_usb_sk2</Path>
       </File>
       <File>
+        <Name>drv_spi_internal.h</Name>
+        <Path>Header Files/framework/driver/spi/private/dynamic</Path>
+      </File>
+      <File>
+        <Name>drv_spi_sys_queue.h</Name>
+        <Path>Header Files/framework/driver/spi/private</Path>
+      </File>
+      <File>
+        <Name>drv_spi.h</Name>
+        <Path>Header Files/framework/driver/spi</Path>
+      </File>
+      <File>
         <Name>driver.h</Name>
         <Path>Header Files/framework/driver</Path>
       </File>
@@ -59,12 +73,24 @@
         <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
+        <Name>drv_spi_sys_queue_fifo.c</Name>
+        <Path>Source Files/framework/driver/spi</Path>
+      </File>
+      <File>
         <Name>sys_console_appio.h</Name>
         <Path>Header Files/framework/system/console/src</Path>
       </File>
       <File>
         <Name>drv_tmr.c</Name>
         <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
+      </File>
+      <File>
+        <Name>drv_spi.c</Name>
+        <Path>Source Files/framework/driver/spi/dynamic</Path>
+      </File>
+      <File>
+        <Name>drv_spi_sys_queue_local_fifo.h</Name>
+        <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
         <Name>sys_ports.c</Name>
@@ -113,6 +139,11 @@
     </Files>
     <Templates>
       <Template>
+        <Name>comms.c</Name>
+        <Path>Source Files/app</Path>
+        <Checksum>5BD9107D0B4B54E09CF79B4D0F0441D9</Checksum>
+      </Template>
+      <Template>
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
         <Checksum>899C3FABAA6487739B8AA8474BA98D2E</Checksum>
@@ -121,7 +152,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>03D25FD0F8DA7B47343EC476093CA3FC</Checksum>
+        <Checksum>DBE1F9CC2FE61F1A9C5BFB01DFA52D2A</Checksum>
         <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
@@ -130,9 +161,34 @@
         <Checksum>81A51474D8A80D41AD749DEAE4C1A7A3</Checksum>
       </Template>
       <Template>
+        <Name>comms.h</Name>
+        <Path>Header Files/app</Path>
+        <Checksum>C79D55C1FFA8C4A99DCC5B029087FD7C</Checksum>
+      </Template>
+      <Template>
+        <Name>system_definitions.h</Name>
+        <Path>Header Files/app/system_config/default</Path>
+        <Checksum>0391D9DF80977902A7BC29060FAD79DF</Checksum>
+      </Template>
+      <Template>
+        <Name>system_exceptions.c</Name>
+        <Path>Source Files/app/system_config/default</Path>
+        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_tasks.c</Name>
+        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
+        <Checksum>EFBEA1E98F2F587BBCBAA269650D6D86</Checksum>
+      </Template>
+      <Template>
+        <Name>drv_spi_slave_ebm_tasks.c</Name>
+        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
+        <Checksum>41A7DB1850449421F016C48B15439819</Checksum>
+      </Template>
+      <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>C520497053429E8153F594449D47FDF1</Checksum>
+        <Checksum>361AEDB2FC155A14B90BE56A491DB2EF</Checksum>
       </Template>
       <Template>
         <Name>disp.c</Name>
@@ -143,18 +199,8 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>9D4E2DDC48D560BF5DBDA2BF10F1A945</Checksum>
+        <Checksum>A9DF16089ACA8011C280C250FC03CBA6</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>system_definitions.h</Name>
-        <Path>Header Files/app/system_config/default</Path>
-        <Checksum>434377063DC90FE12F9D5EF5A46A63AC</Checksum>
-      </Template>
-      <Template>
-        <Name>system_exceptions.c</Name>
-        <Path>Source Files/app/system_config/default</Path>
-        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
@@ -164,7 +210,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>CEC5971E869A460DBF145CC8D4740046</Checksum>
+        <Checksum>430A4D9A0C7444BF61B582A0DCE5041A</Checksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
@@ -177,14 +223,24 @@
         <Checksum>3D6583DD48D76236C4A8A9502A100E9D</Checksum>
         <ProjectFileChecksum>F31C3037144E361F0C4529364FD170BD</ProjectFileChecksum>
       </Template>
+      <Template>
+        <Name>drv_spi_api.c</Name>
+        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
+        <Checksum>52C88330F1DBBAB28C1CF2846F2BCFE2</Checksum>
+      </Template>
     </Templates>
     <CompilerItems>
       <C32>
-        <Include value="../../../../../../microchip/harmony/v1_07/bsp/pic32mx_usb_sk2"/>
+        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src"/>
+        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default"/>
+        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/default"/>
+        <Include value="/home/mjb/microchip/harmony/v1_07_01/framework"/>
+        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default/framework"/>
+        <Include value="../../../../../../microchip/harmony/v1_07_01/bsp/pic32mx_usb_sk2"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../microchip/harmony/v1_07/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
+      <Library value="../../../../../../microchip/harmony/v1_07_01/bin/framework/peripheral/PIC32MX795F512L_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

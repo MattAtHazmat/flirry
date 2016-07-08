@@ -97,7 +97,7 @@ extern "C" {
 
 /*** Ports System Service Configuration ***/
 
-#define SYS_PORT_A_ANSEL        0x603
+#define SYS_PORT_A_ANSEL        0x0
 #define SYS_PORT_A_TRIS         0xc6ff
 #define SYS_PORT_A_LAT          0x0
 #define SYS_PORT_A_ODC          0x0
@@ -105,7 +105,7 @@ extern "C" {
 #define SYS_PORT_A_CNPD         0x0
 #define SYS_PORT_A_CNEN         0x0
 
-#define SYS_PORT_B_ANSEL        0xf7ff
+#define SYS_PORT_B_ANSEL        0x0
 #define SYS_PORT_B_TRIS         0xf7ff
 #define SYS_PORT_B_LAT          0x0
 #define SYS_PORT_B_ODC          0x0
@@ -113,7 +113,7 @@ extern "C" {
 #define SYS_PORT_B_CNPD         0x0
 #define SYS_PORT_B_CNEN         0x0
 
-#define SYS_PORT_C_ANSEL        0xe01e
+#define SYS_PORT_C_ANSEL        0x0
 #define SYS_PORT_C_TRIS         0xf01e
 #define SYS_PORT_C_LAT          0x0
 #define SYS_PORT_C_ODC          0x0
@@ -121,21 +121,29 @@ extern "C" {
 #define SYS_PORT_C_CNPD         0x0
 #define SYS_PORT_C_CNEN         0x0
 
-#define SYS_PORT_D_ANSEL        0xc000
+#define SYS_PORT_D_ANSEL        0x0
 #define SYS_PORT_D_TRIS         0xfe2f
 #define SYS_PORT_D_LAT          0x0
 #define SYS_PORT_D_ODC          0x0
-#define SYS_PORT_D_CNPU         0x0
+#define SYS_PORT_D_CNPU         0x4
 #define SYS_PORT_D_CNPD         0x0
 #define SYS_PORT_D_CNEN         0x0
 
-#define SYS_PORT_E_ANSEL        0x1f0
+#define SYS_PORT_E_ANSEL        0x0
 #define SYS_PORT_E_TRIS         0x1ff
-#define SYS_PORT_E_LAT          0x0
+#define SYS_PORT_E_LAT          0x200
 #define SYS_PORT_E_ODC          0x0
 #define SYS_PORT_E_CNPU         0x0
 #define SYS_PORT_E_CNPD         0x0
 #define SYS_PORT_E_CNEN         0x0
+
+#define SYS_PORT_F_ANSEL        0x0
+#define SYS_PORT_F_TRIS         0x313f
+#define SYS_PORT_F_LAT          0x0
+#define SYS_PORT_F_ODC          0x0
+#define SYS_PORT_F_CNPU         0x0
+#define SYS_PORT_F_CNPD         0x0
+#define SYS_PORT_F_CNEN         0x0
 
 #define SYS_PORT_G_ANSEL        0x0
 #define SYS_PORT_G_TRIS         0x71c3
@@ -230,15 +238,12 @@ extern "C" {
 #define DRV_SPI_8BIT 				1
 #define DRV_SPI_16BIT 				0
 #define DRV_SPI_32BIT 				0
-#define DRV_SPI_DMA 				1
+#define DRV_SPI_DMA 				0
 
 /*** SPI Driver Static Allocation Options ***/
 #define DRV_SPI_INSTANCES_NUMBER 		2
 #define DRV_SPI_CLIENTS_NUMBER 			2
 #define DRV_SPI_ELEMENTS_PER_QUEUE 		10
-/*** SPI Driver DMA Options ***/
-#define DRV_SPI_DMA_TXFER_SIZE 			256
-#define DRV_SPI_DMA_DUMMY_BUFFER_SIZE 	256
 /* SPI Driver Instance 0 Configuration */
 #define DRV_SPI_SPI_ID_IDX0 				SPI_ID_2
 #define DRV_SPI_TASK_MODE_IDX0 				DRV_SPI_TASK_MODE_ISR
@@ -291,10 +296,6 @@ extern "C" {
 #define DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX1 INT_SUBPRIORITY_LEVEL0
 #define DRV_SPI_QUEUE_SIZE_IDX1 			10
 #define DRV_SPI_RESERVED_JOB_IDX1 			1
-#define DRV_SPI_TX_DMA_CHANNEL_IDX1 		DMA_CHANNEL_1
-#define DRV_SPI_TX_DMA_THRESHOLD_IDX1 		4
-#define DRV_SPI_RX_DMA_CHANNEL_IDX1 		DMA_CHANNEL_0
-#define DRV_SPI_RX_DMA_THRESHOLD_IDX1 		4
 
 // *****************************************************************************
 // *****************************************************************************

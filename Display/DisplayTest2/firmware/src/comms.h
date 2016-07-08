@@ -66,12 +66,62 @@ extern "C" {
 
 #endif
 // DOM-IGNORE-END 
+#define COMMS_BUFFER_SIZE       (0x100)
+#define COMMS_BUFFER_SIZE_8     COMMS_BUFFER_SIZE
+#define COMMS_BUFFER_SIZE_16    (COMMS_BUFFER_SIZE_8>>1)
+#define COMMS_BUFFER_SIZE_32    (COMMS_BUFFER_SIZE_8>>2)
+#define IMAGE_INFO_ID   (0xA5)
+#define IMAGE_LINE_ID   (0x5A)
+#define IMAGE_DONE_ID   (0x55)
+
+#define IMAGE_INFO_LINE_VALUE   (0xFFFF)
+#define IMAGE_DONE_LINE_VALUE   IMAGE_INFO_LINE_VALUE
+    
+#define ID_LOCATION             (0)
+#define LENGTH_LSB_LOCATION     (ID_LOCATION+1)
+#define LENGTH_MSB_LOCATION     (LENGTH_LSB_LOCATION+1)
+#define LENGTH_LOCATION         (LENGTH_LSB_LOCATION)
+#define LINE_LSB_LOCATION       (LENGTH_MSB_LOCATION+1)
+#define LINE_MSB_LOCATION       (LINE_LSB_LOCATION+1)
+#define LINE_LOCATION           (LINE_LSB_LOCATION)
+#define DATA_START_LOCATION     (LINE_MSB_LOCATION+1)
+#define MESSAGE_HEADER_LENGTH   DATA_START_LOCATION
+#define HORIZONTAL_SIZE         (80)
+#define VERTICAL_SIZE           (60)
 
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
 // *****************************************************************************
 // *****************************************************************************
+    
+    typedef uint16_t FLIR_PIXEL_TYPE;
+typedef struct __attribute__((packed)) {
+    uint32_t b8;
+    uint32_t b16;
+    uint32_t b32;
+} BUFFER_SIZE_TYPE;
+
+typedef struct __attribute__((packed))  {
+    struct __attribute__((packed)) {
+        uint16_t horizontal;
+        uint16_t vertical;
+    } dimensions;
+    struct __attribute__((packed)) {
+        uint16_t pixels;
+        uint16_t bytes;
+    }size;
+}IMAGE_INFO_TYPE;
+
+typedef union __attribute__((packed)) {
+    FLIR_PIXEL_TYPE vector[HORIZONTAL_SIZE*VERTICAL_SIZE];
+    FLIR_PIXEL_TYPE pixel[VERTICAL_SIZE][HORIZONTAL_SIZE];
+} IMAGE_BUFFER_TYPE;
+
+typedef struct __attribute__((packed)) {
+    IMAGE_INFO_TYPE properties;
+    IMAGE_BUFFER_TYPE buffer;
+}FLIR_IMAGE_TYPE;
 
 // *****************************************************************************
 /* Application states
@@ -88,31 +138,17 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	COMMS_STATE_INIT=0,
-    COMMS_STATE_INITIALIZE_SPI,
 	COMMS_STATE_SERVICE_TASKS,
-    COMMS_TRANSMIT_IMAGE,
-    COMMS_TRANSMIT_IMAGE_HEADER,
-    COMMS_TRANSMIT_LINE,
-    COMMS_STATE_IMAGE_DONE,
-    COMMS_STATE_ERROR
+    COMMS_STATE_INCOMING_CAMERA_DATA,
+    COMMS_STATE_INCOMING_CAMERA_HEADER,
+    COMMS_STATE_INCOMING_CAMERA_LINE,
+    COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE,
+    COMMS_STATE_INCOMING_CAMERA_CLEAN_UP,
+    COMMS_STATE_ERROR,
+
 } COMMS_STATES;
 
-#define COMMS_BUFFER_SIZE       (0x100)
-#define COMMS_BUFFER_SIZE_8     COMMS_BUFFER_SIZE
-#define COMMS_BUFFER_SIZE_16    (COMMS_BUFFER_SIZE_8>>1)
-#define COMMS_BUFFER_SIZE_32    (COMMS_BUFFER_SIZE_8>>2)
 
-#define IMAGE_INFO_ID   (0xA5)
-#define IMAGE_LINE_ID   (0x5A)
-#define IMAGE_DONE_ID   (0x55)
-
-#define ID_LOCATION             (0)
-#define LENGTH_LSB_LOCATION     (ID_LOCATION+1)
-#define LENGTH_MSB_LOCATION     (LENGTH_LSB_LOCATION+1)
-#define LINE_LSB_LOCATION       (LENGTH_MSB_LOCATION+1)
-#define LINE_MSB_LOCATION       (LINE_LSB_LOCATION+1)
-#define DATA_START_LOCATION     (LINE_MSB_LOCATION+1)
-#define MESSAGE_HEADER_LENGTH   DATA_START_LOCATION
 
 // *****************************************************************************
 /* Application Data
@@ -131,14 +167,17 @@ typedef struct
 {
     /* The application's current state */
     COMMS_STATES state;
-    struct {
+    struct __attribute__((packed)) {
         DRV_HANDLE drvHandle;
         DRV_SPI_BUFFER_HANDLE bufferHandle;
-        struct{
+        struct __attribute__((packed)) {
             unsigned complete:1;
-            unsigned started:1;
-            unsigned error:1;
+            unsigned started:1;            
             unsigned running:1;
+            unsigned configured:1;
+            unsigned error:1;
+            unsigned overrunError:1;
+            unsigned unknownError:1;
         }status;            
     } spi;
     struct __attribute__((packed)) {
@@ -147,35 +186,29 @@ typedef struct
             uint16_t b16[COMMS_BUFFER_SIZE_16];
             uint32_t b32[COMMS_BUFFER_SIZE_32];
         };  
-        struct{
+        struct __attribute__((packed)) {
             BUFFER_SIZE_TYPE max;
             BUFFER_SIZE_TYPE transfer;
         }size;
-    }TXBuffer;    
-    struct {
-        unsigned initialized:1;
-        unsigned SPIInitialized:1;
-    }status;
-    struct {
-        TaskHandle_t myHandle;
-        TaskHandle_t FLIRHandle;
-    }RTOS;
-    struct {
-        uint32_t receive;
-        uint32_t transmit;
-        uint32_t number;
-    }buffer;
-    FLIR_IMAGE_TYPE image;
-    uint32_t transmitLine;
-    struct {
-        uint32_t imagesReceived;
-        uint32_t imagesTransmitted;
+    }RXBuffer;
+    struct __attribute__((packed)) {
+        union{
+            uint8_t   b8[COMMS_BUFFER_SIZE_8];
+            uint16_t b16[COMMS_BUFFER_SIZE_16];
+            uint32_t b32[COMMS_BUFFER_SIZE_32];
+        };
         struct {
-            uint32_t header;
-            uint32_t line;
-            uint32_t done;
-        }failure;
-    }counters;
+            uint16_t line;
+            uint16_t length;
+        };
+        uint32_t currentLine;
+    } workingBuffer;
+    struct __attribute__((packed)) {
+        unsigned initialized:1;
+        unsigned imageStartReceived:1;
+        unsigned imageComplete:1;
+    }status;
+    FLIR_IMAGE_TYPE image;    
 } COMMS_DATA;
 
 
@@ -258,19 +291,12 @@ void COMMS_Initialize ( void );
  */
 
 void COMMS_Tasks( void );
-bool COMMS_TransmitImageHeader(COMMS_DATA *comms);
-bool COMMS_TransmitImageLine(COMMS_DATA *comms);
-bool COMMS_TransmitImageDone(COMMS_DATA *comms);
-bool COMMS_SPIWrite(COMMS_DATA *comms,uint32_t TXSize);
-bool COMMS_NotifyReady(COMMS_DATA *comms);
-uint32_t COMMS_WaitForImageReady(void);
+
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
 #define mBitSet(a,b)                (a ## SET = 1<<b)
 #define mBitToggle(a,b)             (a ## INV = 1<<b)
 
-#define CommsSPISlaveSelect()       mBitClear(LATE,9)   // LATECLR = 1<<9
-#define CommsSPISlaveDeselect()     mBitSet(LATE,9)     //LATESET = 1<<9
-#define CommsSPISlaveInvert()       mBitToggle(LATE,9)
+
 #endif /* _COMMS_H */
 
 //DOM-IGNORE-BEGIN
