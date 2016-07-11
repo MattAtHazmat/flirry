@@ -250,7 +250,7 @@ void SYS_Initialize ( void* data )
     SYS_CLK_Initialize( NULL );
     sysObj.sysDevcon = SYS_DEVCON_Initialize(SYS_DEVCON_INDEX_0, (SYS_MODULE_INIT*)&sysDevconInit);
     SYS_DEVCON_PerformanceConfig(SYS_CLK_SystemFrequencyGet());
-    SYS_DEVCON_JTAGEnable();
+    SYS_DEVCON_JTAGDisable();
     SYS_PORTS_Initialize();
     /* Board Support Package Initialization                                   */
     BSP_Initialize();  

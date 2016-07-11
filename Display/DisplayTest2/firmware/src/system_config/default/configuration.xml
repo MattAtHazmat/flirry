@@ -4,7 +4,7 @@
     <HarmonyPath path="../../../../microchip/harmony/v1_07_01"/>
     <Processor name="PIC32MX795F512L"/>
     <ForceOptimization flag="true"/>
-    <MergeStrategy flag="USER_RECENT"/>
+    <MergeStrategy flag="ALL"/>
   </General>
   <Manifest>
     <Files>
@@ -142,6 +142,7 @@
         <Name>comms.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>5BD9107D0B4B54E09CF79B4D0F0441D9</Checksum>
+        <ProjectFileChecksum>1E5D5046F9DBEADE39BC677E31F5D808</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
@@ -159,36 +160,43 @@
         <Name>main.c</Name>
         <Path>Source Files/app</Path>
         <Checksum>81A51474D8A80D41AD749DEAE4C1A7A3</Checksum>
+        <ProjectFileChecksum>B2D581122141A11C36C1B9D4D9CE9E85</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>comms.h</Name>
         <Path>Header Files/app</Path>
         <Checksum>C79D55C1FFA8C4A99DCC5B029087FD7C</Checksum>
+        <ProjectFileChecksum>425173F67B6EF66D6C7924E7DDA4162C</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
         <Checksum>0391D9DF80977902A7BC29060FAD79DF</Checksum>
+        <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+        <ProjectFileChecksum>486E7FA1B55A15191A57BF73B52DC805</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>EFBEA1E98F2F587BBCBAA269650D6D86</Checksum>
+        <ProjectFileChecksum>C8C50FC5DEB52B25B0B12880D4F98A9A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_slave_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>41A7DB1850449421F016C48B15439819</Checksum>
+        <ProjectFileChecksum>48187FBF0B64A45336AA84223ED21CE7</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>361AEDB2FC155A14B90BE56A491DB2EF</Checksum>
+        <ProjectFileChecksum>410487826AD867C4215D48988C685A8B</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.c</Name>
@@ -199,23 +207,26 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>A9DF16089ACA8011C280C250FC03CBA6</Checksum>
+        <Checksum>D43C4C0C3D2FD41C223B77014CE9685D</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
         <Path>Header Files/app/system_config/default/framework/system/clk</Path>
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
+        <ProjectFileChecksum>B77D5A376E92B215BD9F73674053B0BD</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>430A4D9A0C7444BF61B582A0DCE5041A</Checksum>
+        <Checksum>95D654D2DF1F9A125CD08099960AAD44</Checksum>
+        <ProjectFileChecksum>A39B60B3538176DCD1CCE32285980E75</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
         <Checksum>45DCC5FDCEA03577B1B40B781BCC20C5</Checksum>
+        <ProjectFileChecksum>A948CDCA2A6A164F9198B4CA221D9B60</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.h</Name>
@@ -227,6 +238,7 @@
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>52C88330F1DBBAB28C1CF2846F2BCFE2</Checksum>
+        <ProjectFileChecksum>598C8A3B4181953540A07DABC06F7E17</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>

@@ -83,7 +83,7 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	FLIR_STATE_INIT=0,
-    FLIR_OPEN_I2C_PORT,
+    //FLIR_OPEN_I2C_PORT,
     FLIR_OPEN_SPI_PORT,
     FLIR_START,
 	FLIR_STATE_SERVICE_TASKS,

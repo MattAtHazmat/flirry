@@ -70,9 +70,9 @@ extern "C" {
 #define COMMS_BUFFER_SIZE_8     COMMS_BUFFER_SIZE
 #define COMMS_BUFFER_SIZE_16    (COMMS_BUFFER_SIZE_8>>1)
 #define COMMS_BUFFER_SIZE_32    (COMMS_BUFFER_SIZE_8>>2)
-#define IMAGE_INFO_ID   (0xA5)
-#define IMAGE_LINE_ID   (0x5A)
-#define IMAGE_DONE_ID   (0x55)
+#define IMAGE_INFO_ID           (0xA5)
+#define IMAGE_LINE_ID           (0x5A)
+#define IMAGE_DONE_ID           (0x55)
 
 #define IMAGE_INFO_LINE_VALUE   (0xFFFF)
 #define IMAGE_DONE_LINE_VALUE   IMAGE_INFO_LINE_VALUE
@@ -89,6 +89,11 @@ extern "C" {
 #define HORIZONTAL_SIZE         (80)
 #define VERTICAL_SIZE           (60)
 
+#define IMAGE_INFO_LENGTH       (MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE))
+#define IMAGE_LINE_LENGTH       (MESSAGE_HEADER_LENGTH + (HORIZONTAL_SIZE * sizeof(FLIR_PIXEL_TYPE)))
+#define IMAGE_DONE_LENGTH       MESSAGE_HEADER_LENGTH
+#define NUMBER_WORKING_BUFFERS  2
+#define WORKING_BUFFERS_MASK    (NUMBER_WORKING_BUFFERS-1)    
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -123,6 +128,12 @@ typedef struct __attribute__((packed)) {
     IMAGE_BUFFER_TYPE buffer;
 }FLIR_IMAGE_TYPE;
 
+typedef struct __attribute__((packed)){
+    uint8_t ID;
+    uint16_t length;
+    uint16_t line;
+}PACKET_HEADER_TYPE;
+
 // *****************************************************************************
 /* Application states
 
@@ -138,14 +149,16 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	COMMS_STATE_INIT=0,
+    //COMMS_STATE_INCOMING_CAMERA_START_SPI_RX,
+    //COMMS_STATE_INCOMING_CAMERA_CLEAN_UP,
 	COMMS_STATE_SERVICE_TASKS,
     COMMS_STATE_INCOMING_CAMERA_DATA,
     COMMS_STATE_INCOMING_CAMERA_HEADER,
     COMMS_STATE_INCOMING_CAMERA_LINE,
-    COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE,
-    COMMS_STATE_INCOMING_CAMERA_CLEAN_UP,
-    COMMS_STATE_ERROR,
-
+    COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE,    
+    COMMS_STATE_PROCESS_IMAGE,
+    COMMS_STATE_DELIVER_IMAGE,
+    COMMS_STATE_ERROR
 } COMMS_STATES;
 
 
@@ -171,42 +184,55 @@ typedef struct
         DRV_HANDLE drvHandle;
         DRV_SPI_BUFFER_HANDLE bufferHandle;
         struct __attribute__((packed)) {
-            unsigned complete:1;
-            unsigned started:1;            
+            unsigned dataReady:1;
+            unsigned readStarted:1;            
             unsigned running:1;
             unsigned configured:1;
             unsigned error:1;
             unsigned overrunError:1;
             unsigned unknownError:1;
+            unsigned :25;
         }status;            
     } spi;
     struct __attribute__((packed)) {
-        union{
+        union {
             uint8_t   b8[COMMS_BUFFER_SIZE_8];
             uint16_t b16[COMMS_BUFFER_SIZE_16];
-            uint32_t b32[COMMS_BUFFER_SIZE_32];
-        };  
-        struct __attribute__((packed)) {
-            BUFFER_SIZE_TYPE max;
-            BUFFER_SIZE_TYPE transfer;
-        }size;
-    }RXBuffer;
-    struct __attribute__((packed)) {
-        union{
-            uint8_t   b8[COMMS_BUFFER_SIZE_8];
-            uint16_t b16[COMMS_BUFFER_SIZE_16];
-            uint32_t b32[COMMS_BUFFER_SIZE_32];
-        };
+            uint32_t b32[COMMS_BUFFER_SIZE_32];            
+            struct __attribute__((packed)) {
+                PACKET_HEADER_TYPE header;
+                union {
+                    IMAGE_INFO_TYPE imageInfo;
+                    FLIR_PIXEL_TYPE pixel[(COMMS_BUFFER_SIZE_8-sizeof(PACKET_HEADER_TYPE))/sizeof(FLIR_PIXEL_TYPE)];
+                    uint8_t raw[COMMS_BUFFER_SIZE_8-sizeof(PACKET_HEADER_TYPE)];
+                } dataStructure;
+            }packet;
+        } incoming;
         struct {
-            uint16_t line;
-            uint16_t length;
-        };
-        uint32_t currentLine;
-    } workingBuffer;
+            uint32_t line;
+            uint32_t length;
+        }fromPacket;        
+    } workingBuffer[NUMBER_WORKING_BUFFERS];
     struct __attribute__((packed)) {
-        unsigned initialized:1;
-        unsigned imageStartReceived:1;
-        unsigned imageComplete:1;
+        BUFFER_SIZE_TYPE max;
+        BUFFER_SIZE_TYPE transfer;
+        uint32_t dataStructureRaw;
+    }bufferSize;
+    struct {
+        uint32_t filled;
+        uint32_t filling;
+    } bufferIndex;
+    struct __attribute__((packed)) {
+        uint32_t linesReceived;
+        struct {
+            unsigned initialized:1;
+            unsigned imageStartReceived:1;
+            unsigned imageComplete:1;
+            unsigned dataReadStarted:1;
+            unsigned mysteryState:1;
+            unsigned :27;
+        } flags;
+        uint8_t lineList[80];
     }status;
     FLIR_IMAGE_TYPE image;    
 } COMMS_DATA;

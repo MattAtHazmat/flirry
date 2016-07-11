@@ -92,7 +92,7 @@ TaskHandle_t FLIRHandle;
 
 static void TimerCallback (  uintptr_t context, uint32_t alarmCount )
 {
-    BSP_LEDToggle(BSP_LED_2);
+    //BSP_LEDToggle(BSP_LED_2);
 }
 
 /******************************************************************************/
@@ -109,11 +109,17 @@ static void SPICallback(uintptr_t context)
 /* Section: Application Local Functions                                       */
 /******************************************************************************/
 /******************************************************************************/
-
+#define LED_FRAME_INTERVAL  5
 
 /* Application's LED Task Function                                            */
 static void LedTask( void )
 {
+    static int frame = 0;
+    if((frame++)==LED_FRAME_INTERVAL)
+    {
+        BSP_LEDToggle(BSP_LED_2);
+        frame = 0;
+    }        
 }
 
 /******************************************************************************/
@@ -201,25 +207,25 @@ void FLIR_Tasks ( void )
             }
             break;
         }
-        case FLIR_OPEN_I2C_PORT:
-        {
-            BSP_LEDOn(BSP_LED_2);
-            flirData.status.I2CConfigureAttempted = true;
-            if(flirData.lepton.result == LEP_OK)
-            {
-                //flirData.status.I2CConfigured = true;
-                //flirData.status.I2CRunning = true;
-            }
-            if(flirData.status.SPIConfigureAttempted == false)
-            {
-                flirData.state= FLIR_OPEN_SPI_PORT;
-            }
-            else
-            {
-                flirData.state = FLIR_START;
-            }
-            break;
-        }
+//        case FLIR_OPEN_I2C_PORT:
+//        {
+//            //BSP_LEDOn(BSP_LED_2);
+//            flirData.status.I2CConfigureAttempted = true;
+//            if(flirData.lepton.result == LEP_OK)
+//            {
+//                //flirData.status.I2CConfigured = true;
+//                //flirData.status.I2CRunning = true;
+//            }
+//            if(flirData.status.SPIConfigureAttempted == false)
+//            {
+//                flirData.state= FLIR_OPEN_SPI_PORT;
+//            }
+//            else
+//            {
+//                flirData.state = FLIR_START;
+//            }
+//            break;
+//        }
         case FLIR_OPEN_SPI_PORT:
         {
             flirData.status.SPIConfigured = OpenFLIRSPI(&flirData);
@@ -228,11 +234,11 @@ void FLIR_Tasks ( void )
             {
                 flirData.status.SPIRunning = true;
             }
-            if(flirData.status.I2CConfigureAttempted == false)
-            {
-                flirData.state= FLIR_OPEN_I2C_PORT;
-            }
-            else
+//            if(flirData.status.I2CConfigureAttempted == false)
+//            {
+//                flirData.state= FLIR_OPEN_I2C_PORT;
+//            }
+//            else
             {
                 flirData.state = FLIR_START;
             }
@@ -261,7 +267,6 @@ void FLIR_Tasks ( void )
         }
         case FLIR_STATE_SERVICE_TASKS:
         {
-            LedTask();
             if(flirData.status.usingSPI)
             {
                 flirData.state = FLIR_STATE_START_FRAME;
@@ -349,12 +354,15 @@ void FLIR_Tasks ( void )
             flirData.frame.building++;
             flirData.frame.building &= (IMAGE_BUFFERS-1);
             flirData.state = FLIR_STATE_TRANSMIT_IMAGE;
+            BSP_LEDToggle(BSP_LED_3);
+            LedTask();            
         }
         case FLIR_STATE_TRANSMIT_IMAGE: 
         {
             ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
             if(FLIRTransmitImage(&flirData))
             {
+                BSP_LEDToggle(BSP_LED_4);
                 flirData.counters.imagesTransmitted++;
                 flirData.state = FLIR_STATE_START_FRAME;
             }

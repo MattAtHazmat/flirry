@@ -84,18 +84,19 @@ COMMS_DATA commsData;
 // *****************************************************************************
 // *****************************************************************************
 
-static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, 
+                                    DRV_SPI_BUFFER_HANDLE handle, 
+                                    COMMS_DATA* context)
 {
     if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
     {
         commsData.spi.status.running = true;
-        commsData.spi.status.started = true;
-        if(commsData.spi.status.complete)
+        if(commsData.spi.status.dataReady)
         {
             commsData.spi.status.error=true;
             commsData.spi.status.overrunError=true;
         }
-        commsData.spi.status.complete = false;
+        commsData.spi.status.dataReady = false;
     }
     else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
     {
@@ -104,17 +105,21 @@ static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_H
     }        
 }
 
-static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+/******************************************************************************/
+
+static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, 
+                                      DRV_SPI_BUFFER_HANDLE handle, 
+                                      COMMS_DATA* context)
 {
+    context->spi.status.dataReady = true;
+    context->spi.status.readStarted = false;
     if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
     {
-        commsData.spi.status.running = false;
-        commsData.spi.status.started = false;
-        commsData.spi.status.complete = true;
+        context->spi.status.running = false;     
     }
     else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
     {
-        commsData.spi.status.error=true;
+        context->spi.status.error=true;
     }        
 }
 
@@ -123,6 +128,24 @@ static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 // Section: Application Local Functions
 // *****************************************************************************
 // *****************************************************************************
+
+
+bool COMMS_StartSPIRead(COMMS_DATA *comms)
+{
+    comms->bufferIndex.filled = comms->bufferIndex.filling;
+    comms->bufferIndex.filling++;
+    comms->bufferIndex.filling &= WORKING_BUFFERS_MASK;
+    DRV_SPI_BufferAddRead2(comms->spi.drvHandle,
+                           comms->workingBuffer[comms->bufferIndex.filling].incoming.b8,
+                           comms->bufferSize.max.b8,
+                          (void*)CommsSPICompletedCallback,
+                           comms,
+                          &comms->spi.bufferHandle);
+    comms->spi.status.readStarted = true;
+    return comms->spi.status.readStarted;
+}
+
+/******************************************************************************/
 
 bool COMMS_OpenCameraSPI(COMMS_DATA *comms)
 {
@@ -143,17 +166,11 @@ bool COMMS_OpenCameraSPI(COMMS_DATA *comms)
         clientData.operationStarting = (void*)CommsSPIStartedCallback;
         if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
         {
-                DRV_SPI_BufferAddRead2(comms->spi.drvHandle,
-                                      &comms->RXBuffer.b8,
-                                      comms->RXBuffer.size.max.b8,
-                                      (void*)CommsSPICompletedCallback,
-                                      NULL,
-                                      &comms->spi.bufferHandle);            
+            COMMS_StartSPIRead(comms);   
         }
     }
-    comms->spi.status.running = ((DRV_HANDLE_INVALID != comms->spi.drvHandle)&&
-                                 (DRV_SPI_BUFFER_HANDLE_INVALID != comms->spi.bufferHandle));
-    return comms->spi.status.running;
+    comms->spi.status.running = (DRV_HANDLE_INVALID != comms->spi.drvHandle);
+    return comms->spi.status.running & comms->spi.status.readStarted;
 }
 
 // *****************************************************************************
@@ -175,12 +192,16 @@ void COMMS_Initialize ( void )
     /* Place the App state machine in its initial state. */
     commsData.state = COMMS_STATE_INIT;
     memset(&commsData,0,sizeof(commsData));
-    commsData.RXBuffer.size.max.b8 = COMMS_BUFFER_SIZE_8;
-    commsData.RXBuffer.size.max.b16 = COMMS_BUFFER_SIZE_16;
-    commsData.RXBuffer.size.max.b32 = COMMS_BUFFER_SIZE_32;
+    commsData.bufferSize.max.b8 = COMMS_BUFFER_SIZE_8;
+    commsData.bufferSize.max.b16 = COMMS_BUFFER_SIZE_16;
+    commsData.bufferSize.max.b32 = COMMS_BUFFER_SIZE_32;
+    commsData.bufferSize.dataStructureRaw = 
+        sizeof(commsData.workingBuffer[0].incoming.packet.dataStructure.raw);
 }
 
+/******************************************************************************/
 
+            
 /******************************************************************************
   Function:
     void COMMS_Tasks ( void )
@@ -191,7 +212,6 @@ void COMMS_Initialize ( void )
 
 void COMMS_Tasks ( void )
 {
-
     /* Check the application's current state. */
     switch ( commsData.state )
     {
@@ -204,34 +224,27 @@ void COMMS_Tasks ( void )
             }            
             if(commsData.spi.status.configured)
             {                
-                commsData.status.initialized = true;
+                commsData.status.flags.initialized = true;
             }        
-            if (commsData.status.initialized)
-            {            
+            if (commsData.status.flags.initialized & commsData.spi.status.readStarted)
+            {
                 commsData.state = COMMS_STATE_SERVICE_TASKS;
+                /* otherwise, drop through */
             }
-            break;
-        }
-        case COMMS_STATE_INCOMING_CAMERA_CLEAN_UP:
-        {
-            commsData.state = COMMS_STATE_SERVICE_TASKS;
-            //break;
-        }
+            else
+            {
+                break;                
+            }            
+        }        
         case COMMS_STATE_SERVICE_TASKS:
         {
-            if(DRV_SPI_BUFFER_EVENT_COMPLETE & DRV_SPI_BufferStatus(commsData.spi.bufferHandle)) //if(commsData.spi.status.complete)
+            if(commsData.spi.status.dataReady)
             {
                 commsData.state = COMMS_STATE_INCOMING_CAMERA_DATA;
-                memcpy(commsData.RXBuffer.b8,
-                       commsData.workingBuffer.b8,
-                       commsData.RXBuffer.size.max.b8);
-                #ifdef __DEBUG
-                    /* if we're debugging, clear out this memory*/
-                    memset(commsData.RXBuffer.b8,
-                           0,
-                           commsData.RXBuffer.size.max.b8);
-                #endif
-                commsData.spi.status.complete = false;
+                commsData.spi.status.dataReady = false;
+                /* toggle LED2 when we get an incoming packet */
+                BSP_LEDToggle(BSP_LED_2);
+                COMMS_StartSPIRead(&commsData);
             }
             else
             {
@@ -240,7 +253,7 @@ void COMMS_Tasks ( void )
         }
         case COMMS_STATE_INCOMING_CAMERA_DATA:
         {
-            switch(commsData.workingBuffer.b8[ID_LOCATION])
+            switch(commsData.workingBuffer[commsData.bufferIndex.filled].incoming.packet.header.ID)
             {
                 case IMAGE_INFO_ID:
                 {
@@ -249,83 +262,139 @@ void COMMS_Tasks ( void )
                 }
                 case IMAGE_LINE_ID:
                 {
-                    if(commsData.status.imageStartReceived)
+                    if(commsData.status.flags.imageStartReceived)
                     {
                         commsData.state = COMMS_STATE_INCOMING_CAMERA_LINE;
                     }
                     else
                     {
-                        commsData.state = COMMS_STATE_INCOMING_CAMERA_CLEAN_UP;
+                        commsData.state = COMMS_STATE_SERVICE_TASKS;
                     }
                     break;
                 }
                 case IMAGE_DONE_ID:
                 {
-                    if(commsData.status.imageStartReceived)
+                    if(commsData.status.flags.imageStartReceived)
                     {
                         commsData.state = COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE;
                     }
                     else
                     {
-                        commsData.state = COMMS_STATE_INCOMING_CAMERA_CLEAN_UP;
+                        commsData.state = COMMS_STATE_SERVICE_TASKS;
                     }                    
                     break;
                 }
                 default:
                 {
                     /* don't know what it is */
-                    commsData.state = COMMS_STATE_INCOMING_CAMERA_CLEAN_UP;
+                    commsData.state = COMMS_STATE_SERVICE_TASKS;
                     break;
                 }   
             }
-            if(commsData.state == COMMS_STATE_INCOMING_CAMERA_CLEAN_UP)
+            if(commsData.state == COMMS_STATE_SERVICE_TASKS)
             {
                 break;
             }        
-            commsData.workingBuffer.line = (uint16_t)commsData.workingBuffer.b8[LINE_LOCATION];
-            commsData.workingBuffer.length = (uint16_t)commsData.workingBuffer.b8[LENGTH_LOCATION];        
+            commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line = 
+                commsData.workingBuffer[commsData.bufferIndex.filled].incoming.packet.header.line;
+            commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.length = 
+                commsData.workingBuffer[commsData.bufferIndex.filled].incoming.packet.header.length;  
         }
         case COMMS_STATE_INCOMING_CAMERA_HEADER:
         {
-            /* check to make sure the length & line are valid */
-            if((commsData.workingBuffer.length == sizeof(IMAGE_INFO_TYPE))&&
-               (commsData.workingBuffer.line == IMAGE_INFO_LINE_VALUE))
+            if(commsData.state == COMMS_STATE_INCOMING_CAMERA_HEADER)
             {
-                commsData.workingBuffer.currentLine = 0;
-                commsData.status.imageStartReceived = true;
-                memcpy(&commsData.image.properties,&commsData.workingBuffer.b8[DATA_START_LOCATION],sizeof(IMAGE_INFO_TYPE));
+                /* check to make sure the length & line are valid                 */
+                if((commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.length == 
+                                                            sizeof(IMAGE_INFO_TYPE))&&
+                   (commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line == 
+                                                              IMAGE_INFO_LINE_VALUE))
+                {
+                    commsData.status.flags.imageComplete = false;
+                    commsData.status.flags.imageStartReceived = true;
+                    commsData.status.linesReceived = 0;                
+                    memcpy(&commsData.image.properties,
+                           &commsData.workingBuffer[commsData.bufferIndex.filled].incoming.packet.dataStructure.imageInfo,
+                           sizeof(IMAGE_INFO_TYPE));
+                    memset(commsData.status.lineList,0,80);
+                }
+                commsData.state = COMMS_STATE_SERVICE_TASKS;
+                break;
             }
-            commsData.state = COMMS_STATE_INCOMING_CAMERA_CLEAN_UP;
-            break;
         }
         case COMMS_STATE_INCOMING_CAMERA_LINE:
         {
-            /* check to make sure the length & line are valid */
-            uint16_t lineLengthBytes = commsData.image.properties.dimensions.horizontal*sizeof(FLIR_PIXEL_TYPE);
-            if((commsData.workingBuffer.length == lineLengthBytes)&&
-                (commsData.workingBuffer.line < commsData.image.properties.dimensions.vertical))
+            if(commsData.state == COMMS_STATE_INCOMING_CAMERA_LINE)
             {
-                commsData.workingBuffer.currentLine++;
-                memcpy(&commsData.image.buffer.pixel[0][commsData.workingBuffer.line],&commsData.workingBuffer.b8[DATA_START_LOCATION],lineLengthBytes);
+                /* check to make sure the length & line are valid.                */
+                if(commsData.status.flags.imageStartReceived)
+                {
+                    uint16_t lineLengthBytes = commsData.image.properties.dimensions.horizontal*
+                                               sizeof(FLIR_PIXEL_TYPE);
+                    if((commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.length == 
+                                                                  lineLengthBytes)&&
+                        (commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line < 
+                                    commsData.image.properties.dimensions.vertical))
+                    {
+                        commsData.status.lineList[commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line] = 0xFF;
+                        commsData.status.linesReceived++;
+                        memcpy(&commsData.image.buffer.pixel[0][commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line],
+                                commsData.workingBuffer[commsData.bufferIndex.filled].incoming.b8,
+                                lineLengthBytes);
+                    }
+                }
+                commsData.state = COMMS_STATE_SERVICE_TASKS;
+                break;
             }
-            commsData.state = COMMS_STATE_INCOMING_CAMERA_CLEAN_UP;
-            break;
         }
         case COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE:
         {
-            /* check to make sure the length & line are valid */
-            if((commsData.workingBuffer.length == 0)&&
-               (commsData.workingBuffer.line == IMAGE_DONE_LINE_VALUE))
+            if(commsData.state == COMMS_STATE_INCOMING_CAMERA_IMAGE_COMPLETE)
             {
-                if(commsData.workingBuffer.currentLine == commsData.image.properties.dimensions.vertical)
+                /* image complete message- lower the imageStartReceived flag to   */
+                /* indicate that no more lines of data will go into this image    */
+                commsData.status.flags.imageStartReceived = false;
+                /* check to make sure the length & line are valid                 */
+                if((commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.length == 0) &&
+                   (commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line == 
+                                                             IMAGE_DONE_LINE_VALUE))
                 {
-                    commsData.status.imageComplete = true;
+                    if(commsData.status.linesReceived == commsData.image.properties.dimensions.vertical)
+                    {
+                        /* if we got all the lines, it is complete. */
+                        commsData.status.flags.imageComplete = true;
+                        BSP_LEDToggle(BSP_LED_3);
+                        commsData.state = COMMS_STATE_PROCESS_IMAGE;
+                    }
+                    /* the image transfer is complete!                            */
                 }
-                /* the image transfer is complete! */
+                if(commsData.state != COMMS_STATE_PROCESS_IMAGE)
+                {
+                    commsData.state = COMMS_STATE_SERVICE_TASKS;
+                    break;
+                }
+                /* otherwise, want to drop through and process the image.         */
             }
-            break;
+            else
+            {
+                /* not sure what it could be. */
+                commsData.status.flags.mysteryState= true;
+                commsData.state = COMMS_STATE_SERVICE_TASKS;
+                break;
+            }
         }
-        
+        case COMMS_STATE_PROCESS_IMAGE:
+        {
+            commsData.state = COMMS_STATE_DELIVER_IMAGE;
+            if(commsData.state != COMMS_STATE_DELIVER_IMAGE)
+            {
+                break;
+            }
+        }
+        case COMMS_STATE_DELIVER_IMAGE:
+        {            
+            commsData.state = COMMS_STATE_SERVICE_TASKS;
+        }
         case COMMS_STATE_ERROR:
         default:
         {
