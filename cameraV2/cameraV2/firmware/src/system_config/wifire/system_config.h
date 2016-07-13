@@ -170,7 +170,7 @@ extern "C" {
 // *****************************************************************************
 /*** Timer Driver Configuration ***/
 #define DRV_TMR_INTERRUPT_MODE             true
-#define DRV_TMR_INSTANCES_NUMBER           2
+#define DRV_TMR_INSTANCES_NUMBER           3
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
@@ -198,6 +198,19 @@ extern "C" {
 #define DRV_TMR_OPERATION_MODE_IDX1         DRV_TMR_OPERATION_MODE_16_BIT
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX1     false
 #define DRV_TMR_POWER_STATE_IDX1            SYS_MODULE_POWER_RUN_FULL
+
+/*** Timer Driver 2 Configuration ***/
+#define DRV_TMR_PERIPHERAL_ID_IDX2          TMR_ID_4
+#define DRV_TMR_INTERRUPT_SOURCE_IDX2       INT_SOURCE_TIMER_4
+#define DRV_TMR_INTERRUPT_VECTOR_IDX2       INT_VECTOR_T4
+#define DRV_TMR_ISR_VECTOR_IDX2             _TIMER_4_VECTOR
+#define DRV_TMR_INTERRUPT_PRIORITY_IDX2     INT_PRIORITY_LEVEL1
+#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX2 INT_SUBPRIORITY_LEVEL0
+#define DRV_TMR_CLOCK_SOURCE_IDX2           DRV_TMR_CLKSOURCE_INTERNAL
+#define DRV_TMR_PRESCALE_IDX2               TMR_PRESCALE_VALUE_4
+#define DRV_TMR_OPERATION_MODE_IDX2         DRV_TMR_OPERATION_MODE_16_BIT
+#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX2     false
+#define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
 
  // *****************************************************************************
 /* I2C Driver Configuration Options
@@ -278,7 +291,7 @@ extern "C" {
 #define DRV_SPI_SPI_PROTOCOL_TYPE_IDX1 		DRV_SPI_PROTOCOL_TYPE_STANDARD
 #define DRV_SPI_COMM_WIDTH_IDX1 			SPI_COMMUNICATION_WIDTH_8BITS
 #define DRV_SPI_SPI_CLOCK_IDX1 				CLK_BUS_PERIPHERAL_2
-#define DRV_SPI_BAUD_RATE_IDX1 				10000000
+#define DRV_SPI_BAUD_RATE_IDX1 				3000000
 #define DRV_SPI_BUFFER_TYPE_IDX1 			DRV_SPI_BUFFER_TYPE_ENHANCED
 #define DRV_SPI_CLOCK_MODE_IDX1 			DRV_SPI_CLOCK_MODE_IDLE_LOW_EDGE_RISE
 #define DRV_SPI_INPUT_PHASE_IDX1 			SPI_INPUT_SAMPLING_PHASE_IN_MIDDLE
@@ -288,14 +301,14 @@ extern "C" {
 #define DRV_SPI_TX_INT_VECTOR_IDX1			INT_VECTOR_SPI1_TX
 #define DRV_SPI_RX_INT_VECTOR_IDX1			INT_VECTOR_SPI1_RX
 #define DRV_DRV_SPI_ERROR_INT_VECTOR_IDX1	INT_VECTOR_SPI1_FAULT
-#define DRV_SPI_TX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL1
+#define DRV_SPI_TX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL4
 #define DRV_SPI_TX_INT_SUB_PRIORITY_IDX1 	INT_SUBPRIORITY_LEVEL0
-#define DRV_SPI_RX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL1
+#define DRV_SPI_RX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL4
 #define DRV_SPI_RX_INT_SUB_PRIORITY_IDX1 	INT_SUBPRIORITY_LEVEL0
 #define DRV_SPI_ERROR_INT_PRIORITY_IDX1 	INT_PRIORITY_LEVEL1
 #define DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX1 INT_SUBPRIORITY_LEVEL0
 #define DRV_SPI_QUEUE_SIZE_IDX1 			10
-#define DRV_SPI_RESERVED_JOB_IDX1 			1
+#define DRV_SPI_RESERVED_JOB_IDX1 			2
 
 // *****************************************************************************
 // *****************************************************************************
@@ -321,13 +334,16 @@ extern "C" {
 
 /*** Application Instance 0 Configuration ***/
 
-#define FLIR_LED            BSP_LED_3
 #define FLIR_TMR_DRV                       1
-#define FLIR_TMR_DRV_IS_PERIODIC           true
-#define FLIR_TMR_DRV_PERIOD                0xfe51
+#define FLIR_TMR_DRV_IS_PERIODIC           false
+#define FLIR_TMR_DRV_PERIOD                0xA98A // for 9Hz 
 
 /*** Application Instance 1 Configuration ***/
 
+#define COMMS_TMR_DRV                       2
+#define COMMS_TMR_DRV_IS_PERIODIC           false
+#define COMMS_TMR_DRV_PERIOD                750 /* 750us */
+    
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus
 }

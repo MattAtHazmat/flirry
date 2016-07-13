@@ -66,7 +66,7 @@ extern "C" {
 
 #endif
 // DOM-IGNORE-END 
-
+#define SPI_YIELD_LIMIT     (100)
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -88,6 +88,8 @@ typedef enum
 {
 	/* Application's state machine's initial state. */
 	COMMS_STATE_INIT=0,
+    COMMS_STATE_INITIALIZE_RTOS,
+    COMMS_STATE_INITIALIZE_TIMER,
     COMMS_STATE_INITIALIZE_SPI,
 	COMMS_STATE_SERVICE_TASKS,
     COMMS_TRANSMIT_IMAGE,
@@ -139,9 +141,13 @@ typedef struct
             unsigned started:1;
             unsigned error:1;
             unsigned running:1;
-        }status;            
+        }status; 
+        uint32_t yieldCount;
     } spi;
-    struct __attribute__((packed)) {
+    struct {
+        DRV_HANDLE drvHandle;
+    } timer;
+    struct __attribute__((aligned(4))) {
         union{
             uint8_t   b8[COMMS_BUFFER_SIZE_8];
             uint16_t b16[COMMS_BUFFER_SIZE_16];
@@ -154,7 +160,13 @@ typedef struct
     }TXBuffer;    
     struct {
         unsigned initialized:1;
+        unsigned RTOSInitialized:1;
         unsigned SPIInitialized:1;
+        unsigned timerInitialized:1;
+        unsigned sendSPIPacket:1;
+        unsigned copied:1;
+        unsigned readyForImage:1;
+        unsigned timerRunning:1;
     }status;
     struct {
         TaskHandle_t myHandle;
@@ -174,6 +186,8 @@ typedef struct
             uint32_t header;
             uint32_t line;
             uint32_t done;
+            uint32_t timerStart;
+            uint32_t yield;
         }failure;
     }counters;
 } COMMS_DATA;

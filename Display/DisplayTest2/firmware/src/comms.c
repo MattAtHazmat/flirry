@@ -55,6 +55,18 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "comms.h"
 
+#define TP_OUT
+#ifdef TP_OUT
+#define mTP37_CONFIG()  LATDCLR=1<<8;TRISDCLR=1<<8
+#define mTP37_TOGGLE()  LATDINV=1<<8
+#define mTP37_SET()     LATDSET=1<<8
+#define mTP37_CLEAR()   LATDCLR=1<<8
+#else
+#define mTP37_CONFIG()
+#define mTP37_TOGGLE()
+#define mTP37_SET()  
+#define mTP37_CLEAR()
+#endif
 // *****************************************************************************
 // *****************************************************************************
 // Section: Global Data Definitions
@@ -88,6 +100,7 @@ static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event,
                                     DRV_SPI_BUFFER_HANDLE handle, 
                                     COMMS_DATA* context)
 {
+    mTP37_SET();
     if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
     {
         commsData.spi.status.running = true;
@@ -111,6 +124,7 @@ static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event,
                                       DRV_SPI_BUFFER_HANDLE handle, 
                                       COMMS_DATA* context)
 {
+    mTP37_CLEAR();
     context->spi.status.dataReady = true;
     context->spi.status.readStarted = false;
     if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
@@ -136,7 +150,7 @@ bool COMMS_StartSPIRead(COMMS_DATA *comms)
     comms->bufferIndex.filling++;
     comms->bufferIndex.filling &= WORKING_BUFFERS_MASK;
     DRV_SPI_BufferAddRead2(comms->spi.drvHandle,
-                           comms->workingBuffer[comms->bufferIndex.filling].incoming.b8,
+                           comms->workingBuffer[comms->bufferIndex.filling].incoming.b32,
                            comms->bufferSize.max.b8,
                           (void*)CommsSPICompletedCallback,
                            comms,
@@ -189,6 +203,8 @@ bool COMMS_OpenCameraSPI(COMMS_DATA *comms)
 
 void COMMS_Initialize ( void )
 {
+    mTP37_CONFIG();
+    mTP37_TOGGLE();
     /* Place the App state machine in its initial state. */
     commsData.state = COMMS_STATE_INIT;
     memset(&commsData,0,sizeof(commsData));
@@ -197,6 +213,7 @@ void COMMS_Initialize ( void )
     commsData.bufferSize.max.b32 = COMMS_BUFFER_SIZE_32;
     commsData.bufferSize.dataStructureRaw = 
         sizeof(commsData.workingBuffer[0].incoming.packet.dataStructure.raw);
+    mTP37_TOGGLE();
 }
 
 /******************************************************************************/
@@ -316,6 +333,7 @@ void COMMS_Tasks ( void )
                     memcpy(&commsData.image.properties,
                            &commsData.workingBuffer[commsData.bufferIndex.filled].incoming.packet.dataStructure.imageInfo,
                            sizeof(IMAGE_INFO_TYPE));
+                    commsData.bufferSize.lineLength = commsData.image.properties.dimensions.horizontal * sizeof(FLIR_PIXEL_TYPE);
                     memset(commsData.status.lineList,0,80);
                 }
                 commsData.state = COMMS_STATE_SERVICE_TASKS;
@@ -329,10 +347,9 @@ void COMMS_Tasks ( void )
                 /* check to make sure the length & line are valid.                */
                 if(commsData.status.flags.imageStartReceived)
                 {
-                    uint16_t lineLengthBytes = commsData.image.properties.dimensions.horizontal*
-                                               sizeof(FLIR_PIXEL_TYPE);
+                   
                     if((commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.length == 
-                                                                  lineLengthBytes)&&
+                                                                  commsData.bufferSize.lineLength)&&
                         (commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line < 
                                     commsData.image.properties.dimensions.vertical))
                     {
@@ -340,7 +357,7 @@ void COMMS_Tasks ( void )
                         commsData.status.linesReceived++;
                         memcpy(&commsData.image.buffer.pixel[0][commsData.workingBuffer[commsData.bufferIndex.filled].fromPacket.line],
                                 commsData.workingBuffer[commsData.bufferIndex.filled].incoming.b8,
-                                lineLengthBytes);
+                                commsData.bufferSize.lineLength);
                     }
                 }
                 commsData.state = COMMS_STATE_SERVICE_TASKS;

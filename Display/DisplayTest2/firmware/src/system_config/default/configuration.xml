@@ -183,13 +183,13 @@
       <Template>
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>EFBEA1E98F2F587BBCBAA269650D6D86</Checksum>
+        <Checksum>4F6334468BC18A6A1B0341529947F42E</Checksum>
         <ProjectFileChecksum>C8C50FC5DEB52B25B0B12880D4F98A9A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_slave_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>41A7DB1850449421F016C48B15439819</Checksum>
+        <Checksum>78498FE0303ADFB97D9846E3FB026D7C</Checksum>
         <ProjectFileChecksum>48187FBF0B64A45336AA84223ED21CE7</ProjectFileChecksum>
       </Template>
       <Template>
@@ -207,7 +207,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>D43C4C0C3D2FD41C223B77014CE9685D</Checksum>
+        <Checksum>C79DAD34EDC25748F7A1CD2BAF984E0C</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
@@ -237,7 +237,7 @@
       <Template>
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>52C88330F1DBBAB28C1CF2846F2BCFE2</Checksum>
+        <Checksum>9A45EA94161E758BE05FE909B14B1AE9</Checksum>
         <ProjectFileChecksum>598C8A3B4181953540A07DABC06F7E17</ProjectFileChecksum>
       </Template>
     </Templates>

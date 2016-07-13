@@ -81,7 +81,7 @@
 FLIR_DATA flirData;
 extern TaskHandle_t commsHandle;
 TaskHandle_t FLIRHandle;
-
+extern COMMS_DATA commsData;
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Application Callback Functions                                    */
@@ -92,16 +92,51 @@ TaskHandle_t FLIRHandle;
 
 static void TimerCallback (  uintptr_t context, uint32_t alarmCount )
 {
-    //BSP_LEDToggle(BSP_LED_2);
+    if(flirData.status.getImage)
+    {
+        flirData.counters.timerMissed++;
+    }
+    flirData.status.getImage=true;
+    flirData.status.timerRunning=false;
 }
 
 /******************************************************************************/
 
-static void SPICallback(uintptr_t context)
+//static void SPICallback(uintptr_t context)
+//{
+//    FLIRSPISlaveDeselect();
+//    flirData.spi.status.started = false;
+//    flirData.spi.status.complete = true;
+//}
+
+static void FLIR_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
-    FLIRSPISlaveDeselect();
-    flirData.spi.status.started = false;
-    flirData.spi.status.complete = true;
+    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
+    {
+        FLIRSPISlaveSelect();
+        flirData.spi.status.running = true;
+        flirData.spi.status.started = true;
+        flirData.spi.status.complete = false;
+    }
+    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    {
+        flirData.spi.status.error = true;
+    }        
+}
+
+static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+{
+    if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
+    {
+        FLIRSPISlaveDeselect();
+        flirData.spi.status.running = false;
+        flirData.spi.status.started = false;
+        flirData.spi.status.complete = true;
+    }
+    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    {
+        flirData.spi.status.error = true;
+    }        
 }
 
 /******************************************************************************/
@@ -131,6 +166,7 @@ static bool TimerSetup( void )
                                FLIR_TMR_DRV_IS_PERIODIC,
                                (uintptr_t)NULL, 
                                TimerCallback);
+    flirData.status.getImage = false;
     return DRV_TMR_Start(flirData.timer.drvHandle);
 }
 
@@ -154,9 +190,9 @@ void FLIR_Initialize ( void )
     /* Place the App state machine in its initial state.                      */
     flirData.state = FLIR_STATE_INIT;
     flirData.timer.drvHandle = DRV_HANDLE_INVALID; 
-    flirData.TXBuffer.size.max.b8 = BUFFER_SIZE_8;
-    flirData.TXBuffer.size.max.b16 = BUFFER_SIZE_16;
-    flirData.TXBuffer.size.max.b32 = BUFFER_SIZE_32;
+//    flirData.TXBuffer.size.max.b8 = BUFFER_SIZE_8;
+//    flirData.TXBuffer.size.max.b16 = BUFFER_SIZE_16;
+//    flirData.TXBuffer.size.max.b32 = BUFFER_SIZE_32;
     flirData.RXBuffer.size.max.b8 = BUFFER_SIZE_8;
     flirData.RXBuffer.size.max.b16 = BUFFER_SIZE_16;
     flirData.RXBuffer.size.max.b32 = BUFFER_SIZE_32;
@@ -195,21 +231,20 @@ void FLIR_Tasks ( void )
             
             if (flirData.status.timerConfigured)
             {
-                flirData.status.timerRunning = TimerSetup();
-                if(flirData.status.timerRunning)
-                {
+                //flirData.status.timerRunning = TimerSetup();
+                //if(flirData.status.timerRunning)
+                //{
                     flirData.state = FLIR_OPEN_SPI_PORT;
-                }
-                else
-                {
-                    flirData.state = FLIR_ERROR;
-                }
+                //}
+                //else
+                //{
+                //    flirData.state = FLIR_ERROR;
+                //}
             }
             break;
         }
 //        case FLIR_OPEN_I2C_PORT:
 //        {
-//            //BSP_LEDOn(BSP_LED_2);
 //            flirData.status.I2CConfigureAttempted = true;
 //            if(flirData.lepton.result == LEP_OK)
 //            {
@@ -271,7 +306,11 @@ void FLIR_Tasks ( void )
             {
                 flirData.state = FLIR_STATE_START_FRAME;
                 flirData.frame.building = 0;
-                flirData.frame.transmitting = -1;                
+                flirData.frame.transmitting = -1;          
+                if(!flirData.status.timerRunning)
+                {
+                    flirData.status.timerRunning = TimerSetup();
+                }
             }
             break;
         }      
@@ -288,14 +327,19 @@ void FLIR_Tasks ( void )
                 else
                 {
                     /* wait for the start of the frame */
-                    if(flirData.VoSPI.ID.line == 0)
+                    if((flirData.status.getImage==true)&&(flirData.VoSPI.ID.line == 0))
                     {
+                        
                         /* we are at the start of the frame */
+                        flirData.status.timerRunning = TimerSetup();
+                        flirData.status.getImage=false;
                         flirData.status.buildingFrame = true;
                         flirData.state = FLIR_STATE_GET_LINE;
                         flirData.status.lineReady = true;
                         flirData.status.imageReady = false;
+                        flirData.status.restartFrame = false;
                         flirData.frame.buildingLine = 0;
+                                                
                         /* drop through to next state. */
                     }
                     else
@@ -338,7 +382,10 @@ void FLIR_Tasks ( void )
                         flirData.state = FLIR_STATE_IMAGE_COMPLETE;
                     }
                 }
-                flirData.status.lineReady = FLIRGetVoSPI(&flirData);
+                if(flirData.status.imageReady == false)
+                {
+                    flirData.status.lineReady = FLIRGetVoSPI(&flirData);
+                }
             }   
             if(flirData.state != FLIR_STATE_IMAGE_COMPLETE)
             {
@@ -354,24 +401,47 @@ void FLIR_Tasks ( void )
             flirData.frame.building++;
             flirData.frame.building &= (IMAGE_BUFFERS-1);
             flirData.state = FLIR_STATE_TRANSMIT_IMAGE;
-            BSP_LEDToggle(BSP_LED_3);
-            LedTask();            
         }
         case FLIR_STATE_TRANSMIT_IMAGE: 
         {
-            ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-            if(FLIRTransmitImage(&flirData))
+            //if(flirData.status.sendImage)
+            //{
+            //    flirData.status.sendImage = false;
+                if(FLIRTransmitImage(&flirData))
+                {
+                    BSP_LEDToggle(BSP_LED_3);
+                }
+                
+            //}
+            //else
+            //{
+            //    flirData.counters.imagesDiscarded++;
+            //}
+            //if (DRV_TMR_Status(flirData.timer.drvHandle)==DRV_TMR_CLIENT_STATUS_READY)
+            //{
+            //    TimerSetup();
+            //}
+            flirData.state = FLIR_STATE_TRANSMIT_IMAGE_WAIT;
+            break;            
+        }
+        case FLIR_STATE_TRANSMIT_IMAGE_WAIT:
+        {
+            if(commsData.status.copied == true)
             {
-                BSP_LEDToggle(BSP_LED_4);
-                flirData.counters.imagesTransmitted++;
                 flirData.state = FLIR_STATE_START_FRAME;
             }
+//            else if(flirData.status.sendImage)
+//            {
+//                /* something went wrong. this should not go true at this */
+//                /* point*/
+//                flirData.state = FLIR_STATE_START_FRAME;
+//                flirData.counters.failure.sendImageTimeout++;
+//            }
             break;
         }
         case FLIR_ERROR:
         default:
         {
-
             BSP_LEDOn(BSP_LED_3);
             BSP_LEDOn(BSP_LED_4);
             break;
@@ -383,6 +453,7 @@ void FLIR_Tasks ( void )
     {
         flirData.RTOS.commsHandle = commsHandle;
     }
+    LedTask();            
 }
 
 /******************************************************************************/
@@ -397,14 +468,16 @@ inline bool FLIRDiscardLine(FLIR_DATA *flir)
 bool FLIRTransmitImage(FLIR_DATA *flir)
 {
     bool imageTransmitted = false;
-    if(flir->RTOS.commsHandle)
+    if(commsData.status.readyForImage)
     {
-        if(pdPASS == xTaskNotify(flir->RTOS.commsHandle,
-                                 flir->frame.transmitting,
-                                 eSetValueWithoutOverwrite))
+        if(flir->RTOS.commsHandle)
         {
-            flir->status.imageReady = false;
-            imageTransmitted = true;
+            if(pdPASS == xTaskNotify(flir->RTOS.commsHandle, NULL, eNoAction))
+            {
+                flir->counters.imagesTransmitted++;
+                flir->status.imageReady = false;
+                imageTransmitted = true;
+            }
         }
     }    
     return imageTransmitted;
@@ -430,45 +503,63 @@ bool FLIRPopulateLine(FLIR_DATA *flir)
 
 /******************************************************************************/
 
+//bool OpenFLIRSPI(FLIR_DATA *flir)
+//{
+//    bool SPIReady = false;
+//    FLIRSPISlaveDeselect();
+//    flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
+//                                       DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
+//    if(DRV_HANDLE_INVALID != flir->spi.drvHandle)
+//    {
+//        SPIReady = true;
+//    }
+//    return SPIReady;
+//}
+
 bool OpenFLIRSPI(FLIR_DATA *flir)
 {
-    bool SPIReady = false;
-    FLIRSPISlaveDeselect();
-    flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
-                                       DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
+   flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
+                                      DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != flir->spi.drvHandle)
     {
-        SPIReady = true;
+        DRV_SPI_CLIENT_DATA clientData;
+        clientData.baudRate = 0; /* not overriding the baud rate */
+        clientData.operationEnded = (void*)FLIR_SPICompletedCallback;
+        clientData.operationStarting = (void*)FLIR_SPIStartedCallback;
+        if(DRV_SPI_ClientConfigure(flir->spi.drvHandle,&clientData)>=0)
+        {
+            /* success! */
+        }
     }
-    return SPIReady;
+    return(DRV_HANDLE_INVALID != flir->spi.drvHandle);
 }
+
 
 /******************************************************************************/
 
-bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size)
-{
-    bool SPIReadingStarted=false;
-    FLIRSPISlaveDeselect();
-    if(size < flir->TXBuffer.size.max.b8)
-    {
-        FLIRSPISlaveSelect();
-        if(DRV_SPI_BUFFER_HANDLE_INVALID != 
-           DRV_SPI_BufferAddRead(flir->spi.drvHandle,flir->TXBuffer.b8,size,
-                                 (void*)SPICallback,NULL))
-        {
-            flir->TXBuffer.size.transfer.b8 = size;
-            flir->TXBuffer.size.transfer.b16 = size>>1;
-            flir->TXBuffer.size.transfer.b32 = size>>2;
-            flir->spi.status.started=true;
-            SPIReadingStarted=true;
-        }
-        else
-        {
-            //FLIRSPISlaveDeselect();
-        }
-    }
-    return SPIReadingStarted;    
-}
+//bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size)
+//{
+//    bool SPIReadingStarted=false;
+//    FLIRSPISlaveDeselect();
+//    if(size < flir->RXBuffer.size.max.b8)
+//    {
+//        if(DRV_SPI_BUFFER_HANDLE_INVALID != 
+//           DRV_SPI_BufferAddRead2(flir->spi.drvHandle,
+//                                  flir->RXBuffer.b8,
+//                                  size,
+//                                  (void*)FLIR_SPICompletedCallback,
+//                                  NULL,
+//                                 &flir->spi.bufferHandle))            
+//        {
+//            flir->RXBuffer.size.transfer.b8 = size;
+//            flir->RXBuffer.size.transfer.b16 = size>>1;
+//            flir->RXBuffer.size.transfer.b32 = size>>2;
+//            flir->spi.status.started=true;
+//            SPIReadingStarted=true;
+//        }        
+//    }
+//    return SPIReadingStarted;    
+//}
 
 /******************************************************************************/
 
@@ -486,56 +577,56 @@ bool GetFLIRSPIReading(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-bool FLIRSPIWriteRead(FLIR_DATA *flir,uint32_t TXSize,int32_t RXSize)
-{
-    bool success = false;
-    FLIRSPISlaveDeselect();
-    /* blocking */
-    if((TXSize < flir->TXBuffer.size.max.b8)&&
-       (RXSize < flir->RXBuffer.size.max.b8))
-    {
-        FLIRSPISlaveSelect();
-        if(DRV_SPI_BUFFER_HANDLE_INVALID != 
-           DRV_SPI_BufferAddWriteRead(flir->spi.drvHandle,
-                                      flir->TXBuffer.b8,TXSize,
-                                      flir->RXBuffer.b8,RXSize,
-                                      (void*)SPICallback,NULL))
-        {
-            flir->TXBuffer.size.transfer.b8 = TXSize;
-            flir->TXBuffer.size.transfer.b16 = TXSize>>1;
-            flir->TXBuffer.size.transfer.b32 = TXSize>>2;
-            flir->RXBuffer.size.transfer.b8 = RXSize;
-            flir->RXBuffer.size.transfer.b16 = RXSize>>1;
-            flir->RXBuffer.size.transfer.b32 = RXSize>>2;
-            flir->spi.status.started=true;
-            do {
-                taskYIELD();
-            }while(!flir->spi.status.complete);
-            success = true;
-        }
-        else
-        {
-            FLIRSPISlaveDeselect();
-        }
-    }
-    return success;
-}
+//bool FLIRSPIWriteRead(FLIR_DATA *flir,uint32_t TXSize,int32_t RXSize)
+//{
+//    bool success = false;
+//    FLIRSPISlaveDeselect();
+//    /* blocking */
+//    if((TXSize < flir->TXBuffer.size.max.b8)&&
+//       (RXSize < flir->RXBuffer.size.max.b8))
+//    {
+//        FLIRSPISlaveSelect();
+//        if(DRV_SPI_BUFFER_HANDLE_INVALID != 
+//           DRV_SPI_BufferAddWriteRead(flir->spi.drvHandle,
+//                                      flir->TXBuffer.b8,TXSize,
+//                                      flir->RXBuffer.b8,RXSize,
+//                                      (void*)SPICallback,NULL))
+//        {
+//            flir->TXBuffer.size.transfer.b8 = TXSize;
+//            flir->TXBuffer.size.transfer.b16 = TXSize>>1;
+//            flir->TXBuffer.size.transfer.b32 = TXSize>>2;
+//            flir->RXBuffer.size.transfer.b8 = RXSize;
+//            flir->RXBuffer.size.transfer.b16 = RXSize>>1;
+//            flir->RXBuffer.size.transfer.b32 = RXSize>>2;
+//            flir->spi.status.started=true;
+//            do {
+//                taskYIELD();
+//            }while(!flir->spi.status.complete);
+//            success = true;
+//        }
+//        else
+//        {
+//            FLIRSPISlaveDeselect();
+//        }
+//    }
+//    return success;
+//}
 
 /******************************************************************************/
 
 bool FLIRSPIRead(FLIR_DATA *flir,int32_t RXSize)
 {
     bool success = false;
-    FLIRSPISlaveDeselect(); /* make sure the SPI is deselected */
     /* blocking */
     if(RXSize < flir->RXBuffer.size.max.b8)
     {
         flir->spi.status.complete = false;
         flir->spi.status.started = false;
-        FLIRSPISlaveSelect();
         flir->spi.bufferHandle = DRV_SPI_BufferAddRead(flir->spi.drvHandle,
-                                                       flir->RXBuffer.b8,RXSize,
-                                                       (void*)SPICallback,NULL);
+                                                       flir->RXBuffer.b8,
+                                                       RXSize,
+                                                       (void*)FLIR_SPICompletedCallback,
+                                                       NULL);
         if(DRV_SPI_BUFFER_HANDLE_INVALID != flir->spi.bufferHandle )
         {            
             flir->RXBuffer.size.transfer.b8 = RXSize;
@@ -546,11 +637,7 @@ bool FLIRSPIRead(FLIR_DATA *flir,int32_t RXSize)
                 taskYIELD();
             }while(!flir->spi.status.complete);
             success = true;
-        }
-        else
-        {
-            FLIRSPISlaveDeselect();
-        }
+        }        
     }
     return success;
 }

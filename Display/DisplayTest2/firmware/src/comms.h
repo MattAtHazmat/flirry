@@ -194,7 +194,7 @@ typedef struct
             unsigned :25;
         }status;            
     } spi;
-    struct __attribute__((packed)) {
+    struct __attribute__((aligned(4))) {
         union {
             uint8_t   b8[COMMS_BUFFER_SIZE_8];
             uint16_t b16[COMMS_BUFFER_SIZE_16];
@@ -217,6 +217,7 @@ typedef struct
         BUFFER_SIZE_TYPE max;
         BUFFER_SIZE_TYPE transfer;
         uint32_t dataStructureRaw;
+        uint32_t lineLength;
     }bufferSize;
     struct {
         uint32_t filled;

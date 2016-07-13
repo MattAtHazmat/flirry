@@ -89,8 +89,9 @@ typedef enum
 	FLIR_STATE_SERVICE_TASKS,
     FLIR_STATE_START_FRAME,
     FLIR_STATE_GET_LINE,
-            FLIR_STATE_IMAGE_COMPLETE,
-            FLIR_STATE_TRANSMIT_IMAGE,
+    FLIR_STATE_IMAGE_COMPLETE,
+    FLIR_STATE_TRANSMIT_IMAGE,
+    FLIR_STATE_TRANSMIT_IMAGE_WAIT,
     FLIR_ERROR,
 } FLIR_STATES;
 
@@ -127,24 +128,26 @@ typedef struct __attribute__((packed)) {
         struct{
             unsigned complete:1;
             unsigned started:1;
-        }status;
+            unsigned error:1;
+            unsigned running:1;
+        } status;
     } spi;
     struct {
         LEP_RESULT result;
         LEP_CAMERA_PORT_DESC_T cameraPort;
     }lepton;
-    struct __attribute__((packed)){
-        union{
-            uint8_t b8[BUFFER_SIZE_8];
-            uint16_t b16[BUFFER_SIZE_16];
-            uint32_t b32[BUFFER_SIZE_32];
-        };  
-        struct{
-            BUFFER_SIZE_TYPE max;
-            BUFFER_SIZE_TYPE transfer;
-        }size;
-    }TXBuffer;
-    struct __attribute__((packed)){
+//    struct __attribute__((aligned(4))){
+//        union{
+//            uint8_t b8[BUFFER_SIZE_8];
+//            uint16_t b16[BUFFER_SIZE_16];
+//            uint32_t b32[BUFFER_SIZE_32];
+//        };  
+//        struct{
+//            BUFFER_SIZE_TYPE max;
+//            BUFFER_SIZE_TYPE transfer;
+//        }size;
+//    }TXBuffer;
+    struct __attribute__((aligned(4))){
         union{
             uint8_t b8[BUFFER_SIZE_8];
             uint16_t b16[BUFFER_SIZE_16];
@@ -177,6 +180,7 @@ typedef struct __attribute__((packed)) {
         unsigned discardLimit:1;
         unsigned restartFrame:1;
         unsigned frameRestarted:1;
+        unsigned getImage:1;
     }status;
     VOSPI_TYPE VoSPI;
     struct {
@@ -193,6 +197,11 @@ typedef struct __attribute__((packed)) {
     }RTOS;  
     struct {
         uint32_t imagesTransmitted;
+        uint32_t imagesDiscarded;
+        uint32_t timerMissed;
+        struct {
+            uint32_t sendImageTimeout;
+        }failure;
     }counters;
 } FLIR_DATA;
 
@@ -278,9 +287,9 @@ void FLIR_Initialize ( void );
 void FLIR_Tasks( void );
 
 bool OpenFLIRSPI(FLIR_DATA *flir);
-bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size);
+//bool StartFLIRSPIReading(FLIR_DATA *flir,uint32_t size);
 bool GetFLIRSPIReading(FLIR_DATA *flir);
-bool FLIRSPIWriteRead(FLIR_DATA *flir,uint32_t TXSize,int32_t RXSize);
+//bool FLIRSPIWriteRead(FLIR_DATA *flir,uint32_t TXSize,int32_t RXSize);
 bool FLIRGetVoSPI(FLIR_DATA *flir);
 #define FLIRSPISlaveSelect()       LATGCLR = 1<<9
 #define FLIRSPISlaveDeselect()     LATGSET = 1<<9

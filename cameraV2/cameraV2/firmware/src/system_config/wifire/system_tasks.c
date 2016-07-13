@@ -166,7 +166,7 @@ static void _COMMS_Tasks(void)
     while(1)
     {
         COMMS_Tasks();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
+        vTaskDelay(3 / portTICK_PERIOD_MS);
     }
 }
 

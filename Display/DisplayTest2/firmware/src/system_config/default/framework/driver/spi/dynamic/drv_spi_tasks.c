@@ -55,7 +55,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
             
             
-int32_t DRV_SPI_ISRSlaveEBM8BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
+            
+            
+int32_t DRV_SPI_ISRSlaveEBM32BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstance )
 {
     bool continueLoop;
     SYS_INT_SourceDisable(pDrvInstance->rxInterruptSource);
@@ -103,11 +105,11 @@ int32_t DRV_SPI_ISRSlaveEBM8BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstan
         
         if (currentJob->dataLeftToRx + currentJob->dummyLeftToRx != 0)
         {
-            DRV_SPI_SlaveEBMReceive8BitISR(pDrvInstance);
+            DRV_SPI_SlaveEBMReceive32BitISR(pDrvInstance);
         }
         if (currentJob->dataLeftToTx != 0)
         {
-            DRV_SPI_SlaveEBMSend8BitISR(pDrvInstance);
+            DRV_SPI_SlaveEBMSend32BitISR(pDrvInstance);
         }
         else
         {
@@ -194,6 +196,4 @@ int32_t DRV_SPI_ISRSlaveEBM8BitTasks ( struct DRV_SPI_DRIVER_OBJECT * pDrvInstan
     } while(continueLoop);
     return 0;
 }            
-
-
 
