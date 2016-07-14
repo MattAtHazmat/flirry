@@ -93,9 +93,13 @@ typedef enum
     COMMS_STATE_INITIALIZE_SPI,
 	COMMS_STATE_SERVICE_TASKS,
     COMMS_TRANSMIT_IMAGE,
+
     COMMS_TRANSMIT_IMAGE_HEADER,
+            COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE,
     COMMS_TRANSMIT_LINE,
+            COMMS_WAIT_FOR_TRANSMIT_LINE_DONE,
     COMMS_STATE_IMAGE_DONE,
+            COMMS_STATE_WAIT_FOR_IMAGE_DONE,
     COMMS_STATE_ERROR
 } COMMS_STATES;
 
@@ -142,6 +146,7 @@ typedef struct
             unsigned error:1;
             unsigned running:1;
         }status; 
+        uint32_t TXBytesExpected;
         uint32_t yieldCount;
     } spi;
     struct {
@@ -272,19 +277,23 @@ void COMMS_Initialize ( void );
  */
 
 void COMMS_Tasks( void );
-bool COMMS_TransmitImageHeader(COMMS_DATA *comms);
-bool COMMS_TransmitImageLine(COMMS_DATA *comms);
-bool COMMS_TransmitImageDone(COMMS_DATA *comms);
-bool COMMS_SPIWrite(COMMS_DATA *comms,uint32_t TXSize);
+bool COMMS_OpenDisplaySPI(COMMS_DATA *comms);
+bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms);
+bool COMMS_StartTransmitImageLine(COMMS_DATA *comms);
+bool COMMS_StartTransmitImageDone(COMMS_DATA *comms);
+bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize);
+bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms);
 bool COMMS_NotifyReady(COMMS_DATA *comms);
-uint32_t COMMS_WaitForImageReady(void);
+bool COMMS_WaitForImageReady(COMMS_DATA *comms);
+inline bool COMMS_SPIComplete(COMMS_DATA *comms);
+
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
 #define mBitSet(a,b)                (a ## SET = 1<<b)
 #define mBitToggle(a,b)             (a ## INV = 1<<b)
 
-#define CommsSPISlaveSelect()       mBitClear(LATE,9)   // LATECLR = 1<<9
-#define CommsSPISlaveDeselect()     mBitSet(LATE,9)     //LATESET = 1<<9
-#define CommsSPISlaveInvert()       mBitToggle(LATE,9)
+#define COMMS_SPISlaveSelect()       mBitClear(LATE,9)   // LATECLR = 1<<9
+#define COMMS_SPISlaveDeselect()     mBitSet(LATE,9)     //LATESET = 1<<9
+#define COMMS_SPISlaveInvert()       mBitToggle(LATE,9)
 #endif /* _COMMS_H */
 
 //DOM-IGNORE-BEGIN

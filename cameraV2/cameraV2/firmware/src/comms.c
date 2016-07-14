@@ -87,35 +87,66 @@ extern TaskHandle_t FLIRHandle;
 // *****************************************************************************
 // *****************************************************************************
 
-static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void COMMS_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
+    COMMS_SPISlaveSelect();
     if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
-    {
-        CommsSPISlaveSelect();
+    {        
         commsData.spi.status.running = true;
-        commsData.spi.status.started = true;
-        commsData.spi.status.complete = false;
     }
     else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
     {
-        commsData.spi.status.error=true;
+        commsData.spi.status.error = true;
+        FLIR_SPISlaveDeselect();
     }        
 }
 
-static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void COMMS_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
+    COMMS_SPISlaveDeselect();
     if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
     {
-        CommsSPISlaveDeselect();
+        
         commsData.spi.status.running = false;
         commsData.spi.status.started = false;
         commsData.spi.status.complete = true;
     }
     else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
     {
-        commsData.spi.status.error=true;
+        commsData.spi.status.error = true;
     }        
 }
+//
+//
+//static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+//{
+//    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
+//    {
+//        CommsSPISlaveSelect();
+//        commsData.spi.status.running = true;
+//        commsData.spi.status.started = true;
+//        commsData.spi.status.complete = false;
+//    }
+//    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+//    {
+//        commsData.spi.status.error=true;
+//    }        
+//}
+//
+//static void COMMS_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+//{
+//    if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
+//    {
+//        CommsSPISlaveDeselect();
+//        commsData.spi.status.running = false;
+//        commsData.spi.status.started = false;
+//        commsData.spi.status.complete = true;
+//    }
+//    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+//    {
+//        commsData.spi.status.error=true;
+//    }        
+//}
 
 // *****************************************************************************
 // *****************************************************************************
@@ -123,22 +154,45 @@ static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 // *****************************************************************************
 // *****************************************************************************
 
-bool OpenDisplaySPI(COMMS_DATA *comms)
+//bool OpenDisplaySPI(COMMS_DATA *comms)
+//{
+//    comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_1,
+//                                        DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_WRITE);
+//    if(DRV_HANDLE_INVALID != comms->spi.drvHandle)
+//    {
+//        DRV_SPI_CLIENT_DATA clientData;
+//        clientData.baudRate = 0; /* not overriding the baud rate */
+//        clientData.operationEnded = (void*)COMMS_SPICompletedCallback;
+//        clientData.operationStarting = (void*)COMMS_SPIStartedCallback;
+//        if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
+//        {
+//            /* success! */
+//        }
+//    }
+//    return(DRV_HANDLE_INVALID != comms->spi.drvHandle);
+//}
+
+bool COMMS_OpenDisplaySPI(COMMS_DATA *comms)
 {
+    bool openSuccess=false;
     comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_1,
-                                        DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_WRITE);
+                                      DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != comms->spi.drvHandle)
     {
         DRV_SPI_CLIENT_DATA clientData;
         clientData.baudRate = 0; /* not overriding the baud rate */
-        clientData.operationEnded = (void*)CommsSPICompletedCallback;
-        clientData.operationStarting = (void*)CommsSPIStartedCallback;
+        clientData.operationEnded = (void*)COMMS_SPICompletedCallback;
+        clientData.operationStarting = (void*)COMMS_SPIStartedCallback;
         if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
         {
             /* success! */
+            openSuccess = true;
+            comms->spi.status.running=false;
+            comms->spi.status.complete=false;
+            comms->spi.status.started=false;
         }
     }
-    return(DRV_HANDLE_INVALID != comms->spi.drvHandle);
+    return (openSuccess)&&(DRV_HANDLE_INVALID != comms->spi.drvHandle);
 }
 
 /******************************************************************************/
@@ -182,7 +236,7 @@ static bool COMMS_TimerSetup( COMMS_DATA* comms, uint32_t periodUS)
 
 void COMMS_Initialize ( void )
 {
-    CommsSPISlaveDeselect();
+    COMMS_SPISlaveDeselect();
     memset(&commsData,0,sizeof(commsData));
     commsData.state = COMMS_STATE_INIT;
     commsData.image.properties.dimensions.horizontal = HORIZONTAL_SIZE;
@@ -230,7 +284,6 @@ void COMMS_Tasks ( void )
             }    
             /* make it here, everything is initialized. */
             commsData.status.initialized = true;       
-            commsData.status.readyForImage = true;
             commsData.state = COMMS_STATE_SERVICE_TASKS;
             break;
         }
@@ -251,34 +304,26 @@ void COMMS_Tasks ( void )
         }
         case COMMS_STATE_INITIALIZE_SPI:
         {
-            commsData.status.SPIInitialized = OpenDisplaySPI(&commsData);
+            commsData.status.SPIInitialized = COMMS_OpenDisplaySPI(&commsData);
             commsData.state = COMMS_STATE_INIT;
             break;
         }
         case COMMS_STATE_SERVICE_TASKS:
         {
-            uint32_t toTransmit;
-            commsData.status.copied = false;
-            toTransmit = COMMS_WaitForImageReady();
-            BSP_LEDToggle(BSP_LED_4);
-            memcpy(&commsData.image.buffer[commsData.buffer.receive],
-                   &flirData.image.buffer[toTransmit].vector,
-                   commsData.image.properties.size.bytes);
-            commsData.status.copied = true;
-            commsData.status.readyForImage = false;
-            commsData.buffer.transmit = commsData.buffer.receive;
-            commsData.buffer.receive++;
-            commsData.buffer.receive &= (IMAGE_BUFFERS-1);
-            commsData.counters.imagesReceived++;
-            commsData.state = COMMS_TRANSMIT_IMAGE;            
+            if(COMMS_WaitForImageReady(&commsData))
+            {
+                commsData.buffer.receive &= (IMAGE_BUFFERS-1);
+                commsData.counters.imagesReceived++;
+                commsData.state = COMMS_TRANSMIT_IMAGE;
+            }
+            break;
         }
         case COMMS_TRANSMIT_IMAGE:
         case COMMS_TRANSMIT_IMAGE_HEADER:
         {
-            if(COMMS_TransmitImageHeader(&commsData))
+            if(COMMS_StartTransmitImageHeader(&commsData))
             {
-                commsData.state = COMMS_TRANSMIT_LINE;
-                commsData.transmitLine = 0;
+                commsData.state = COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE;
             }
             else
             {
@@ -286,15 +331,20 @@ void COMMS_Tasks ( void )
             }
             break;
         }
+        case COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE:
+        {
+            if(COMMS_CheckSPIWriteDone(&commsData))
+            {
+                commsData.state = COMMS_TRANSMIT_LINE;
+                commsData.transmitLine = 0;
+            }
+            break;
+        }
         case COMMS_TRANSMIT_LINE:            
         {
-            if(COMMS_TransmitImageLine(&commsData))
+            if(COMMS_StartTransmitImageLine(&commsData))
             {
-                commsData.transmitLine++;
-                if(commsData.transmitLine >= commsData.image.properties.dimensions.vertical)
-                {
-                    commsData.state = COMMS_STATE_IMAGE_DONE;
-                }
+                commsData.state = COMMS_WAIT_FOR_TRANSMIT_LINE_DONE;  
             }
             else
             {
@@ -302,18 +352,40 @@ void COMMS_Tasks ( void )
             }
             break;
         }
+        case COMMS_WAIT_FOR_TRANSMIT_LINE_DONE:
+        {
+            if(COMMS_CheckSPIWriteDone(&commsData))
+            {
+                commsData.transmitLine++; 
+                if(commsData.transmitLine >= commsData.image.properties.dimensions.vertical)
+                {
+                    commsData.state = COMMS_STATE_IMAGE_DONE;
+                }
+                else
+                {
+                    commsData.state = COMMS_TRANSMIT_LINE;
+                }
+            }
+            break;
+        }
         case COMMS_STATE_IMAGE_DONE:
         {
-            if(COMMS_TransmitImageDone(&commsData))
+            if(COMMS_StartTransmitImageDone(&commsData))
             {
-                //COMMS_NotifyReady(&commsData);
-                commsData.counters.imagesTransmitted++;
-                commsData.state = COMMS_STATE_SERVICE_TASKS;    
-                commsData.status.readyForImage = true;
+                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE_DONE;
             }
             else
             {
                 commsData.counters.failure.done++;
+            }
+            break;
+        }
+        case COMMS_STATE_WAIT_FOR_IMAGE_DONE:
+        {
+            if(COMMS_CheckSPIWriteDone(&commsData))
+            {
+                commsData.counters.imagesTransmitted++;
+                commsData.state = COMMS_STATE_SERVICE_TASKS; 
             }
             break;
         }
@@ -335,7 +407,7 @@ void COMMS_Tasks ( void )
 
 /******************************************************************************/
 
-bool COMMS_TransmitImageHeader(COMMS_DATA *comms)
+bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms)
 {
     bool success = false;
 
@@ -344,13 +416,13 @@ bool COMMS_TransmitImageHeader(COMMS_DATA *comms)
     comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(sizeof(IMAGE_INFO_TYPE)>>8));   
     comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xff&(sizeof(IMAGE_INFO_TYPE)));
     memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.properties,sizeof(IMAGE_INFO_TYPE));
-    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE));
+    success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE));
     return success;
 }
 
 /******************************************************************************/
 
-bool COMMS_TransmitImageLine(COMMS_DATA *comms)
+bool COMMS_StartTransmitImageLine(COMMS_DATA *comms)
 {
     bool success = false;
     uint32_t lineLength;
@@ -359,115 +431,125 @@ bool COMMS_TransmitImageLine(COMMS_DATA *comms)
     comms->TXBuffer.b8[LINE_LSB_LOCATION] = 0xff & comms->transmitLine;
     comms->TXBuffer.b8[LINE_MSB_LOCATION] = 0xff & (comms->transmitLine>>8);    
     lineLength = comms->image.properties.dimensions.horizontal * sizeof(PIXEL_TYPE);
-    memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.buffer[comms->buffer.transmit].pixel[0][comms->transmitLine],lineLength);
+    memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.buffer[comms->buffer.transmit].pixel[comms->transmitLine][0],lineLength);
     comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xFF&(lineLength));
     comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(lineLength)>>8); 
-    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH + lineLength);
+    success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + lineLength);
     return success;
 }
 
 /******************************************************************************/
 
-bool COMMS_TransmitImageDone(COMMS_DATA *comms)
+bool COMMS_StartTransmitImageDone(COMMS_DATA *comms)
 {
     bool success = false;
     memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
     comms->TXBuffer.b8[ID_LOCATION] = IMAGE_DONE_ID;
     comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = 0;   
     comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = 0;
-    success = COMMS_SPIWrite(comms,MESSAGE_HEADER_LENGTH);
+    success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH);
     return success;
 }
 
 /******************************************************************************/
-#ifdef TRANSFER_32_BIT
-typedef union {
-    uint32_t w;
-    uint8_t b[4];
-}uint32_b;
-uint32_b __attribute__((aligned(4))) tempTX[64];
-#endif
-bool COMMS_SPIWrite(COMMS_DATA *comms,uint32_t TXSize)
-{
-    bool success = false;
-    #ifdef TRANSFER_32_BIT
-        uint32_t TXSize32;
-    #endif
-    if(comms->spi.status.running == false)
-    {
-        if(TXSize < comms->TXBuffer.size.max.b8)
-        {
-            #ifdef TRANSFER_32_BIT
-                uint32_t index;
-                uint32_t length;
 
-                if((TXSize&0xFFFFFFFC)==TXSize)
-                {
-                    TXSize32 = TXSize;
-                }
-                else
-                {
-                    TXSize32=(TXSize&0xFFFFFFFC)+4;
-                }      
-                length = TXSize32>>2;
-                for(index=0;index<length;index++)
-                {
-                    tempTX[index].b[0]=((uint32_b)comms->TXBuffer.b32[index]).b[3];
-                    tempTX[index].b[1]=((uint32_b)comms->TXBuffer.b32[index]).b[2];
-                    tempTX[index].b[2]=((uint32_b)comms->TXBuffer.b32[index]).b[1];
-                    tempTX[index].b[3]=((uint32_b)comms->TXBuffer.b32[index]).b[0];
-                }
-            #endif
-            DRV_SPI_BufferAddWrite2(comms->spi.drvHandle,
-                                    #ifdef TRANSFER_32_BIT
-                                        tempTX,//comms->TXBuffer.b8,
-                                        TXSize32,
-                                    #else
-                                        comms->TXBuffer.b8,
-                                        TXSize,
-                                    #endif
-                                    (void*)CommsSPICompletedCallback,
-                                    NULL,
-                                    &comms->spi.bufferHandle);
-            if(DRV_SPI_BUFFER_HANDLE_INVALID != comms->spi.bufferHandle)
-            {
-                #ifdef TRANSFER_32_BIT
-                    comms->TXBuffer.size.transfer.b8  = TXSize32;
-                    comms->TXBuffer.size.transfer.b16 = TXSize32>>1;
-                    comms->TXBuffer.size.transfer.b32 = TXSize32>>2;
-                #else
-                    comms->TXBuffer.size.transfer.b8  = TXSize;
-                    comms->TXBuffer.size.transfer.b16 = TXSize>>1;
-                    comms->TXBuffer.size.transfer.b32 = TXSize>>2;
-                #endif
-                comms->spi.yieldCount=0;
-                comms->spi.status.started=true;
-                do {
-                    taskYIELD();
-                    comms->spi.yieldCount++;
-                }while((!comms->spi.status.complete)&&(comms->spi.yieldCount<SPI_YIELD_LIMIT));
-                /* add a pause */
-                success = comms->spi.status.complete;
-                if(success)
-                {
-                    while (comms->status.timerRunning == false)
-                    {
-                        comms->status.timerRunning = COMMS_TimerSetup(comms,COMMS_TMR_DRV_PERIOD);
-                    }
-                    do {
-                        taskYIELD();
-                    }while (!comms->status.sendSPIPacket);   
-                    comms->status.timerRunning = COMMS_TimerSetup(comms,COMMS_TMR_DRV_PERIOD);
-                }
-                else
-                {
-                    comms->counters.failure.yield++;
-                }
-            }            
-        }       
-    }   
+
+bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize)
+{
+
+    bool success = false;
+    if((!comms->spi.status.started)&&
+       (!comms->spi.status.running)&&
+       (TXSize < comms->TXBuffer.size.max.b8))
+    {
+        
+        comms->spi.status.complete = false;
+        comms->spi.TXBytesExpected = TXSize;
+                DRV_SPI_BufferAddWrite2(comms->spi.drvHandle,
+                                comms->TXBuffer.b8,
+                                TXSize,
+                                (void*)COMMS_SPICompletedCallback,
+                                NULL,
+                                &comms->spi.bufferHandle);
+        {           
+            comms->spi.status.started = true;
+            /* running gets set in the callback */
+            success = true;
+        }     
+    }
     return success;
-} 
+}
+
+bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms)
+{
+    if(COMMS_SPIComplete(comms))
+    {
+        comms->TXBuffer.size.transfer.b8  = comms->spi.TXBytesExpected;
+        comms->TXBuffer.size.transfer.b16 = comms->spi.TXBytesExpected>>1;
+        comms->TXBuffer.size.transfer.b32 = comms->spi.TXBytesExpected>>2;
+        return true;
+    }
+    return false;
+}
+
+inline bool COMMS_SPIComplete(COMMS_DATA *comms)
+{
+    bool complete;
+    __builtin_disable_interrupts();
+    complete = comms->spi.status.complete;
+    __builtin_enable_interrupts();
+    return complete;
+}
+//bool COMMS_StartSPIWrite(COMMS_DATA *comms,uint32_t TXSize)
+//{
+//    bool success = false;
+//
+//    while(comms->spi.status.running)
+//    {        
+//        taskYIELD();
+//    }
+//    if(TXSize < comms->TXBuffer.size.max.b8)
+//    {
+//        DRV_SPI_BufferAddWrite2(comms->spi.drvHandle,
+//                                comms->TXBuffer.b8,
+//                                TXSize,
+//                                (void*)COMMS_SPICompletedCallback,
+//                                NULL,
+//                                &comms->spi.bufferHandle);
+//        if(DRV_SPI_BUFFER_HANDLE_INVALID != comms->spi.bufferHandle)
+//        {
+//
+//            comms->TXBuffer.size.transfer.b8  = TXSize;
+//            comms->TXBuffer.size.transfer.b16 = TXSize>>1;
+//            comms->TXBuffer.size.transfer.b32 = TXSize>>2;
+//            comms->spi.yieldCount=0;
+//            comms->spi.status.started=true;
+//            do {
+//                taskYIELD();
+//                comms->spi.yieldCount++;
+//            }while((!comms->spi.status.complete)&&(comms->spi.yieldCount<SPI_YIELD_LIMIT));
+//            /* add a pause */
+//            success = comms->spi.status.complete;
+//            if(success)
+//            {
+//                if (comms->status.timerRunning == false)
+//                {
+//                    comms->status.timerRunning = COMMS_TimerSetup(comms,COMMS_TMR_DRV_PERIOD);
+//                }
+//                do {
+//                    taskYIELD();
+//                }while (!comms->status.sendSPIPacket);   
+//                comms->status.timerRunning = COMMS_TimerSetup(comms,COMMS_TMR_DRV_PERIOD);
+//            }
+//            else
+//            {
+//                comms->counters.failure.yield++;
+//            }
+//        }            
+//           
+//    }   
+//    return success;
+//} 
 
 /******************************************************************************/
 
@@ -482,11 +564,21 @@ bool COMMS_NotifyReady(COMMS_DATA *comms)
 
 /******************************************************************************/
 
-uint32_t COMMS_WaitForImageReady(void)
+bool COMMS_WaitForImageReady(COMMS_DATA *comms)
 {
-    //ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
-    ulTaskNotifyTake( pdTRUE, 150/portTICK_PERIOD_MS );
-    return flirData.frame.transmitting;
+    comms->status.copied=false;
+    comms->status.readyForImage = true;
+    if(flirData.status.imageReady)   
+    {
+        BSP_LEDToggle(BSP_LED_4);
+        memcpy(comms->image.buffer,
+               flirData.image.buffer[flirData.frame.transmitting].vector,
+               comms->image.properties.size.bytes);
+        comms->status.copied = true;
+        comms->status.readyForImage = false;
+        return true;
+    }
+    return false;
 }
 
 /******************************************************************************/
