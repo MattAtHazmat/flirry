@@ -91,8 +91,7 @@ typedef enum
     FLIR_STATE_START_GET_LINE,
     FLIR_STATE_WAIT_FOR_LINE,
     FLIR_STATE_GET_LINE,
-    FLIR_STATE_IMAGE_COMPLETE,
-            FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE,
+    FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE,
     FLIR_STATE_TRANSMIT_IMAGE,
     FLIR_STATE_COPY_IMAGE_WAIT,
     FLIR_ERROR,
@@ -173,26 +172,24 @@ typedef struct __attribute__((packed)) {
         unsigned restartFrame:1;
         unsigned frameRestarted:1;
         unsigned getImage:1;
+        unsigned getImageMissed:1;
     }status;
     VOSPI_TYPE VoSPI;
-    struct {
-        int32_t building;
-        int32_t transmitting;
-        int32_t buildingLine;
-        uint32_t discardCount;
-        uint32_t discardCountLimit;
-    } frame;
     FLIR_IMAGE_TYPE image;
     struct {
         TaskHandle_t myHandle;
         TaskHandle_t commsHandle;
     }RTOS;  
     struct {
+        uint32_t imagesStarted;
         uint32_t imagesTransmitted;
-        uint32_t imagesDiscarded;
-        uint32_t timerMissed;
+        uint32_t discarded;
         struct {
             uint32_t sendImageTimeout;
+            uint32_t getLine;
+            uint32_t timerSetup;
+            uint32_t getImageMissed;
+            uint32_t readStart;
         }failure;
     }counters;
     //uint32_t debug;

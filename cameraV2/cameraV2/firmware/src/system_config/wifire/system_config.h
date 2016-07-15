@@ -335,7 +335,7 @@ extern "C" {
 /*** Application Instance 0 Configuration ***/
 
 #define FLIR_TMR_DRV                       1
-#define FLIR_TMR_DRV_IS_PERIODIC           false
+#define FLIR_TMR_DRV_IS_PERIODIC           true
 #define FLIR_TMR_DRV_PERIOD                0xA98A // for 9Hz 
 
 /*** Application Instance 1 Configuration ***/

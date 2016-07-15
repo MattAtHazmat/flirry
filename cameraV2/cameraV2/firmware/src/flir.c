@@ -82,6 +82,22 @@ FLIR_DATA flirData;
 extern TaskHandle_t commsHandle;
 TaskHandle_t FLIRHandle;
 extern COMMS_DATA commsData;
+
+inline bool FLIR_ImageTimerTriggered(FLIR_DATA *flir)
+{
+    bool complete;
+    __builtin_disable_interrupts();
+    complete = flir->status.getImage;
+    __builtin_enable_interrupts();
+    return complete;
+}
+inline void FLIR_ImageTimerReset(FLIR_DATA *flir)
+{
+    __builtin_disable_interrupts();
+    flir->status.getImage = false;
+    __builtin_enable_interrupts();
+}
+
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Application Callback Functions                                    */
@@ -94,39 +110,39 @@ static void FLIR_TimerCallback (  uintptr_t context, uint32_t alarmCount )
 {
     if(flirData.status.getImage)
     {
-        flirData.counters.timerMissed++;
+        flirData.status.getImageMissed = true;
+        flirData.counters.failure.getImageMissed++;
     }
-    flirData.status.getImage=true;
-    flirData.status.timerRunning=false;
+    flirData.status.getImage = true;
 }
 
 /******************************************************************************/
 
 static void FLIR_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
-    FLIR_SPISlaveSelect();
-    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
+    
+    if(/*(event == DRV_SPI_BUFFER_EVENT_PENDING)||*/(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
     {        
+        FLIR_SPISlaveSelect();
         flirData.spi.status.running = true;
     }
-    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    else /*if (event == DRV_SPI_BUFFER_EVENT_ERROR)*/
     {
         flirData.spi.status.error = true;
-        FLIR_SPISlaveDeselect();
+        //FLIR_SPISlaveDeselect();
     }        
 }
 
 static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
 {
     FLIR_SPISlaveDeselect();
+    flirData.spi.status.running = false;
+    flirData.spi.status.started = false;
     if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
-    {
-        
-        flirData.spi.status.running = false;
-        flirData.spi.status.started = false;
+    {   
         flirData.spi.status.complete = true;
     }
-    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+    else /*if (event == DRV_SPI_BUFFER_EVENT_ERROR)*/
     {
         flirData.spi.status.error = true;
     }        
@@ -137,7 +153,7 @@ static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 /* Section: Application Local Functions                                       */
 /******************************************************************************/
 /******************************************************************************/
-#define LED_FRAME_INTERVAL  5
+#define LED_FRAME_INTERVAL  50
 
 /* Application's LED Task Function                                            */
 static void FLIR_LedTask( void )
@@ -154,12 +170,16 @@ static void FLIR_LedTask( void )
 /* Application's Timer Setup Function                                         */
 static bool FLIR_TimerSetup( void )
 {
-    DRV_TMR_Alarm16BitRegister(flirData.timer.drvHandle, 
+    if(flirData.status.timerRunning==false)
+    {
+        DRV_TMR_Alarm16BitRegister(flirData.timer.drvHandle, 
                                FLIR_TMR_DRV_PERIOD, 
                                FLIR_TMR_DRV_IS_PERIODIC,
                                (uintptr_t)NULL, 
                                FLIR_TimerCallback);
-    return DRV_TMR_Start(flirData.timer.drvHandle);
+        return DRV_TMR_Start(flirData.timer.drvHandle);
+    }
+    return false;
 }
 
 /******************************************************************************/
@@ -191,7 +211,7 @@ void FLIR_Initialize ( void )
     flirData.image.properties.size.pixels = flirData.image.properties.dimensions.horizontal *
                                             flirData.image.properties.dimensions.vertical;
     flirData.image.properties.size.bytes = sizeof(FLIR_IMAGE_TYPE);
-    flirData.frame.discardCountLimit = 100;    
+    //flirData.frame.discardCountLimit = 100;    
 }
 
 
@@ -223,10 +243,10 @@ void FLIR_Tasks ( void )
                 }        
                 flirData.status.timerConfigured = ( DRV_HANDLE_INVALID != flirData.timer.drvHandle );
             }
-            if(!flirData.status.timerRunning)
-            {
-                flirData.status.timerRunning = FLIR_TimerSetup();                
-            }
+            //if(!flirData.status.timerRunning)
+            //{
+            //    flirData.status.timerRunning = FLIR_TimerSetup();                
+            //}
             if(!flirData.status.SPIConfigured)
             {
                 flirData.state = FLIR_OPEN_SPI_PORT;
@@ -268,9 +288,15 @@ void FLIR_Tasks ( void )
         {
             if(flirData.status.SPIRunning)
             {
-                flirData.frame.building = 0;
-                flirData.frame.transmitting = -1;
-                flirData.state = FLIR_STATE_SERVICE_TASKS;
+                //flirData.frame.building = 0;
+                //flirData.frame.transmitting = -1;
+                /* want to set a delay for the first image transmission*/
+                if(FLIR_TimerSetup())
+                {
+                    flirData.status.timerRunning = true;
+                    flirData.status.getImage = false;
+                    flirData.state = FLIR_STATE_SERVICE_TASKS;
+                }
             }
             else
             {
@@ -285,24 +311,18 @@ void FLIR_Tasks ( void )
         }
         case FLIR_STATE_SERVICE_TASKS:
         {          
-            if(flirData.status.getImage)
-            {
-                flirData.status.getImage = false;
-                /* start up the timer for the next image after this */
-                if(FLIR_TimerSetup())
-                {
-                    flirData.state = FLIR_STATE_START_IMAGE;  
-                }
-                else
-                {
-                    flirData.state = FLIR_ERROR;
-                }
+            if(FLIR_ImageTimerTriggered(&flirData))
+            {          
+                flirData.state = FLIR_STATE_START_IMAGE;   
             }
             break;            
         }      
         case FLIR_STATE_START_IMAGE:
         {
             flirData.status.imageStarted = false;
+            flirData.counters.imagesStarted++;
+            flirData.counters.discarded = 0;
+            flirData.state = FLIR_STATE_START_GET_LINE;
         }
         case FLIR_STATE_START_GET_LINE:
         {
@@ -310,75 +330,62 @@ void FLIR_Tasks ( void )
             {
                 flirData.state = FLIR_STATE_WAIT_FOR_LINE;
             }
+            else
+            {
+                flirData.counters.failure.getLine++;
+            }
             break;
-        }
-        
+        }        
         case FLIR_STATE_WAIT_FOR_LINE:
         {
             if(FLIR_GetVoSPI(&flirData))
             {
-                if(FLIR_DiscardLine(&flirData))
+                if(!FLIR_DiscardLine(&flirData))
                 {
-                    flirData.state = FLIR_STATE_START_GET_LINE;
-                    break;
-                }
-                /* we have a valid line. Are we starting an image? */
-                if(!flirData.status.imageStarted)
-                {
-                    /* look for line 0*/
-                    if(flirData.VoSPI.ID.line == 0)
+                    FLIR_PopulateLine(&flirData);
+                    /* did we get the last line of an image? */
+                    if((flirData.status.imageStarted)&&
+                       (flirData.VoSPI.ID.line == (flirData.image.properties.dimensions.vertical-1)))
                     {
-                        /* start building the image */
-                        flirData.status.imageStarted = true;
-                        flirData.frame.buildingLine = 0;
-                        FLIR_PopulateLine(&flirData);  
-                        flirData.frame.buildingLine++;
-                    }  
-                    flirData.state = FLIR_STATE_START_GET_LINE;
+                        /* got the last line of a full image */                        
+                        flirData.state = FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE;
+                        break;
+                    }
+                    if (FLIR_ImageTimerTriggered(&flirData))
+                    {
+                        if(flirData.VoSPI.ID.line == 0)
+                        {                            
+                            flirData.status.imageStarted = true;
+                        }  
+                        if((flirData.status.imageStarted)&&
+                           (flirData.VoSPI.ID.line > 0))
+                        {
+                            FLIR_ImageTimerReset(&flirData);
+                        }
+                    }
                 }
                 else
                 {
-                    /* image already started */
-                    /* want to discard any duplicate lines */
-                    if(flirData.frame.buildingLine == flirData.VoSPI.ID.line)
-                    {
-                        FLIR_PopulateLine(&flirData);  
-                        flirData.frame.buildingLine++;
-                        if(flirData.frame.buildingLine == flirData.image.properties.dimensions.vertical)
-                        {
-                            flirData.status.imageReady = true;                            
-                        }
-                    }
-                    if(flirData.status.imageReady)
-                    {
-                        flirData.state = FLIR_STATE_IMAGE_COMPLETE;
-                    }
-                    else
-                    {
-                        flirData.state = FLIR_STATE_START_GET_LINE;
-                    }
-                }                
+                    flirData.counters.discarded++;                      
+                }
+                /* get the next line */
+                flirData.state = FLIR_STATE_START_GET_LINE;
             }
-            if(flirData.state != FLIR_STATE_IMAGE_COMPLETE)
+            else
             {
-                break;
+                if(flirData.status.getImageMissed)
+                {
+                    Nop();
+                }
             }
-        }        
-        
-        case FLIR_STATE_IMAGE_COMPLETE:
-        {
-            /* image is complete- so get ready for the next frame and start */
-            /* transmitting the current it */
-            flirData.frame.transmitting = flirData.frame.building;
-            flirData.frame.building++;
-            flirData.frame.building &= (IMAGE_BUFFERS-1);
-            flirData.state = FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE;
-        }
+            break;
+        }    
         case FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE:
         {
             if(commsData.status.readyForImage)
             {
-               flirData.state = FLIR_STATE_TRANSMIT_IMAGE; 
+                commsData.status.readyForImage = false;
+                flirData.state = FLIR_STATE_TRANSMIT_IMAGE; 
             }
             else
             {
@@ -393,9 +400,10 @@ void FLIR_Tasks ( void )
         }
         case FLIR_STATE_COPY_IMAGE_WAIT:
         {
-            if(commsData.status.copied == true)
+            if(commsData.status.imageCopied == true)
             {
-                flirData.state = FLIR_STATE_SERVICE_TASKS;
+                commsData.status.imageCopied = false;
+                flirData.state = FLIR_STATE_START_IMAGE;//FLIR_STATE_SERVICE_TASKS;
             }
             break;
         }
@@ -409,10 +417,10 @@ void FLIR_Tasks ( void )
     }
     /* not sure if this is the right way to get this information- but it seems*/
     /* like a chicken/egg situation. Get it this way for now.                 */
-    if(flirData.RTOS.commsHandle == NULL)
-    {
-        flirData.RTOS.commsHandle = commsHandle;
-    }
+//    if(flirData.RTOS.commsHandle == NULL)
+//    {
+//        flirData.RTOS.commsHandle = commsHandle;
+//    }
     FLIR_LedTask();            
 }
 
@@ -443,7 +451,7 @@ bool FLIR_PopulateLine(FLIR_DATA *flir)
     }
     if(flir->VoSPI.ID.line < flir->image.properties.dimensions.vertical)
     {
-        memcpy(&(flir->image.buffer[flir->frame.building].pixel[flir->VoSPI.ID.line][0]),
+        memcpy(&(flir->image.buffer.pixel[flir->VoSPI.ID.line][0]),
                flir->VoSPI.payload.b8,
                sizeof(flir->VoSPI.payload.b8));
         return true;
@@ -457,7 +465,7 @@ bool FLIR_OpenSPI(FLIR_DATA *flir)
 {
     bool openSuccess=false;
    flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
-                                      DRV_IO_INTENT_BLOCKING|DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
+                                      /*DRV_IO_INTENT_BLOCKING|*/DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != flir->spi.drvHandle)
     {
         DRV_SPI_CLIENT_DATA clientData;
@@ -509,6 +517,10 @@ bool FLIR_StartSPIRead(FLIR_DATA *flir,int32_t RXSize)
             success = true;
         }     
     }
+    else
+    {
+        flir->counters.failure.readStart++;
+    }
     return success;
 }
 
@@ -536,7 +548,6 @@ bool FLIR_GetVoSPI(FLIR_DATA *flir)
         /* fix endianness */
         for (byteIndex = 0;byteIndex<sizeof(VOSPI_TYPE);byteIndex=byteIndex+2)
         {
-
             temp = flir->VoSPI.b8[byteIndex];
             flir->VoSPI.b8[byteIndex] = flir->VoSPI.b8[byteIndex+1];
             flir->VoSPI.b8[byteIndex+1] = temp;

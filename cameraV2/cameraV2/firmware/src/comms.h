@@ -91,7 +91,8 @@ typedef enum
     COMMS_STATE_INITIALIZE_RTOS,
     COMMS_STATE_INITIALIZE_TIMER,
     COMMS_STATE_INITIALIZE_SPI,
-	COMMS_STATE_SERVICE_TASKS,
+	COMMS_STATE_WAIT_FOR_IMAGE,
+            COMMS_STATE_COPY_IMAGE,
     COMMS_TRANSMIT_IMAGE,
 
     COMMS_TRANSMIT_IMAGE_HEADER,
@@ -137,6 +138,7 @@ typedef struct
 {
     /* The application's current state */
     COMMS_STATES state;
+    COMMS_STATES stateSave;
     struct {
         DRV_HANDLE drvHandle;
         DRV_SPI_BUFFER_HANDLE bufferHandle;
@@ -169,7 +171,7 @@ typedef struct
         unsigned SPIInitialized:1;
         unsigned timerInitialized:1;
         unsigned sendSPIPacket:1;
-        unsigned copied:1;
+        unsigned imageCopied:1;
         unsigned readyForImage:1;
         unsigned timerRunning:1;
     }status;
@@ -177,11 +179,11 @@ typedef struct
         TaskHandle_t myHandle;
         TaskHandle_t FLIRHandle;
     }RTOS;
-    struct {
-        uint32_t receive;
-        uint32_t transmit;
-        uint32_t number;
-    }buffer;
+//    struct {
+//        uint32_t receive;
+//        uint32_t transmit;
+//        uint32_t number;
+//    }buffer;
     FLIR_IMAGE_TYPE image;
     uint32_t transmitLine;
     struct {
@@ -284,9 +286,8 @@ bool COMMS_StartTransmitImageDone(COMMS_DATA *comms);
 bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize);
 bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms);
 bool COMMS_NotifyReady(COMMS_DATA *comms);
-bool COMMS_WaitForImageReady(COMMS_DATA *comms);
 inline bool COMMS_SPIComplete(COMMS_DATA *comms);
-
+bool COMMS_CopyImage(COMMS_DATA *comms);;
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
 #define mBitSet(a,b)                (a ## SET = 1<<b)
 #define mBitToggle(a,b)             (a ## INV = 1<<b)

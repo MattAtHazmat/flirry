@@ -59,7 +59,7 @@ typedef struct {
 
 typedef struct {
     IMAGE_INFO_TYPE properties;
-    IMAGE_BUFFER_TYPE buffer[IMAGE_BUFFERS];
+    IMAGE_BUFFER_TYPE buffer;
 }FLIR_IMAGE_TYPE;
 
 /******************************************************************************/
