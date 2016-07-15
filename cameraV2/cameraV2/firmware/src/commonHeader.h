@@ -19,7 +19,7 @@
 #define COMMON_HEADERS_H
 
 #define IMAGE_BUFFERS           (2) /* must be a power of 2 */
-#define BUFFER_SIZE_32          (256)
+#define BUFFER_SIZE_32          (64)
 #define BUFFER_SIZE_16          (BUFFER_SIZE_32*2)
 #define BUFFER_SIZE_8           (BUFFER_SIZE_32*4)
 #define VOSPI_HEADER_LENGTH     (4)

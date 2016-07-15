@@ -90,7 +90,7 @@ void SYS_Tasks ( void )
     /* Create OS Thread for Sys Tasks. */
     xTaskCreate((TaskFunction_t) _SYS_Tasks,
                 "Sys Tasks",
-                4096, NULL, 1, NULL);
+                32767, NULL, 1, NULL);
 
     /* Create OS Thread for FLIR Tasks. */
     xTaskCreate((TaskFunction_t) _FLIR_Tasks,
@@ -122,8 +122,6 @@ static void _SYS_Tasks ( void)
     {
         /* Maintain system services */
         SYS_DEVCON_Tasks(sysObj.sysDevcon);
-    /* SYS_TMR Device layer tasks routine */ 
-    SYS_TMR_Tasks(sysObj.sysTmr);
 
         /* Maintain Device Drivers */
 

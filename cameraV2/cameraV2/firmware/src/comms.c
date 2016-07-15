@@ -78,8 +78,8 @@ extern FLIR_DATA flirData;
 */
 
 COMMS_DATA commsData;
-TaskHandle_t commsHandle;
-extern TaskHandle_t FLIRHandle;
+//TaskHandle_t commsHandle;
+//extern TaskHandle_t FLIRHandle;
 
 // *****************************************************************************
 // *****************************************************************************
@@ -87,34 +87,64 @@ extern TaskHandle_t FLIRHandle;
 // *****************************************************************************
 // *****************************************************************************
 
-static void COMMS_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
-{
-    COMMS_SPISlaveSelect();
-    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
-    {        
-        commsData.spi.status.running = true;
-    }
-    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
-    {
-        commsData.spi.status.error = true;
-        FLIR_SPISlaveDeselect();
-    }        
-}
 
-static void COMMS_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void COMMS_USARTTransmitDoneCallback(DRV_USART_BUFFER_EVENT event, DRV_USART_BUFFER_HANDLE handle)
 {
-    COMMS_SPISlaveDeselect();
-    commsData.spi.status.running = false;
-    commsData.spi.status.started = false;
-    if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
+    switch(event)
     {
-        commsData.spi.status.complete = true;
+        case DRV_USART_BUFFER_EVENT_COMPLETE:
+        {
+            commsData.status.UARTDone=true;
+            break;
+        }
+
+        /* There was an error while processing the buffer transfer request. */
+        case DRV_USART_BUFFER_EVENT_ERROR:
+        {
+            while(true);
+        }
+
+        /* Data transfer aborted (Applicable in DMA mode) */
+        case DRV_USART_BUFFER_EVENT_ABORT:
+        {
+            while(true);
+        }
     }
-    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
-    {
-        commsData.spi.status.error = true;
-    }        
+    
 }
+//static void COMMS_DMADoneCallback(SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HANDLE handle)
+//{
+//    PLIB_USART_Disable(commsData.UART.index);
+//    commsData.status.UARTDone=true;
+//}
+//static void COMMS_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+//{
+//    COMMS_SPISlaveSelect();
+//    if((event == DRV_SPI_BUFFER_EVENT_PENDING)||(event == DRV_SPI_BUFFER_EVENT_PROCESSING))
+//    {        
+//        commsData.spi.status.running = true;
+//    }
+//    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+//    {
+//        commsData.spi.status.error = true;
+//        FLIR_SPISlaveDeselect();
+//    }        
+//}
+
+//static void COMMS_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+//{
+//    COMMS_SPISlaveDeselect();
+//    commsData.spi.status.running = false;
+//    commsData.spi.status.started = false;
+//    if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
+//    {
+//        commsData.spi.status.complete = true;
+//    }
+//    else if (event == DRV_SPI_BUFFER_EVENT_ERROR)
+//    {
+//        commsData.spi.status.error = true;
+//    }        
+//}
 //
 //
 //static void CommsSPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
@@ -171,55 +201,55 @@ static void COMMS_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFE
 //    return(DRV_HANDLE_INVALID != comms->spi.drvHandle);
 //}
 
-bool COMMS_OpenDisplaySPI(COMMS_DATA *comms)
-{
-    bool openSuccess=false;
-    comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_1,
-                                        /*DRV_IO_INTENT_BLOCKING|*/
-                                        DRV_IO_INTENT_EXCLUSIVE|
-                                        DRV_IO_INTENT_WRITE);
-    if(DRV_HANDLE_INVALID != comms->spi.drvHandle)
-    {
-        DRV_SPI_CLIENT_DATA clientData;
-        clientData.baudRate = 0; /* not overriding the baud rate */
-        clientData.operationEnded = (void*)COMMS_SPICompletedCallback;
-        clientData.operationStarting = (void*)COMMS_SPIStartedCallback;
-        if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
-        {
-            /* success! */
-            openSuccess = true;
-            comms->spi.status.running=false;
-            comms->spi.status.complete=false;
-            comms->spi.status.started=false;
-        }
-    }
-    return (openSuccess)&&(DRV_HANDLE_INVALID != comms->spi.drvHandle);
-}
+//bool COMMS_OpenDisplaySPI(COMMS_DATA *comms)
+//{
+//    bool openSuccess=false;
+//    comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_1,
+//                                        /*DRV_IO_INTENT_BLOCKING|*/
+//                                        DRV_IO_INTENT_EXCLUSIVE|
+//                                        DRV_IO_INTENT_WRITE);
+//    if(DRV_HANDLE_INVALID != comms->spi.drvHandle)
+//    {
+//        DRV_SPI_CLIENT_DATA clientData;
+//        clientData.baudRate = 0; /* not overriding the baud rate */
+//        clientData.operationEnded = (void*)COMMS_SPICompletedCallback;
+//        clientData.operationStarting = (void*)COMMS_SPIStartedCallback;
+//        if(DRV_SPI_ClientConfigure(comms->spi.drvHandle,&clientData)>=0)
+//        {
+//            /* success! */
+//            openSuccess = true;
+//            comms->spi.status.running=false;
+//            comms->spi.status.complete=false;
+//            comms->spi.status.started=false;
+//        }
+//    }
+//    return (openSuccess)&&(DRV_HANDLE_INVALID != comms->spi.drvHandle);
+//}
 
 /******************************************************************************/
 
-static void COMMS_TimerCallback (  uintptr_t context, uint32_t alarmCount)
-{
-    commsData.status.sendSPIPacket = true;
-}
+//static void COMMS_TimerCallback (  uintptr_t context, uint32_t alarmCount)
+//{
+//    commsData.status.sendSPIPacket = true;
+//}
 
 /******************************************************************************/
 
-static bool COMMS_TimerSetup( COMMS_DATA* comms, uint32_t periodUS)
-{
-    uint32_t period;
-    period = (periodUS * DRV_TMR_CounterFrequencyGet(comms->timer.drvHandle))/1000000;
-    if((period>=1)&&(period<=0xffff))
-    {
-        DRV_TMR_Alarm16BitRegister(comms->timer.drvHandle, 
-                                   (uint16_t)period, 
-                                   COMMS_TMR_DRV_IS_PERIODIC,
-                                   NULL, 
-                                   (void*)COMMS_TimerCallback);
-        comms->status.sendSPIPacket = false;
-    }
-    return DRV_TMR_Start(comms->timer.drvHandle);
-}
+//static bool COMMS_TimerSetup( COMMS_DATA* comms, uint32_t periodUS)
+//{
+//    uint32_t period;
+//    period = (periodUS * DRV_TMR_CounterFrequencyGet(comms->timer.drvHandle))/1000000;
+//    if((period>=1)&&(period<=0xffff))
+//    {
+//        DRV_TMR_Alarm16BitRegister(comms->timer.drvHandle, 
+//                                   (uint16_t)period, 
+//                                   COMMS_TMR_DRV_IS_PERIODIC,
+//                                   NULL, 
+//                                   (void*)COMMS_TimerCallback);
+//        comms->status.sendSPIPacket = false;
+//    }
+//    return DRV_TMR_Start(comms->timer.drvHandle);
+//}
 
 // *****************************************************************************
 // *****************************************************************************
@@ -237,7 +267,7 @@ static bool COMMS_TimerSetup( COMMS_DATA* comms, uint32_t periodUS)
 
 void COMMS_Initialize ( void )
 {
-    COMMS_SPISlaveDeselect();
+    //COMMS_SPISlaveDeselect();
     memset(&commsData,0,sizeof(commsData));
     commsData.state = COMMS_STATE_INIT;
     commsData.image.properties.dimensions.horizontal = HORIZONTAL_SIZE;
@@ -268,47 +298,83 @@ void COMMS_Tasks ( void )
         /* Application's initial state. */
         case COMMS_STATE_INIT:
         {            
-            if(!commsData.status.RTOSInitialized)
+//            if(!commsData.status.RTOSInitialized)
+//            {
+//                commsData.state = COMMS_STATE_INITIALIZE_RTOS;
+//                break;
+//            }
+//            if(!commsData.status.SPIInitialized)
+//            {
+//                commsData.state = COMMS_STATE_INITIALIZE_SPI;
+//                break;
+//            }
+            if(!commsData.status.UARTInitialized)
             {
-                commsData.state = COMMS_STATE_INITIALIZE_RTOS;
+                commsData.state = COMMS_STATE_INITIALIZE_UART;
                 break;
             }
-            if(!commsData.status.SPIInitialized)
-            {
-                commsData.state = COMMS_STATE_INITIALIZE_SPI;
-                break;
-            }
-            if(!commsData.status.timerInitialized)
-            {
-                commsData.state = COMMS_STATE_INITIALIZE_TIMER; 
-                break;
-            }    
+//            if(!commsData.status.DMAInitialized)
+//            {
+//                commsData.state = COMMS_STATE_INITIALIZE_DMA;
+//                break;
+//            }
+//            if(!commsData.status.timerInitialized)
+//            {
+//                commsData.state = COMMS_STATE_INITIALIZE_TIMER; 
+//                break;
+//            }    
             /* make it here, everything is initialized. */
             commsData.status.initialized = true;       
             commsData.state = COMMS_STATE_WAIT_FOR_IMAGE;
             break;
         }
-        case COMMS_STATE_INITIALIZE_RTOS:            
+        case COMMS_STATE_INITIALIZE_UART:
         {
-            commsData.RTOS.myHandle = xTaskGetCurrentTaskHandle();
-            commsHandle = commsData.RTOS.myHandle;
-            commsData.status.RTOSInitialized = true;
-            commsData.state = COMMS_STATE_INIT;
+            commsData.UART.sysObj = sysObj.drvUsart0;
+            if(DRV_USART_Status(commsData.UART.sysObj)== SYS_STATUS_READY)
+            {
+                commsData.UART.index = DRV_USART_INDEX_0;
+                commsData.UART.handle = DRV_USART_Open(commsData.UART.index,DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_WRITE|DRV_IO_INTENT_NONBLOCKING);
+                DRV_USART_BufferEventHandlerSet(commsData.UART.handle,(void*)COMMS_USARTTransmitDoneCallback,NULL);
+                //U1STAbits.URXEN = false;
+                //PLIB_USART_Disable(commsData.UART.index);
+                commsData.status.UARTInitialized = true;
+                commsData.state = COMMS_STATE_INIT;
+            }
             break;
         }
-        case COMMS_STATE_INITIALIZE_TIMER:            
-        {
-            commsData.timer.drvHandle = DRV_TMR_Open(COMMS_TMR_DRV, DRV_IO_INTENT_EXCLUSIVE);
-            commsData.status.timerInitialized = ( DRV_HANDLE_INVALID != commsData.timer.drvHandle );
-            commsData.state = COMMS_STATE_INIT;
-            break;
-        }
-        case COMMS_STATE_INITIALIZE_SPI:
-        {
-            commsData.status.SPIInitialized = COMMS_OpenDisplaySPI(&commsData);
-            commsData.state = COMMS_STATE_INIT;
-            break;
-        }
+//        case COMMS_STATE_INITIALIZE_DMA:
+//        {
+//            
+//            commsData.DMA.handle = SYS_DMA_ChannelAllocate(DRV_USART_XMIT_DMA_CH_IDX0);
+//            SYS_DMA_ChannelSetup(commsData.DMA.handle,SYS_DMA_CHANNEL_OP_MODE_BASIC,DMA_TRIGGER_USART_1_TRANSMIT);
+//            SYS_DMA_ChannelTransferAdd(commsData.DMA.handle,&commsData.image,100/*sizeof(commsData.image)*/,(void*)&U1TXREG,1,1);
+//            SYS_DMA_ChannelTransferEventHandlerSet(commsData.DMA.handle,(void*)COMMS_DMADoneCallback,NULL);
+//            commsData.status.DMAInitialized = true;
+//            commsData.state = COMMS_STATE_INIT;
+//            break;
+//        }
+//        case COMMS_STATE_INITIALIZE_RTOS:            
+//        {
+//            commsData.RTOS.myHandle = xTaskGetCurrentTaskHandle();
+//            commsHandle = commsData.RTOS.myHandle;
+//            commsData.status.RTOSInitialized = true;
+//            commsData.state = COMMS_STATE_INIT;
+//            break;
+//        }
+//        case COMMS_STATE_INITIALIZE_TIMER:            
+//        {
+//            commsData.timer.drvHandle = DRV_TMR_Open(COMMS_TMR_DRV, DRV_IO_INTENT_EXCLUSIVE);
+//            commsData.status.timerInitialized = ( DRV_HANDLE_INVALID != commsData.timer.drvHandle );
+//            commsData.state = COMMS_STATE_INIT;
+//            break;
+//        }
+//        case COMMS_STATE_INITIALIZE_SPI:
+//        {
+//            commsData.status.SPIInitialized = COMMS_OpenDisplaySPI(&commsData);
+//            commsData.state = COMMS_STATE_INIT;
+//            break;
+//        }
         case COMMS_STATE_WAIT_FOR_IMAGE:
         {
             commsData.status.readyForImage = true;
@@ -330,75 +396,94 @@ void COMMS_Tasks ( void )
             break;
         }
         case COMMS_TRANSMIT_IMAGE:
-        case COMMS_TRANSMIT_IMAGE_HEADER:
         {
-            if(COMMS_StartTransmitImageHeader(&commsData))
+            if(DRV_USART_ClientStatus(commsData.UART.handle) == DRV_USART_CLIENT_STATUS_READY)
             {
-                commsData.state = COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE;
-            }
-            else
-            {
-                commsData.counters.failure.header++;
-            }
-            break;
-        }
-        case COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE:
-        {
-            if(COMMS_CheckSPIWriteDone(&commsData))
-            {
-                commsData.state = COMMS_TRANSMIT_LINE;
-                commsData.transmitLine = 0;
-            }
-            break;
-        }
-        case COMMS_TRANSMIT_LINE:            
-        {
-            if(COMMS_StartTransmitImageLine(&commsData))
-            {
-                commsData.state = COMMS_WAIT_FOR_TRANSMIT_LINE_DONE;  
-            }
-            else
-            {
-                commsData.counters.failure.line++;
-            }
-            break;
-        }
-        case COMMS_WAIT_FOR_TRANSMIT_LINE_DONE:
-        {
-            if(COMMS_CheckSPIWriteDone(&commsData))
-            {
-                commsData.transmitLine++; 
-                if(commsData.transmitLine >= commsData.image.properties.dimensions.vertical)
+                DRV_USART_BufferAddWrite(commsData.UART.handle,&commsData.UART.bufferHandle,&commsData.image,100);
+                if(commsData.UART.bufferHandle != DRV_USART_BUFFER_HANDLE_INVALID)
                 {
-                    commsData.state = COMMS_STATE_IMAGE_DONE;
-                }
-                else
-                {
-                    commsData.state = COMMS_TRANSMIT_LINE;
+                    commsData.state = COMMS_STATE_WAIT_FOR_IMAGE_DONE;
                 }
             }
             break;
         }
-        case COMMS_STATE_IMAGE_DONE:
-        {
-            if(COMMS_StartTransmitImageDone(&commsData))
-            {
-                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE_DONE;
-            }
-            else
-            {
-                commsData.counters.failure.done++;
-            }
-            break;
-        }
+            // <editor-fold defaultstate="collapsed" desc="comment">
+            //        case COMMS_TRANSMIT_IMAGE_HEADER:
+            //        {
+            //            if(COMMS_StartTransmitImageHeader(&commsData))
+            //            {
+            //                commsData.state = COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE;
+            //            }
+            //            else
+            //            {
+            //                commsData.counters.failure.header++;
+            //            }
+            //            break;
+            //        }
+            //        case COMMS_WAIT_FOR_TRANSMIT_IMAGE_HEADER_DONE:
+            //        {
+            //            if(COMMS_CheckSPIWriteDone(&commsData))
+            //            {
+            //                commsData.state = COMMS_TRANSMIT_LINE;
+            //                commsData.transmitLine = 0;
+            //            }
+            //            break;
+            //        }
+            //        case COMMS_TRANSMIT_LINE:            
+            //        {
+            //            if(COMMS_StartTransmitImageLine(&commsData))
+            //            {
+            //                commsData.state = COMMS_WAIT_FOR_TRANSMIT_LINE_DONE;  
+            //            }
+            //            else
+            //            {
+            //                commsData.counters.failure.line++;
+            //            }
+            //            break;
+            //        }
+            //        case COMMS_WAIT_FOR_TRANSMIT_LINE_DONE:
+            //        {
+            //            if(COMMS_CheckSPIWriteDone(&commsData))
+            //            {
+            //                commsData.transmitLine++; 
+            //                if(commsData.transmitLine >= commsData.image.properties.dimensions.vertical)
+            //                {
+            //                    commsData.state = COMMS_STATE_IMAGE_DONE;
+            //                }
+            //                else
+            //                {
+            //                    commsData.state = COMMS_TRANSMIT_LINE;
+            //                }
+            //            }
+            //            break;
+            //        }
+            //        case COMMS_STATE_IMAGE_DONE:
+            //        {
+            //            if(COMMS_StartTransmitImageDone(&commsData))
+            //            {
+            //                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE_DONE;
+            //            }
+            //            else
+            //            {
+            //                commsData.counters.failure.done++;
+            //            }
+            //            break;
+            //        }// </editor-fold>
+
         case COMMS_STATE_WAIT_FOR_IMAGE_DONE:
         {
-            if(COMMS_CheckSPIWriteDone(&commsData))
+            if(commsData.status.UARTDone)
             {
+                commsData.status.UARTDone = false;
                 commsData.counters.imagesTransmitted++;
-                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE; 
+                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE;
             }
-            
+//            if(COMMS_CheckSPIWriteDone(&commsData))
+//            {
+//                commsData.counters.imagesTransmitted++;
+//                commsData.state = COMMS_STATE_WAIT_FOR_IMAGE; 
+//            }
+//            
             break;
         }
         case COMMS_STATE_ERROR:
@@ -411,128 +496,128 @@ void COMMS_Tasks ( void )
     }
     /* not sure if this is the right way to get this information- but it seems*/
     /* like a chicken/egg situation. Get it this way for now.                 */
-    if(commsData.RTOS.FLIRHandle == NULL)
-    {
-        commsData.RTOS.FLIRHandle = FLIRHandle;
-    }
+//    if(commsData.RTOS.FLIRHandle == NULL)
+//    {
+//        commsData.RTOS.FLIRHandle = FLIRHandle;
+//    }
 }
 
 /******************************************************************************/
 
-bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms)
-{
-    bool success = false;
-    if((!comms->spi.status.started)&&
-       (!comms->spi.status.running))
-    {
-        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
-        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_INFO_ID;
-        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(sizeof(IMAGE_INFO_TYPE)>>8));   
-        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xff&(sizeof(IMAGE_INFO_TYPE)));
-        memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.properties,sizeof(IMAGE_INFO_TYPE));
-        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE));
-    }
-    return success;
-}
+//bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms)
+//{
+//    bool success = false;
+//    if((!comms->spi.status.started)&&
+//       (!comms->spi.status.running))
+//    {
+//        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+//        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_INFO_ID;
+//        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(sizeof(IMAGE_INFO_TYPE)>>8));   
+//        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xff&(sizeof(IMAGE_INFO_TYPE)));
+//        memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.properties,sizeof(IMAGE_INFO_TYPE));
+//        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + sizeof(IMAGE_INFO_TYPE));
+//    }
+//    return success;
+//}
 
 /******************************************************************************/
 
-bool COMMS_StartTransmitImageLine(COMMS_DATA *comms)
-{
-    bool success = false;
-    uint32_t lineLength;
-    if((!comms->spi.status.started)&&
-       (!comms->spi.status.running))
-    {
-        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
-        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_LINE_ID;
-        comms->TXBuffer.b8[LINE_LSB_LOCATION] = 0xff & comms->transmitLine;
-        comms->TXBuffer.b8[LINE_MSB_LOCATION] = 0xff & (comms->transmitLine>>8);    
-        lineLength = comms->image.properties.dimensions.horizontal * sizeof(PIXEL_TYPE);
-        memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.buffer.pixel[comms->transmitLine][0],lineLength);
-        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xFF&(lineLength));
-        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(lineLength)>>8); 
-        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + lineLength);
-    }
-    return success;
-}
+//bool COMMS_StartTransmitImageLine(COMMS_DATA *comms)
+//{
+//    bool success = false;
+//    uint32_t lineLength;
+//    if((!comms->spi.status.started)&&
+//       (!comms->spi.status.running))
+//    {
+//        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+//        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_LINE_ID;
+//        comms->TXBuffer.b8[LINE_LSB_LOCATION] = 0xff & comms->transmitLine;
+//        comms->TXBuffer.b8[LINE_MSB_LOCATION] = 0xff & (comms->transmitLine>>8);    
+//        lineLength = comms->image.properties.dimensions.horizontal * sizeof(PIXEL_TYPE);
+//        memcpy(&comms->TXBuffer.b8[DATA_START_LOCATION],&comms->image.buffer.pixel[comms->transmitLine][0],lineLength);
+//        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = (0xFF&(lineLength));
+//        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = (0xFF&(lineLength)>>8); 
+//        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH + lineLength);
+//    }
+//    return success;
+//}
 
 /******************************************************************************/
 
-bool COMMS_StartTransmitImageDone(COMMS_DATA *comms)
-{
-    bool success = false;
-    if((!comms->spi.status.started)&&
-       (!comms->spi.status.running))
-    {
-        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
-        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_DONE_ID;
-        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = 0;   
-        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = 0;
-        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH);
-    }
-    return success;
-}
+//bool COMMS_StartTransmitImageDone(COMMS_DATA *comms)
+//{
+//    bool success = false;
+//    if((!comms->spi.status.started)&&
+//       (!comms->spi.status.running))
+//    {
+//        memset(comms->TXBuffer.b8,0xFF,DATA_START_LOCATION);
+//        comms->TXBuffer.b8[ID_LOCATION] = IMAGE_DONE_ID;
+//        comms->TXBuffer.b8[LENGTH_MSB_LOCATION] = 0;   
+//        comms->TXBuffer.b8[LENGTH_LSB_LOCATION] = 0;
+//        success = COMMS_StartSPIWrite(comms,MESSAGE_HEADER_LENGTH);
+//    }
+//    return success;
+//}
 
 /******************************************************************************/
 
 
-bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize)
-{
-
-    bool success = false;
-    if (TXSize < comms->TXBuffer.size.max.b8)
-    {
-        
-        comms->spi.status.complete = false;
-        comms->spi.TXBytesExpected = TXSize;
-        if(DRV_SPI_BUFFER_HANDLE_INVALID !=
-                    DRV_SPI_BufferAddWrite2(comms->spi.drvHandle,
-                                            comms->TXBuffer.b8,
-                                            TXSize,
-                                            (void*)COMMS_SPICompletedCallback,
-                                            NULL,
-                                            &comms->spi.bufferHandle))
-        {           
-            comms->spi.status.started = true;
-            comms->stateSave=comms->state;
-            /* running gets set in the callback */
-            success = true;
-        }     
-                                else
-                                {Nop();}
-    }
-    return success;
-}
-
-bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms)
-{
-    if(COMMS_SPIComplete(comms))
-    {
-        comms->stateSave=comms->state;
-        comms->TXBuffer.size.transfer.b8  = comms->spi.TXBytesExpected;
-        comms->TXBuffer.size.transfer.b16 = comms->spi.TXBytesExpected>>1;
-        comms->TXBuffer.size.transfer.b32 = comms->spi.TXBytesExpected>>2;
-        comms->spi.status.complete=false;
-        comms->spi.status.started=false;
-        comms->spi.status.running=false;
-        return true;
-    }
-    return false;
-}
-
-inline bool COMMS_SPIComplete(COMMS_DATA *comms)
-{
-    bool complete;
-    __builtin_disable_interrupts();
-    complete = comms->spi.status.complete;
-    if(complete)
-    {
-        comms->spi.status.complete = false;
-    }
-    __builtin_enable_interrupts();
-    return complete;
-}
+//bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize)
+//{
+//
+//    bool success = false;
+//    if (TXSize < comms->TXBuffer.size.max.b8)
+//    {
+//        
+//        comms->spi.status.complete = false;
+//        comms->spi.TXBytesExpected = TXSize;
+//        if(DRV_SPI_BUFFER_HANDLE_INVALID !=
+//                    DRV_SPI_BufferAddWrite2(comms->spi.drvHandle,
+//                                            comms->TXBuffer.b8,
+//                                            TXSize,
+//                                            (void*)COMMS_SPICompletedCallback,
+//                                            NULL,
+//                                            &comms->spi.bufferHandle))
+//        {           
+//            comms->spi.status.started = true;
+//            comms->stateSave=comms->state;
+//            /* running gets set in the callback */
+//            success = true;
+//        }     
+//                                else
+//                                {Nop();}
+//    }
+//    return success;
+//}
+//
+//bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms)
+//{
+//    if(COMMS_SPIComplete(comms))
+//    {
+//        comms->stateSave=comms->state;
+//        comms->TXBuffer.size.transfer.b8  = comms->spi.TXBytesExpected;
+//        comms->TXBuffer.size.transfer.b16 = comms->spi.TXBytesExpected>>1;
+//        comms->TXBuffer.size.transfer.b32 = comms->spi.TXBytesExpected>>2;
+//        comms->spi.status.complete=false;
+//        comms->spi.status.started=false;
+//        comms->spi.status.running=false;
+//        return true;
+//    }
+//    return false;
+//}
+//
+//inline bool COMMS_SPIComplete(COMMS_DATA *comms)
+//{
+//    bool complete;
+//    __builtin_disable_interrupts();
+//    complete = comms->spi.status.complete;
+//    if(complete)
+//    {
+//        comms->spi.status.complete = false;
+//    }
+//    __builtin_enable_interrupts();
+//    return complete;
+//}
 //bool COMMS_StartSPIWrite(COMMS_DATA *comms,uint32_t TXSize)
 //{
 //    bool success = false;
@@ -586,24 +671,25 @@ inline bool COMMS_SPIComplete(COMMS_DATA *comms)
 
 /******************************************************************************/
 
-bool COMMS_NotifyReady(COMMS_DATA *comms)
-{
-    if(comms->RTOS.FLIRHandle)
-    {
-        return (pdPASS == xTaskNotify(comms->RTOS.FLIRHandle,NULL,eIncrement));
-    }
-    return false;
-}
+//bool COMMS_NotifyReady(COMMS_DATA *comms)
+//{
+//    if(comms->RTOS.FLIRHandle)
+//    {
+//        return (pdPASS == xTaskNotify(comms->RTOS.FLIRHandle,NULL,eIncrement));
+//    }
+//    return false;
+//}
 
 /******************************************************************************/
 
 bool COMMS_CopyImage(COMMS_DATA *comms)
 {    
     BSP_LEDToggle(BSP_LED_4);
-    memcpy(comms->image.buffer.vector,
-           flirData.image.buffer.vector,
-           comms->image.properties.size.bytes);
+    memcpy(&comms->image,
+           &flirData.image,
+           sizeof(comms->image));
     comms->status.imageCopied = true;
+    commsData.counters.imagesReceived++;
     return true;    
 }
 

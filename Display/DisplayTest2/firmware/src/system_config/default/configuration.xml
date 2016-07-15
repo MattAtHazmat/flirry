@@ -25,8 +25,16 @@
         <Path>Source Files/framework/system/console/src</Path>
       </File>
       <File>
+        <Name>sys_dma.h</Name>
+        <Path>Header Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_tmr.h</Name>
         <Path>Header Files/framework/system/tmr</Path>
+      </File>
+      <File>
+        <Name>drv_usart_byte_model.c</Name>
+        <Path>Source Files/framework/driver/usart/src/dynamic</Path>
       </File>
       <File>
         <Name>sys_tmr.c</Name>
@@ -49,16 +57,8 @@
         <Path>Source Files/bsp/pic32mx_usb_sk2</Path>
       </File>
       <File>
-        <Name>drv_spi_internal.h</Name>
-        <Path>Header Files/framework/driver/spi/private/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_spi_sys_queue.h</Name>
-        <Path>Header Files/framework/driver/spi/private</Path>
-      </File>
-      <File>
-        <Name>drv_spi.h</Name>
-        <Path>Header Files/framework/driver/spi</Path>
+        <Name>drv_usart.c</Name>
+        <Path>Source Files/framework/driver/usart/src/dynamic</Path>
       </File>
       <File>
         <Name>driver.h</Name>
@@ -73,24 +73,12 @@
         <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
-        <Name>drv_spi_sys_queue_fifo.c</Name>
-        <Path>Source Files/framework/driver/spi</Path>
-      </File>
-      <File>
         <Name>sys_console_appio.h</Name>
         <Path>Header Files/framework/system/console/src</Path>
       </File>
       <File>
         <Name>drv_tmr.c</Name>
         <Path>Source Files/framework/driver/tmr/src/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_spi.c</Name>
-        <Path>Source Files/framework/driver/spi/dynamic</Path>
-      </File>
-      <File>
-        <Name>drv_spi_sys_queue_local_fifo.h</Name>
-        <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
         <Name>sys_ports.c</Name>
@@ -103,6 +91,10 @@
       <File>
         <Name>system.h</Name>
         <Path>Header Files/framework/system</Path>
+      </File>
+      <File>
+        <Name>drv_usart.h</Name>
+        <Path>Header Files/framework/driver/usart</Path>
       </File>
       <File>
         <Name>sys_debug.c</Name>
@@ -129,6 +121,10 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
+        <Name>sys_dma.c</Name>
+        <Path>Source Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_console_local.h</Name>
         <Path>Header Files/framework/system/console/src</Path>
       </File>
@@ -147,13 +143,13 @@
       <Template>
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
-        <Checksum>899C3FABAA6487739B8AA8474BA98D2E</Checksum>
+        <Checksum>792FA94DF87E9C70071780E63622EF83</Checksum>
         <ProjectFileChecksum>B5470F00BBF2F971914B62EDE4A37305</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>DBE1F9CC2FE61F1A9C5BFB01DFA52D2A</Checksum>
+        <Checksum>BA192AFB8F4AE4FF7350CDE4F63D1C93</Checksum>
         <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
@@ -171,7 +167,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>0391D9DF80977902A7BC29060FAD79DF</Checksum>
+        <Checksum>F0302EF51F4BDCA74C2F62FFB354E046</Checksum>
         <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
       </Template>
       <Template>
@@ -179,18 +175,6 @@
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
         <ProjectFileChecksum>486E7FA1B55A15191A57BF73B52DC805</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_tasks.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>4F6334468BC18A6A1B0341529947F42E</Checksum>
-        <ProjectFileChecksum>C8C50FC5DEB52B25B0B12880D4F98A9A</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_slave_ebm_tasks.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>78498FE0303ADFB97D9846E3FB026D7C</Checksum>
-        <ProjectFileChecksum>48187FBF0B64A45336AA84223ED21CE7</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
@@ -207,7 +191,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>C79DAD34EDC25748F7A1CD2BAF984E0C</Checksum>
+        <Checksum>92D83AFBD3E51BE17E1E2E3AB93DA519</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
@@ -219,7 +203,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>95D654D2DF1F9A125CD08099960AAD44</Checksum>
+        <Checksum>2E5DCDAD01994FDDCAABA2F10F4C6D24</Checksum>
         <ProjectFileChecksum>A39B60B3538176DCD1CCE32285980E75</ProjectFileChecksum>
       </Template>
       <Template>
@@ -233,12 +217,6 @@
         <Path>Header Files/app</Path>
         <Checksum>3D6583DD48D76236C4A8A9502A100E9D</Checksum>
         <ProjectFileChecksum>F31C3037144E361F0C4529364FD170BD</ProjectFileChecksum>
-      </Template>
-      <Template>
-        <Name>drv_spi_api.c</Name>
-        <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
-        <Checksum>9A45EA94161E758BE05FE909B14B1AE9</Checksum>
-        <ProjectFileChecksum>598C8A3B4181953540A07DABC06F7E17</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>

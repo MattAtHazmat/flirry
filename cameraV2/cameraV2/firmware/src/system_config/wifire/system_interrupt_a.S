@@ -174,88 +174,26 @@ IntVectorSPIFaultInstance0:
     .end	IntVectorSPIFaultInstance0
 
 
-/* SPI Instance 1 Interrupt */
-   .extern  IntHandlerSPIRxInstance1
 
-   .section	.vector_110,code, keep
-   .equ     __vector_dispatch_110, IntVectorSPIRxInstance1
-   .global  __vector_dispatch_110
+/* Sytem DMA Instance 0 Interrupt */
+   .extern  IntHandlerSysDmaInstance0
+
+   .section	.vector_134,code, keep
+   .equ     __vector_dispatch_134, IntVectorSysDmaInstance0
+   .global  __vector_dispatch_134
    .set     nomicromips
    .set     noreorder
    .set     nomips16
    .set     noat
-   .ent  IntVectorSPIRxInstance1
+   .ent  IntVectorSysDmaInstance0
 
-IntVectorSPIRxInstance1:
+IntVectorSysDmaInstance0:
     portSAVE_CONTEXT
-    la    s6,  IntHandlerSPIRxInstance1
+    la    s6,  IntHandlerSysDmaInstance0
     jalr  s6
     nop
     portRESTORE_CONTEXT
-    .end	IntVectorSPIRxInstance1
-
-
-   .extern  IntHandlerSPITxInstance1
-
-   .section	.vector_111,code, keep
-   .equ     __vector_dispatch_111, IntVectorSPITxInstance1
-   .global  __vector_dispatch_111
-   .set     nomicromips
-   .set     noreorder
-   .set     nomips16
-   .set     noat
-   .ent  IntVectorSPITxInstance1
-
-IntVectorSPITxInstance1:
-    portSAVE_CONTEXT
-    la    s6,  IntHandlerSPITxInstance1
-    jalr  s6
-    nop
-    portRESTORE_CONTEXT
-    .end	IntVectorSPITxInstance1
-
-
-   .extern  IntHandlerSPIFaultInstance1
-
-   .section	.vector_109,code, keep
-   .equ     __vector_dispatch_109, IntVectorSPIFaultInstance1
-   .global  __vector_dispatch_109
-   .set     nomicromips
-   .set     noreorder
-   .set     nomips16
-   .set     noat
-   .ent  IntVectorSPIFaultInstance1
-
-IntVectorSPIFaultInstance1:
-    portSAVE_CONTEXT
-    la    s6,  IntHandlerSPIFaultInstance1
-    jalr  s6
-    nop
-    portRESTORE_CONTEXT
-    .end	IntVectorSPIFaultInstance1
-
-
-
-/* I2C Instance 0 Interrupt */
-
-   .extern  IntHandlerDrvI2CMasterInstance0
-
-   .section	.vector_40,code, keep
-   .equ     __vector_dispatch_40, IntVectorDrvI2CMasterInstance0
-   .global  __vector_dispatch_40
-   .set     nomicromips
-   .set     noreorder
-   .set     nomips16
-   .set     noat
-   .ent  IntVectorDrvI2CMasterInstance0
-
-IntVectorDrvI2CMasterInstance0:
-    portSAVE_CONTEXT
-    la    s6,  IntHandlerDrvI2CMasterInstance0
-    jalr  s6
-    nop
-    portRESTORE_CONTEXT
-    .end	IntVectorDrvI2CMasterInstance0
+    .end	IntVectorSysDmaInstance0
 
 
 /*******************************************************************************

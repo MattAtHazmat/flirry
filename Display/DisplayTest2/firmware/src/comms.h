@@ -323,6 +323,7 @@ void COMMS_Tasks( void );
 #define mBitSet(a,b)                (a ## SET = 1<<b)
 #define mBitToggle(a,b)             (a ## INV = 1<<b)
 
+#define mToggleJ10p35()             mBitToggle(LATA,14)
 
 #endif /* _COMMS_H */
 

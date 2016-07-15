@@ -55,7 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "comms.h"
 
-#define TP_OUT
+//#define TP_OUT
 #ifdef TP_OUT
 #define mTP37_CONFIG()  LATDCLR=1<<8;TRISDCLR=1<<8
 #define mTP37_TOGGLE()  LATDINV=1<<8
@@ -125,6 +125,7 @@ static void CommsSPICompletedCallback(DRV_SPI_BUFFER_EVENT event,
                                       COMMS_DATA* context)
 {
     mTP37_CLEAR();
+    mToggleJ10p35();
     context->spi.status.dataReady = true;
     context->spi.status.readStarted = false;
     if(event == DRV_SPI_BUFFER_EVENT_COMPLETE)
@@ -169,7 +170,7 @@ bool COMMS_OpenCameraSPI(COMMS_DATA *comms)
     }
     comms->spi.status.running = false;
     comms->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
-                                        DRV_IO_INTENT_NONBLOCKING|
+                                        /*DRV_IO_INTENT_NONBLOCKING|*/
                                         DRV_IO_INTENT_EXCLUSIVE|
                                         DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != comms->spi.drvHandle)

@@ -117,30 +117,6 @@
     .muxMode          = PMP_MUX_NONE
 };
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="DRV_SPI Initialization Data"> 
- /*** SPI Driver Initialization Data ***/
-  /*** Index 0  ***/
- DRV_SPI_INIT drvSpi0InitData =
- {
-    .spiId = DRV_SPI_SPI_ID_IDX0,
-    .taskMode = DRV_SPI_TASK_MODE_IDX0,
-    .spiMode = DRV_SPI_SPI_MODE_IDX0,
-    .allowIdleRun = DRV_SPI_ALLOW_IDLE_RUN_IDX0,
-    .spiProtocolType = DRV_SPI_SPI_PROTOCOL_TYPE_IDX0,
-    .spiSlaveSSPin = DRV_SPI_SPI_USE_SS_FOR_SLAVE_IDX0,
-    .commWidth = DRV_SPI_COMM_WIDTH_IDX0,
-    .spiClk = DRV_SPI_SPI_CLOCK_IDX0,
-    .baudRate = DRV_SPI_BAUD_RATE_IDX0,
-    .bufferType = DRV_SPI_BUFFER_TYPE_IDX0,
-    .clockMode = DRV_SPI_CLOCK_MODE_IDX0,
-    .inputSamplePhase = DRV_SPI_INPUT_PHASE_IDX0,
-    .txInterruptSource = DRV_SPI_TX_INT_SOURCE_IDX0,
-    .rxInterruptSource = DRV_SPI_RX_INT_SOURCE_IDX0,
-    .errInterruptSource = DRV_SPI_ERROR_INT_SOURCE_IDX0,
-    .queueSize = DRV_SPI_QUEUE_SIZE_IDX0,
-    .jobQueueReserveSize = DRV_SPI_RESERVED_JOB_IDX0,
- };
-// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_Timer Initialization Data">
 /*** TMR Driver Initialization Data **                                        */
 
@@ -155,21 +131,42 @@ const DRV_TMR_INIT drvTmr0InitData =
     .asyncWriteEnable = false,
 };
 // </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="DRV_USART Initialization Data">
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: System Data                                                       */
-/******************************************************************************/
-/******************************************************************************/
+const DRV_USART_INIT drvUsart0InitData =
+{
+    .moduleInit.value = DRV_USART_POWER_STATE_IDX0,
+    .usartID = DRV_USART_PERIPHERAL_ID_IDX0, 
+    .mode = DRV_USART_OPER_MODE_IDX0,
+    .flags = DRV_USART_INIT_FLAGS_IDX0,
+    .brgClock = DRV_USART_BRG_CLOCK_IDX0,
+    .lineControl = DRV_USART_LINE_CNTRL_IDX0,
+    .baud = DRV_USART_BAUD_RATE_IDX0,
+    .handshake = DRV_USART_HANDSHAKE_MODE_IDX0,
+    .interruptTransmit = DRV_USART_XMIT_INT_SRC_IDX0,
+    .interruptReceive = DRV_USART_RCV_INT_SRC_IDX0,
+    .interruptError = DRV_USART_ERR_INT_SRC_IDX0,
+    .dmaChannelTransmit = DMA_CHANNEL_NONE,
+    .dmaInterruptTransmit = DRV_USART_XMIT_INT_SRC_IDX0,    
+    .dmaChannelReceive = DMA_CHANNEL_NONE,
+    .dmaInterruptReceive = DRV_USART_RCV_INT_SRC_IDX0,    
+};
+// </editor-fold>
+
+// *****************************************************************************
+// *****************************************************************************
+// Section: System Data
+// *****************************************************************************
+// *****************************************************************************
 
 /* Structure to hold the object handles for the modules in the system.        */
 SYSTEM_OBJECTS sysObj;
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Module Initialization Data                                        */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Module Initialization Data
+// *****************************************************************************
+// *****************************************************************************
 // <editor-fold defaultstate="collapsed" desc="SYS_CONSOLE Initialization Data">
 /*** System Console Initialization Data **                                    */
 
@@ -204,6 +201,15 @@ const SYS_DEVCON_INIT sysDevconInit =
 };
 
 // </editor-fold>
+//<editor-fold defaultstate="collapsed" desc="SYS_DMA Initialization Data">
+/*** System DMA Initialization Data ***/
+
+const SYS_DMA_INIT sysDmaInit =
+{
+	.sidl = SYS_DMA_SIDL_DISABLE,
+
+};
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="SYS_TMR Initialization Data">
 /*** TMR Service Initialization Data **                                       */
 const SYS_TMR_INIT sysTmrInitData =
@@ -214,35 +220,35 @@ const SYS_TMR_INIT sysTmrInitData =
 };
 // </editor-fold>
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Library/Stack Initialization Data                                 */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Library/Stack Initialization Data
+// *****************************************************************************
+// *****************************************************************************
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Static Initialization Functions                                   */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Static Initialization Functions
+// *****************************************************************************
+// *****************************************************************************
 
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: System Initialization                                             */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: System Initialization
+// *****************************************************************************
+// *****************************************************************************
 
-/******************************************************************************/
-/*  Function:                                                                 */
-/*    void SYS_Initialize ( void *data )                                      */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*    Initializes the board, services, drivers, application and other modules.*/
-/*                                                                            */
-/*  Remarks:                                                                  */
-/*    See prototype in system/common/sys_module.h.                            */
-/******************************************************************************/
+/*******************************************************************************
+  Function:
+    void SYS_Initialize ( void *data )
+
+  Summary:
+    Initializes the board, services, drivers, application and other modules.
+
+  Remarks:
+    See prototype in system/common/sys_module.h.
+ */
 
 void SYS_Initialize ( void* data )
 {
@@ -256,16 +262,22 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();  
     /* Initialize Drivers                                                     */
     sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
+    sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
 
-    /*** SPI Driver Index 0 initialization***/
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
 
-    SYS_INT_VectorPrioritySet(DRV_SPI_INT_VECTOR_IDX0, DRV_SPI_INT_PRIORITY_IDX0);
-    SYS_INT_VectorSubprioritySet(DRV_SPI_INT_VECTOR_IDX0, DRV_SPI_INT_SUB_PRIORITY_IDX0);
-    sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
 
     sysObj.drvTmr0 = DRV_TMR_Initialize (DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T1, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T1, INT_SUBPRIORITY_LEVEL0); 
+ 
+ 
+     sysObj.drvUsart0 = DRV_USART_Initialize(DRV_USART_INDEX_0, (SYS_MODULE_INIT *)&drvUsart0InitData);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_UART1, INT_PRIORITY_LEVEL5);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_UART1, INT_SUBPRIORITY_LEVEL0);
+
     /* Initialize System Services                                             */
     sysObj.sysConsole0 = SYS_CONSOLE_Initialize(SYS_CONSOLE_INDEX_0, (SYS_MODULE_INIT *)&consAppIOInit0);
     /*** Debug Service Initialization Code **                                 */

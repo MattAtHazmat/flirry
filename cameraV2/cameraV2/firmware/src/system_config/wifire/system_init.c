@@ -120,31 +120,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // Section: Driver Initialization Data
 // *****************************************************************************
 // *****************************************************************************
-// <editor-fold defaultstate="collapsed" desc="DRV_I2C Initialization Data">
-// *****************************************************************************
-/* I2C Driver Initialization Data
-*/
-
-const DRV_I2C_INIT drvI2C0InitData =
-{
-    .i2cId = DRV_I2C_PERIPHERAL_ID_IDX0,
-    .i2cPerph = DRV_I2C_BIT_BANG_IDX0,
-    .i2cMode = DRV_I2C_OPERATION_MODE_IDX0,
-    .portSCL = DRV_SCL_PORT_IDX0,
-	.pinSCL  = DRV_SCL_PIN_POSITION_IDX0,
-	.portSDA = DRV_SDA_PORT_IDX0,
-	.pinSDA  = DRV_SDA_PIN_POSITION_IDX0,
-    .baudRate = DRV_I2C_BIT_BANG_BAUD_RATE_IDX0,
-	.tmrSource = DRV_I2C_BIT_BANG_TMR_MODULE_IDX0,
-	.tmrInterruptSource = DRV_I2C_BIT_BANG_INT_SRC_IDX0,
-    .busspeed = DRV_I2C_SLEW_RATE_CONTROL_IDX0,
-    .buslevel = DRV_I2C_SMBus_SPECIFICATION_IDX0,
-};
-
-
-
-
-// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_SPI Initialization Data"> 
  /*** SPI Driver Initialization Data ***/
   /*** Index 0  ***/
@@ -166,26 +141,6 @@ const DRV_I2C_INIT drvI2C0InitData =
     .errInterruptSource = DRV_SPI_ERROR_INT_SOURCE_IDX0,
     .queueSize = DRV_SPI_QUEUE_SIZE_IDX0,
     .jobQueueReserveSize = DRV_SPI_RESERVED_JOB_IDX0,
- };
-  /*** Index 1  ***/
- DRV_SPI_INIT drvSpi1InitData =
- {
-    .spiId = DRV_SPI_SPI_ID_IDX1,
-    .taskMode = DRV_SPI_TASK_MODE_IDX1,
-    .spiMode = DRV_SPI_SPI_MODE_IDX1,
-    .allowIdleRun = DRV_SPI_ALLOW_IDLE_RUN_IDX1,
-    .spiProtocolType = DRV_SPI_SPI_PROTOCOL_TYPE_IDX1,
-    .commWidth = DRV_SPI_COMM_WIDTH_IDX1,
-    .spiClk = DRV_SPI_SPI_CLOCK_IDX1,
-    .baudRate = DRV_SPI_BAUD_RATE_IDX1,
-    .bufferType = DRV_SPI_BUFFER_TYPE_IDX1,
-    .clockMode = DRV_SPI_CLOCK_MODE_IDX1,
-    .inputSamplePhase = DRV_SPI_INPUT_PHASE_IDX1,
-    .txInterruptSource = DRV_SPI_TX_INT_SOURCE_IDX1,
-    .rxInterruptSource = DRV_SPI_RX_INT_SOURCE_IDX1,
-    .errInterruptSource = DRV_SPI_ERROR_INT_SOURCE_IDX1,
-    .queueSize = DRV_SPI_QUEUE_SIZE_IDX1,
-    .jobQueueReserveSize = DRV_SPI_RESERVED_JOB_IDX1,
  };
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_Timer Initialization Data">
@@ -222,6 +177,29 @@ const DRV_TMR_INIT drvTmr2InitData =
     .asyncWriteEnable = false,
 };
 // </editor-fold>
+// <editor-fold defaultstate="collapsed" desc="DRV_USART Initialization Data">
+
+const DRV_USART_INIT drvUsart0InitData =
+{
+    .moduleInit.value = DRV_USART_POWER_STATE_IDX0,
+    .usartID = DRV_USART_PERIPHERAL_ID_IDX0, 
+    .mode = DRV_USART_OPER_MODE_IDX0,
+    .flags = DRV_USART_INIT_FLAGS_IDX0,
+    .brgClock = DRV_USART_BRG_CLOCK_IDX0,
+    .lineControl = DRV_USART_LINE_CNTRL_IDX0,
+    .baud = DRV_USART_BAUD_RATE_IDX0,
+    .handshake = DRV_USART_HANDSHAKE_MODE_IDX0,
+    .interruptTransmit = DRV_USART_XMIT_INT_SRC_IDX0,
+    .interruptReceive = DRV_USART_RCV_INT_SRC_IDX0,
+    .interruptError = DRV_USART_ERR_INT_SRC_IDX0,
+    .queueSizeTransmit = DRV_USART_XMIT_QUEUE_SIZE_IDX0,
+    .queueSizeReceive = DRV_USART_RCV_QUEUE_SIZE_IDX0,
+    .dmaChannelTransmit = DRV_USART_XMIT_DMA_CH_IDX0,
+    .dmaInterruptTransmit = DRV_USART_XMIT_DMA_INT_SRC_IDX0,    
+    .dmaChannelReceive = DMA_CHANNEL_NONE,
+    .dmaInterruptReceive = DRV_USART_RCV_INT_SRC_IDX0,    
+};
+// </editor-fold>
 
 // *****************************************************************************
 // *****************************************************************************
@@ -248,13 +226,13 @@ const SYS_DEVCON_INIT sysDevconInit =
 };
 
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="SYS_TMR Initialization Data">
-/*** TMR Service Initialization Data ***/
-const SYS_TMR_INIT sysTmrInitData =
+//<editor-fold defaultstate="collapsed" desc="SYS_DMA Initialization Data">
+/*** System DMA Initialization Data ***/
+
+const SYS_DMA_INIT sysDmaInit =
 {
-    .moduleInit = {SYS_MODULE_POWER_RUN_FULL},
-    .drvIndex = DRV_TMR_INDEX_0,
-    .tmrFreq = 1000, 
+	.sidl = SYS_DMA_SIDL_DISABLE,
+
 };
 // </editor-fold>
 
@@ -299,13 +277,6 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();        
 
     /* Initialize Drivers */
-    sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
-
-
-    SYS_INT_VectorPrioritySet(INT_VECTOR_T9, INT_PRIORITY_LEVEL3);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_T9, INT_SUBPRIORITY_LEVEL0);
-
-
 
     /*** SPI Driver Index 0 initialization***/
 
@@ -316,16 +287,13 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorPrioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_PRIORITY_IDX0);
     SYS_INT_VectorSubprioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX0);
     sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
+    sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
 
-    /*** SPI Driver Index 1 initialization***/
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
 
-    SYS_INT_VectorPrioritySet(DRV_SPI_TX_INT_VECTOR_IDX1, DRV_SPI_TX_INT_PRIORITY_IDX1);
-    SYS_INT_VectorSubprioritySet(DRV_SPI_TX_INT_VECTOR_IDX1, DRV_SPI_TX_INT_SUB_PRIORITY_IDX1);
-    SYS_INT_VectorPrioritySet(DRV_SPI_RX_INT_VECTOR_IDX1, DRV_SPI_RX_INT_PRIORITY_IDX1);
-    SYS_INT_VectorSubprioritySet(DRV_SPI_RX_INT_VECTOR_IDX1, DRV_SPI_RX_INT_SUB_PRIORITY_IDX1);
-    SYS_INT_VectorPrioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX1, DRV_SPI_ERROR_INT_PRIORITY_IDX1);
-    SYS_INT_VectorSubprioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX1, DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX1);
-    sysObj.spiObjectIdx1 = DRV_SPI_Initialize(DRV_SPI_INDEX_1, (const SYS_MODULE_INIT  * const)&drvSpi1InitData);
+
 
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
@@ -339,14 +307,16 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T4, INT_SUBPRIORITY_LEVEL0);
  
  
- 
+     sysObj.drvUsart0 = DRV_USART_Initialize(DRV_USART_INDEX_0, (SYS_MODULE_INIT *)&drvUsart0InitData);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_UART1_RX, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_UART1_RX, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_UART1_FAULT, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_UART1_FAULT, INT_SUBPRIORITY_LEVEL0);
+
     /* Initialize System Services */
 
     /*** Interrupt Service Initialization Code ***/
     SYS_INT_Initialize();
-
-    /*** TMR Service Initialization Code ***/
-    sysObj.sysTmr  = SYS_TMR_Initialize(SYS_TMR_INDEX_0, (const SYS_MODULE_INIT  * const)&sysTmrInitData);
   
     /* Initialize Middleware */
 

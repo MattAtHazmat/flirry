@@ -81,12 +81,12 @@ void IntHandlerDrvTmrInstance1(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr1);
 }
- 
+    
 void IntHandlerDrvTmrInstance2(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr2);
 }
- 
+  
 void IntHandlerSPIRxInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
@@ -99,41 +99,13 @@ void IntHandlerSPIFaultInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
-void IntHandlerSPIRxInstance1(void)
-{
-    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
-}
-void IntHandlerSPITxInstance1(void)
-{
-    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
-}
-void IntHandlerSPIFaultInstance1(void)
-{
-    DRV_SPI_Tasks(sysObj.spiObjectIdx1);
+
+void IntHandlerSysDmaInstance0(void)
+{          
+    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_0);
 }
 
-
-     
-void IntHandlerDrvI2CMasterInstance0(void)
-{
-    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_TIMER_9);
-	DRV_I2C_BB_Tasks(sysObj.drvI2C0);
-}
-      
-    
-     
-   
-  
-   
-   
-   
-  
  
-
-  
-  
-  
-  
 /*******************************************************************************
  End of File
 */

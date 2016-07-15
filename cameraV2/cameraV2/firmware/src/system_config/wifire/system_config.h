@@ -145,22 +145,13 @@ extern "C" {
 #define SYS_PORT_F_CNPD         0x0
 #define SYS_PORT_F_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x0
+#define SYS_PORT_G_ANSEL        0x180
 #define SYS_PORT_G_TRIS         0x71c3
 #define SYS_PORT_G_LAT          0x200
 #define SYS_PORT_G_ODC          0x0
 #define SYS_PORT_G_CNPU         0x0
 #define SYS_PORT_G_CNPD         0x0
 #define SYS_PORT_G_CNEN         0x0
-/*** Timer System Service Configuration ***/
-#define SYS_TMR_POWER_STATE             SYS_MODULE_POWER_RUN_FULL
-#define SYS_TMR_DRIVER_INDEX            DRV_TMR_INDEX_0
-#define SYS_TMR_MAX_CLIENT_OBJECTS      5
-#define SYS_TMR_FREQUENCY               1000
-#define SYS_TMR_FREQUENCY_TOLERANCE     10
-#define SYS_TMR_UNIT_RESOLUTION         10000
-#define SYS_TMR_CLIENT_TOLERANCE        10
-#define SYS_TMR_INTERRUPT_NOTIFICATION  false
 
 
 // *****************************************************************************
@@ -213,30 +204,45 @@ extern "C" {
 #define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
 
  // *****************************************************************************
-/* I2C Driver Configuration Options
+/* USART Driver Configuration Options
 */
-#define BB_ENABLED
-#define DRV_I2C_INTERRUPT_MODE                    		true
-#define DRV_I2C_CLIENTS_NUMBER                    		1
-#define DRV_I2C_INSTANCES_NUMBER                  		1
+#define DRV_USART_INTERRUPT_MODE                    true
 
-#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_4
-#define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
-#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_G
-#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_8
-#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_G
-#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_7
-#define DRV_I2C_BIT_BANG_IDX0                           true
-#define DRV_I2C_BIT_BANG_BAUD_RATE_IDX0                 50000
-#define DRV_I2C_BIT_BANG_TMR_MODULE_IDX0                TMR_ID_9
-#define DRV_I2C_BIT_BANG_INT_SRC_IDX0                   INT_SOURCE_TIMER_9
-#define DRV_I2C_STOP_IN_IDLE_IDX0                       false
-#define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
-#define DRV_I2C_BAUD_RATE_IDX0                    		
-#define DRV_I2C_BRG_CLOCK_IDX0	                  		
-#define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
-#define DRV_I2C_POWER_STATE_IDX0                  		
+#define DRV_USART_BYTE_MODEL_SUPPORT                false
 
+#define DRV_USART_READ_WRITE_MODEL_SUPPORT          false
+
+#define DRV_USART_BUFFER_QUEUE_SUPPORT              true
+
+#define DRV_USART_CLIENTS_NUMBER                    1
+#define DRV_USART_SUPPORT_TRANSMIT_DMA              true
+#define DRV_USART_SUPPORT_RECEIVE_DMA               false
+#define DRV_USART_INSTANCES_NUMBER                  1
+
+#define DRV_USART_PERIPHERAL_ID_IDX0                USART_ID_1
+#define DRV_USART_OPER_MODE_IDX0                    DRV_USART_OPERATION_MODE_NORMAL
+#define DRV_USART_OPER_MODE_DATA_IDX0               
+#define DRV_USART_INIT_FLAG_WAKE_ON_START_IDX0      false
+#define DRV_USART_INIT_FLAG_AUTO_BAUD_IDX0          false
+#define DRV_USART_INIT_FLAG_STOP_IN_IDLE_IDX0       false
+#define DRV_USART_INIT_FLAGS_IDX0                   0
+#define DRV_USART_BRG_CLOCK_IDX0                    100000000
+#define DRV_USART_BAUD_RATE_IDX0                    9600
+#define DRV_USART_LINE_CNTRL_IDX0                   DRV_USART_LINE_CONTROL_8NONE1
+#define DRV_USART_HANDSHAKE_MODE_IDX0               DRV_USART_HANDSHAKE_NONE
+#define DRV_USART_XMIT_INT_SRC_IDX0                 INT_SOURCE_USART_1_TRANSMIT
+#define DRV_USART_RCV_INT_SRC_IDX0                  INT_SOURCE_USART_1_RECEIVE
+#define DRV_USART_ERR_INT_SRC_IDX0                  INT_SOURCE_USART_1_ERROR
+
+#define DRV_USART_XMIT_QUEUE_SIZE_IDX0              5000
+#define DRV_USART_RCV_QUEUE_SIZE_IDX0               0
+
+
+#define DRV_USART_XMIT_DMA_CH_IDX0                  DMA_CHANNEL_0
+#define DRV_USART_XMIT_DMA_INT_SRC_IDX0                INT_SOURCE_DMA_0
+#define DRV_USART_POWER_STATE_IDX0                  SYS_MODULE_POWER_RUN_FULL
+
+#define DRV_USART_QUEUE_DEPTH_COMBINED              5000
 
 /*** SPI Driver Configuration ***/
 #define DRV_SPI_NUMBER_OF_MODULES		6
@@ -254,8 +260,8 @@ extern "C" {
 #define DRV_SPI_DMA 				0
 
 /*** SPI Driver Static Allocation Options ***/
-#define DRV_SPI_INSTANCES_NUMBER 		2
-#define DRV_SPI_CLIENTS_NUMBER 			2
+#define DRV_SPI_INSTANCES_NUMBER 		1
+#define DRV_SPI_CLIENTS_NUMBER 			1
 #define DRV_SPI_ELEMENTS_PER_QUEUE 		10
 /* SPI Driver Instance 0 Configuration */
 #define DRV_SPI_SPI_ID_IDX0 				SPI_ID_2
@@ -283,32 +289,6 @@ extern "C" {
 #define DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX0 INT_SUBPRIORITY_LEVEL0
 #define DRV_SPI_QUEUE_SIZE_IDX0 			10
 #define DRV_SPI_RESERVED_JOB_IDX0 			1
-/* SPI Driver Instance 1 Configuration */
-#define DRV_SPI_SPI_ID_IDX1 				SPI_ID_1
-#define DRV_SPI_TASK_MODE_IDX1 				DRV_SPI_TASK_MODE_ISR
-#define DRV_SPI_SPI_MODE_IDX1				DRV_SPI_MODE_MASTER
-#define DRV_SPI_ALLOW_IDLE_RUN_IDX1			false
-#define DRV_SPI_SPI_PROTOCOL_TYPE_IDX1 		DRV_SPI_PROTOCOL_TYPE_STANDARD
-#define DRV_SPI_COMM_WIDTH_IDX1 			SPI_COMMUNICATION_WIDTH_8BITS
-#define DRV_SPI_SPI_CLOCK_IDX1 				CLK_BUS_PERIPHERAL_2
-#define DRV_SPI_BAUD_RATE_IDX1 				3000000
-#define DRV_SPI_BUFFER_TYPE_IDX1 			DRV_SPI_BUFFER_TYPE_ENHANCED
-#define DRV_SPI_CLOCK_MODE_IDX1 			DRV_SPI_CLOCK_MODE_IDLE_LOW_EDGE_RISE
-#define DRV_SPI_INPUT_PHASE_IDX1 			SPI_INPUT_SAMPLING_PHASE_IN_MIDDLE
-#define DRV_SPI_TX_INT_SOURCE_IDX1 			INT_SOURCE_SPI_1_TRANSMIT
-#define DRV_SPI_RX_INT_SOURCE_IDX1 			INT_SOURCE_SPI_1_RECEIVE
-#define DRV_SPI_ERROR_INT_SOURCE_IDX1 		INT_SOURCE_SPI_1_ERROR
-#define DRV_SPI_TX_INT_VECTOR_IDX1			INT_VECTOR_SPI1_TX
-#define DRV_SPI_RX_INT_VECTOR_IDX1			INT_VECTOR_SPI1_RX
-#define DRV_DRV_SPI_ERROR_INT_VECTOR_IDX1	INT_VECTOR_SPI1_FAULT
-#define DRV_SPI_TX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL4
-#define DRV_SPI_TX_INT_SUB_PRIORITY_IDX1 	INT_SUBPRIORITY_LEVEL0
-#define DRV_SPI_RX_INT_PRIORITY_IDX1 		INT_PRIORITY_LEVEL4
-#define DRV_SPI_RX_INT_SUB_PRIORITY_IDX1 	INT_SUBPRIORITY_LEVEL0
-#define DRV_SPI_ERROR_INT_PRIORITY_IDX1 	INT_PRIORITY_LEVEL1
-#define DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX1 INT_SUBPRIORITY_LEVEL0
-#define DRV_SPI_QUEUE_SIZE_IDX1 			10
-#define DRV_SPI_RESERVED_JOB_IDX1 			2
 
 // *****************************************************************************
 // *****************************************************************************

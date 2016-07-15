@@ -66,7 +66,7 @@ extern "C" {
 
 #endif
 // DOM-IGNORE-END 
-#define SPI_YIELD_LIMIT     (100)
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -89,9 +89,11 @@ typedef enum
 	/* Application's state machine's initial state. */
 	COMMS_STATE_INIT=0,
     COMMS_STATE_INITIALIZE_RTOS,
-    COMMS_STATE_INITIALIZE_TIMER,
-    COMMS_STATE_INITIALIZE_SPI,
-	COMMS_STATE_WAIT_FOR_IMAGE,
+    //COMMS_STATE_INITIALIZE_TIMER,
+    //COMMS_STATE_INITIALIZE_SPI,
+	COMMS_STATE_INITIALIZE_UART,
+            COMMS_STATE_INITIALIZE_DMA,
+            COMMS_STATE_WAIT_FOR_IMAGE,
             COMMS_STATE_COPY_IMAGE,
     COMMS_TRANSMIT_IMAGE,
 
@@ -140,21 +142,12 @@ typedef struct
     COMMS_STATES state;
     COMMS_STATES stateSave;
     struct {
-        DRV_HANDLE drvHandle;
-        DRV_SPI_BUFFER_HANDLE bufferHandle;
-        struct{
-            unsigned complete:1;
-            unsigned started:1;
-            unsigned error:1;
-            unsigned running:1;
-        }status; 
-        uint32_t TXBytesExpected;
-        uint32_t yieldCount;
-    } spi;
+        SYS_MODULE_OBJ sysObj;
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE handle;
+        DRV_USART_BUFFER_HANDLE bufferHandle;
+    }UART;
     struct {
-        DRV_HANDLE drvHandle;
-    } timer;
-    struct __attribute__((aligned(4))) {
         union{
             uint8_t   b8[COMMS_BUFFER_SIZE_8];
             uint16_t b16[COMMS_BUFFER_SIZE_16];
@@ -167,23 +160,14 @@ typedef struct
     }TXBuffer;    
     struct {
         unsigned initialized:1;
-        unsigned RTOSInitialized:1;
-        unsigned SPIInitialized:1;
         unsigned timerInitialized:1;
-        unsigned sendSPIPacket:1;
         unsigned imageCopied:1;
         unsigned readyForImage:1;
         unsigned timerRunning:1;
+        unsigned UARTInitialized:1;
+        unsigned DMAInitialized:1;
+        unsigned UARTDone:1;
     }status;
-    struct {
-        TaskHandle_t myHandle;
-        TaskHandle_t FLIRHandle;
-    }RTOS;
-//    struct {
-//        uint32_t receive;
-//        uint32_t transmit;
-//        uint32_t number;
-//    }buffer;
     FLIR_IMAGE_TYPE image;
     uint32_t transmitLine;
     struct {
@@ -279,22 +263,22 @@ void COMMS_Initialize ( void );
  */
 
 void COMMS_Tasks( void );
-bool COMMS_OpenDisplaySPI(COMMS_DATA *comms);
-bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms);
-bool COMMS_StartTransmitImageLine(COMMS_DATA *comms);
-bool COMMS_StartTransmitImageDone(COMMS_DATA *comms);
+//bool COMMS_OpenDisplaySPI(COMMS_DATA *comms);
+//bool COMMS_StartTransmitImageHeader(COMMS_DATA *comms);
+//bool COMMS_StartTransmitImageLine(COMMS_DATA *comms);
+//bool COMMS_StartTransmitImageDone(COMMS_DATA *comms);
 bool COMMS_StartSPIWrite(COMMS_DATA *comms,int32_t TXSize);
-bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms);
+//bool COMMS_CheckSPIWriteDone(COMMS_DATA *comms);
 bool COMMS_NotifyReady(COMMS_DATA *comms);
-inline bool COMMS_SPIComplete(COMMS_DATA *comms);
+//inline bool COMMS_SPIComplete(COMMS_DATA *comms);
 bool COMMS_CopyImage(COMMS_DATA *comms);;
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
 #define mBitSet(a,b)                (a ## SET = 1<<b)
 #define mBitToggle(a,b)             (a ## INV = 1<<b)
 
 #define COMMS_SPISlaveSelect()       mBitClear(LATE,9)   // LATECLR = 1<<9
-#define COMMS_SPISlaveDeselect()     mBitSet(LATE,9)     //LATESET = 1<<9
-#define COMMS_SPISlaveInvert()       mBitToggle(LATE,9)
+//#define COMMS_SPISlaveDeselect()     mBitSet(LATE,9)     //LATESET = 1<<9
+//#define COMMS_SPISlaveInvert()       mBitToggle(LATE,9)
 #endif /* _COMMS_H */
 
 //DOM-IGNORE-BEGIN
