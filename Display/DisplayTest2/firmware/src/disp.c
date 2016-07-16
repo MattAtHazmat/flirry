@@ -1,94 +1,89 @@
-// <editor-fold defaultstate="collapsed" desc="Header">
-/******************************************************************************/
-/*  MPLAB Harmony Application Source File                                     */
-/*                                                                            */
-/*  Company:                                                                  */
-/*    Microchip Technology Inc.                                               */
-/*                                                                            */
-/*  File Name:                                                                */
-/*    disp.c                                                                  */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*    This file contains the source code for the MPLAB Harmony application.   */
-/*                                                                            */
-/*  Description:                                                              */
-/*This file contains the source code for the MPLAB Harmony application.  It   */
-/*implements the logic of the application's state machine and it may call     */
-/*API routines of other MPLAB Harmony modules in the system, such as drivers, */
-/*system services, and middleware.  However, it does not call any of the      */
-/*stem interfaces (such as the "Initialize" and "Tasks" functions) of any of  */
-/*the modules in the system or make any assumptions about when those functions*/
-/*are called.  That is the responsibility of the configuration-specific system*/
-/*files.                                                                      */
-/******************************************************************************/
+/*******************************************************************************
+  MPLAB Harmony Application Source File
+
+  Company:
+    Microchip Technology Inc.
+  
+  File Name:
+    disp.c
+
+  Summary:
+    This file contains the source code for the MPLAB Harmony application.
+
+  Description:
+    This file contains the source code for the MPLAB Harmony application.  It 
+    implements the logic of the application's state machine and it may call 
+    API routines of other MPLAB Harmony modules in the system, such as drivers,
+    system services, and middleware.  However, it does not call any of the
+    system interfaces (such as the "Initialize" and "Tasks" functions) of any of
+    the modules in the system or make any assumptions about when those functions
+    are called.  That is the responsibility of the configuration-specific system
+    files.
+ *******************************************************************************/
 
 // DOM-IGNORE-BEGIN
 /*******************************************************************************
-/* Copyright (c) 2013-2014 released Microchip Technology Inc.  All rights     */
-/* reserved.                                                                  */
-/*                                                                            */
-/*Microchip licenses to you the right to use, modify, copy and distribute     */
-/*Software only when embedded on a Microchip microcontroller or digital signal*/
-/*controller that is integrated into your product or third party product      */
-/*(pursuant to the sublicense terms in the accompanying license agreement).   */
-/*                                                                            */
-/*You should refer to the license agreement accompanying this Software for    */
-/*additional information regarding your rights and obligations.               */
-/*                                                                            */
-/*SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY     */
-/*KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, ANY WARRANTY */
-/* OF MERCHANTABILITY, TITLE, NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR   */
-/*PURPOSE. IN NO EVENT SHALL MICROCHIP OR ITS LICENSORS BE LIABLE OR OBLIGATED*/
-/*UNDER CONTRACT, NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF       */
-/*WARRANTY, OROTHER LEGAL EQUITABLE THEORY ANY DIRECT OR INDIRECT DAMAGES OR  */
-/*EXPENSES INCLUDING BUT NOT LIMITED TO ANY INCIDENTAL, SPECIAL, INDIRECT,    */
-/*PUNITIVE OR CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF       */
-/*PROCUREMENT OF SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY     */
-/*THIRD PARTIES (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER  */
-/* SIMILAR COSTS.                                                             */
-/******************************************************************************/
+Copyright (c) 2013-2014 released Microchip Technology Inc.  All rights reserved.
+
+Microchip licenses to you the right to use, modify, copy and distribute
+Software only when embedded on a Microchip microcontroller or digital signal
+controller that is integrated into your product or third party product
+(pursuant to the sublicense terms in the accompanying license agreement).
+
+You should refer to the license agreement accompanying this Software for
+additional information regarding your rights and obligations.
+
+SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF
+MERCHANTABILITY, TITLE, NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE.
+IN NO EVENT SHALL MICROCHIP OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER
+CONTRACT, NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF WARRANTY, OR
+OTHER LEGAL EQUITABLE THEORY ANY DIRECT OR INDIRECT DAMAGES OR EXPENSES
+INCLUDING BUT NOT LIMITED TO ANY INCIDENTAL, SPECIAL, INDIRECT, PUNITIVE OR
+CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF PROCUREMENT OF
+SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
+(INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
+ *******************************************************************************/
 // DOM-IGNORE-END
 
 
-/******************************************************************************/ 
-/******************************************************************************/ 
-/* Section: Included Files                                                    */
-/******************************************************************************/ 
-/******************************************************************************/ 
-//</editor-fold>
+// *****************************************************************************
+// *****************************************************************************
+// Section: Included Files 
+// *****************************************************************************
+// *****************************************************************************
 
 #include "disp.h"
 #include "bsp_config.h"
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Global Data Definitions                                           */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Global Data Definitions
+// *****************************************************************************
+// *****************************************************************************
 
-/******************************************************************************/
-/* Application Data                                                           */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*    Holds application data                                                  */
-/*                                                                            */
-/*  Description:                                                              */
-/*    This structure holds the application's data.                            */
-/*                                                                            */
-/*  Remarks:                                                                  */
-/*    This structure should be initialized by the APP_Initialize function.    */
-/*                                                                            */
-/*    Application strings and buffers are be defined outside this structure.  */
-/*                                                                            */
-/******************************************************************************/
+// *****************************************************************************
+/* Application Data
+
+  Summary:
+    Holds application data
+
+  Description:
+    This structure holds the application's data.
+
+  Remarks:
+    This structure should be initialized by the APP_Initialize function.
+    
+    Application strings and buffers are be defined outside this structure.
+*/
 
 DISP_DATA dispData;
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Application Callback Functions                                    */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Application Callback Functions
+// *****************************************************************************
+// *****************************************************************************
 
 void TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
@@ -102,17 +97,15 @@ void TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     }
 }
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Application Local Functions                                       */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Application Local Functions
+// *****************************************************************************
+// *****************************************************************************
 
 
-/* Application's LED Task Function                                            */
-static void LedTask( void )
-{
-}
+/* TODO:  Add any necessary local functions.
+*/
 
 /******************************************************************************/
 
@@ -183,7 +176,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
 	/* address/buffer increment mode                                          */
     pmpConfig.incrementMode= PMP_ADDRESS_AUTO_INCREMENT;
 	/* Endian modes                                                           */
-    pmpConfig.endianMode= LITTLE_ENDIAN;
+    //pmpConfig.endianMode= LITTLE_ENDIAN;
 	/* Data Port Size                                                         */       
     pmpConfig.portSize= PMP_DATA_SIZE_16_BITS;
 	/* Wait states                                                            */
@@ -205,33 +198,38 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
     dispData.displayInfo.numberSprites = NUMBER_SPRITES;
     dispData.address = 0;
-    uint8_t sprite=0;
-    for(sprite=0;sprite<NUMBER_SPRITES;sprite++)
+    #ifdef USE_SPRITES
     {
-        dispData.sprite[sprite].position.row.value=sprite;
-        dispData.sprite[sprite].position.column.value=sprite;
-        dispData.sprite[sprite].color.red=0x7f;
-        dispData.sprite[sprite].color.blue=+sprite*10;
-    }
-//    dispData.sprite[1].position.row.value=2;
-//    dispData.sprite[1].position.column.value=2;
-//    dispData.sprite[1].color.green=0x7f;
-//    dispData.sprite[2].position.row.value=4;
-//    dispData.sprite[2].position.column.value=4;
-//    dispData.sprite[2].color.blue=0x7f;
+        uint8_t sprite=0;
+        for(sprite=0;sprite<NUMBER_SPRITES;sprite++)
+        {
+            dispData.sprite[sprite].position.row.value=sprite;
+            dispData.sprite[sprite].position.column.value=sprite;
+            dispData.sprite[sprite].color.red=0x7f;
+            dispData.sprite[sprite].color.blue=+sprite*10;
+        }
 
-//    dispData.sprite[0].velocity.column.w =-(1<<8);
-//    dispData.sprite[0].velocity.row.w = 1<<8;
-//    dispData.sprite[1].velocity.row.w= 0b11<<7;
-//    dispData.sprite[2].velocity.row.w = 0b1<<4;
-//    dispData.sprite[2].velocity.column.w = 0b1<<7;
-    uint32_t index;
-    for(index=0;index<dispData.displayInfo.numberSprites;index++)
-    {
-        dispData.display[dispData.sprite[index].position.row.value]
-                        [dispData.sprite[index].position.column.value].w = 
-                            dispData.sprite[index].color.w;
+        dispData.sprite[1].position.row.value=2;
+        dispData.sprite[1].position.column.value=2;
+        dispData.sprite[1].color.green=0x7f;
+        dispData.sprite[2].position.row.value=4;
+        dispData.sprite[2].position.column.value=4;
+        dispData.sprite[2].color.blue=0x7f;
+
+        //dispData.sprite[0].velocity.column.w =-(1<<8);
+        //dispData.sprite[0].velocity.row.w = 1<<8;
+        //dispData.sprite[1].velocity.row.w= 0b11<<7;
+        //dispData.sprite[2].velocity.row.w = 0b1<<4;
+        //dispData.sprite[2].velocity.column.w = 0b1<<7;
+        uint32_t index;
+        for(index=0;index<dispData.displayInfo.numberSprites;index++)
+        {
+            dispData.display[dispData.sprite[index].position.row.value]
+                            [dispData.sprite[index].position.column.value].w = 
+                                dispData.sprite[index].color.w;
+        }
     }
+    #endif /* #ifdef USE_SPRITES */
     //ClearOE();
     ClearSTB();
     return true;
@@ -299,9 +297,12 @@ void DISP_Tasks ( void )
         {
             ClearSTB();
             if(!SendSlice())
-            {       
-                uint8_t index;
-                memset(dispData.display,0,sizeof(dispData.display));
+            {         
+                #ifdef USE_SPRITES
+                uint8_t index;    
+                #endif
+                memset(dispData.display,0,sizeof(dispData.display));                
+                #ifdef USE_SPRITES
                 for(index=0;index<dispData.displayInfo.numberSprites;index++)
                 {
                     // <editor-fold defaultstate="collapsed" desc="comment">
@@ -333,13 +334,13 @@ void DISP_Tasks ( void )
                                     [dispData.sprite[index].position.column.value].w = 
                                         dispData.sprite[index].color.w;
                 }
+                #endif /* #ifdef USE_SPRITES */
                 break;
             }       
             /* otherwise, drop through                                        */
         }
         case DISP_FIRST_SEND_SLICE:
         {
-           
             PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address);
             dispData.pmp.pQueue = DRV_PMP_Write(
                 &dispData.pmp.driverHandle,
@@ -362,10 +363,17 @@ void DISP_Tasks ( void )
         case DISP_SENDING_SLICE:
         {
             if(DRV_PMP_TransferStatus(dispData.pmp.pQueue)==PMP_TRANSFER_FINISHED)
-            {
-                SetSTB();
-                dispData.state = DISP_WAIT_SEND_SLICE;
+            {          
+                
+                dispData.state = DISP_DONE_SLICE;
             }
+            break;
+        }
+        case DISP_DONE_SLICE:
+        {
+            SetSTB();
+            
+            dispData.state = DISP_WAIT_SEND_SLICE;
             break;
         }
         case DISP_HALT:
@@ -473,6 +481,6 @@ void DISP_FillSlice(DISP_DATA *displayData)
     } while (txColumn != 0); /* when it's zero, stop */
 }
 
-/******************************************************************************/
-/* End of File                                                                */
-/******************************************************************************/
+/*******************************************************************************
+ End of File
+ */

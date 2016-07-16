@@ -97,7 +97,7 @@ extern "C" {
 
 /*** Ports System Service Configuration ***/
 
-#define SYS_PORT_A_ANSEL        0x0
+#define SYS_PORT_A_ANSEL        0x20
 #define SYS_PORT_A_TRIS         0xc6ff
 #define SYS_PORT_A_LAT          0x0
 #define SYS_PORT_A_ODC          0x0
@@ -105,11 +105,11 @@ extern "C" {
 #define SYS_PORT_A_CNPD         0x0
 #define SYS_PORT_A_CNEN         0x0
 
-#define SYS_PORT_B_ANSEL        0x0
-#define SYS_PORT_B_TRIS         0xf7ff
+#define SYS_PORT_B_ANSEL        0x800
+#define SYS_PORT_B_TRIS         0xffdf
 #define SYS_PORT_B_LAT          0x0
 #define SYS_PORT_B_ODC          0x0
-#define SYS_PORT_B_CNPU         0x0
+#define SYS_PORT_B_CNPU         0x7000
 #define SYS_PORT_B_CNPD         0x0
 #define SYS_PORT_B_CNEN         0x0
 
@@ -122,7 +122,7 @@ extern "C" {
 #define SYS_PORT_C_CNEN         0x0
 
 #define SYS_PORT_D_ANSEL        0x0
-#define SYS_PORT_D_TRIS         0xfe2f
+#define SYS_PORT_D_TRIS         0xfe3f
 #define SYS_PORT_D_LAT          0x0
 #define SYS_PORT_D_ODC          0x0
 #define SYS_PORT_D_CNPU         0x4
@@ -145,8 +145,8 @@ extern "C" {
 #define SYS_PORT_F_CNPD         0x0
 #define SYS_PORT_F_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x180
-#define SYS_PORT_G_TRIS         0x71c3
+#define SYS_PORT_G_ANSEL        0x8180
+#define SYS_PORT_G_TRIS         0xf1c3
 #define SYS_PORT_G_LAT          0x200
 #define SYS_PORT_G_ODC          0x0
 #define SYS_PORT_G_CNPU         0x0

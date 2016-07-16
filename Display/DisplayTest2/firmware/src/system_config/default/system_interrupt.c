@@ -63,6 +63,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <sys/attribs.h>
 #include "disp.h"
 #include "comms.h"
+#include "flir.h"
 #include "system_definitions.h"
 
 // *****************************************************************************
@@ -72,35 +73,28 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
     
-void __ISR(_TIMER_1_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
+void IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
- void __ISR(_UART_1_VECTOR, ipl5AUTO) _IntHandlerDrvUsartInstance0(void)
+    
+void IntHandlerDrvTmrInstance1(void)
 {
-    DRV_USART_TasksTransmit(sysObj.drvUsart0);
-    DRV_USART_TasksReceive(sysObj.drvUsart0);
-    DRV_USART_TasksError(sysObj.drvUsart0);
+    DRV_TMR_Tasks(sysObj.drvTmr1);
 }
- 
- 
- 
-
- 
-
- 
-
- 
-
- 
-
- 
- 
-void __ISR(_DMA0_VECTOR, ipl6AUTO) _IntHandlerSysDmaCh0(void)
+  
+void IntHandlerSPIRxInstance0(void)
 {
-    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_0);
+    DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
- 
+void IntHandlerSPITxInstance0(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx0);
+}
+void IntHandlerSPIFaultInstance0(void)
+{
+    DRV_SPI_Tasks(sysObj.spiObjectIdx0);
+}
  
 /*******************************************************************************
  End of File

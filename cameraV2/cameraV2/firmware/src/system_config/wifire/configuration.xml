@@ -41,12 +41,12 @@
         <Path>Source Files/framework/system/int/src</Path>
       </File>
       <File>
-        <Name>bsp_config.h</Name>
-        <Path>Header Files/bsp/chipkit_wifire</Path>
-      </File>
-      <File>
         <Name>drv_spi_sys_queue_fifo.c</Name>
         <Path>Source Files/framework/driver/spi</Path>
+      </File>
+      <File>
+        <Name>bsp_sys_init.c</Name>
+        <Path>Source Files/bsp/pic32mz_ef_sk</Path>
       </File>
       <File>
         <Name>drv_tmr.c</Name>
@@ -55,10 +55,6 @@
       <File>
         <Name>system.h</Name>
         <Path>Header Files/framework/system</Path>
-      </File>
-      <File>
-        <Name>bsp_sys_init.c</Name>
-        <Path>Source Files/bsp/chipkit_wifire</Path>
       </File>
       <File>
         <Name>drv_usart.h</Name>
@@ -83,6 +79,10 @@
       <File>
         <Name>sys_int.h</Name>
         <Path>Header Files/framework/system/int</Path>
+      </File>
+      <File>
+        <Name>bsp_config.h</Name>
+        <Path>Header Files/bsp/pic32mz_ef_sk</Path>
       </File>
       <File>
         <Name>list.c</Name>
@@ -259,7 +259,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/wifire</Path>
-        <Checksum>98EBF87A8CF7D8DC66A628640E514358</Checksum>
+        <Checksum>609955B8C6276AC192D1E15081B50A21</Checksum>
         <ProjectFileChecksum>68197D20C739857478BAE4EF77E7949D</ProjectFileChecksum>
       </Template>
       <Template>
@@ -337,7 +337,7 @@
         <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src/wifire"/>
         <Include value="/home/mjb/microchip/harmony/v1_07_01/framework"/>
         <Include value="/home/mjb/Projects/flirry/cameraV2/cameraV2/firmware/src/system_config/wifire/framework"/>
-        <Include value="../../../../../../microchip/harmony/v1_07_01/bsp/chipkit_wifire"/>
+        <Include value="../../../../../../microchip/harmony/v1_07_01/bsp/pic32mz_ef_sk"/>
         <Include value="../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/portable/MPLAB/PIC32MZ"/>
         <Include value="../../../../../../microchip/harmony/v1_07_01/third_party/rtos/FreeRTOS/Source/include"/>
         <Include value="../src/system_config/wifire"/>

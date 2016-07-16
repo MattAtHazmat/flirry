@@ -1,4 +1,3 @@
-// <editor-fold defaultstate="collapsed" desc="Header">
 /*******************************************************************************
   MPLAB Harmony Application Header File
 
@@ -43,16 +42,15 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
  *******************************************************************************/
 //DOM-IGNORE-END
-// </editor-fold>
 
 #ifndef _DISP_H
 #define _DISP_H
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Included Files                                                    */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Included Files
+// *****************************************************************************
+// *****************************************************************************
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -82,17 +80,20 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 //#define GREEN_3_MASK        (GREEN_0_MASK<<9)
 //#define BLUE_3_MASK         (BLUE_0_MASK<<9)
 #define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS)
+//#define STROBE_ACTIVE_LOW
 #ifdef STROBE_ACTIVE_LOW
-    #define SetSTB()        LATDCLR = _LATD_LATD10_MASK
-    #define ClearSTB()      LATDSET = _LATD_LATD10_MASK
+    #define SetSTB()        LATDCLR = _LATD_LATD9_MASK
+    #define ClearSTB()      LATDSET = _LATD_LATD9_MASK
 #else
-    #define SetSTB()        LATDSET = _LATD_LATD10_MASK
-    #define ClearSTB()      LATDCLR = _LATD_LATD10_MASK
+    #define SetSTB()        LATDSET = _LATD_LATD9_MASK //_LATD_LATD10_MASK
+    #define ClearSTB()      LATDCLR = _LATD_LATD9_MASK //_LATD_LATD10_MASK
 #endif
 //#define SetOE()             LATCSET = _LATC_LATC1_MASK 
 //#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
 //#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
+#ifdef USE_SPRITES
 #define NUMBER_SPRITES      (10)
+#endif
 #define DATA_WAIT           PMP_DATA_WAIT_FOUR
 #define STROBE_WAIT         PMP_STROBE_WAIT_10
 #define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
@@ -102,16 +103,22 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 /******************************************************************************/
 /******************************************************************************/
 
-/******************************************************************************/
-/*  Application states                                                        */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*    Application states enumeration                                          */
-/*                                                                            */
-/*  Description:                                                              */
-/*    This enumeration defines the valid application states.  These states    */
-/*    determine the behavior of the application at various times.             */
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Type Definitions
+// *****************************************************************************
+// *****************************************************************************
+
+// *****************************************************************************
+/* Application states
+
+  Summary:
+    Application states enumeration
+
+  Description:
+    This enumeration defines the valid application states.  These states
+    determine the behavior of the application at various times.
+*/
 
 typedef enum
 {
@@ -123,6 +130,7 @@ typedef enum
     DISP_WAIT_FILL_NEXT_SLICE,
     DISP_WAIT_SEND_SLICE,
     DISP_SENDING_SLICE,
+    DISP_DONE_SLICE,
     DISP_HALT,
     TIMER_ERROR,
     DISP_ERROR
@@ -186,18 +194,22 @@ typedef struct {
 
 typedef struct
 {
-    struct {
-        ROW_COLUMN_TYPE position;
-        ROW_COLUMN_TYPE velocity;
-        PIXEL_TYPE color;
-    } sprite[NUMBER_SPRITES];
+    #ifdef USE_SPRITES
+        struct {
+            ROW_COLUMN_TYPE position;
+            ROW_COLUMN_TYPE velocity;
+            PIXEL_TYPE color;
+        } sprite[NUMBER_SPRITES];
+    #endif
     struct __attribute__ ((packed)) {
-            unsigned bufferFilling:1; 
-            unsigned nextSlice:1;
-            unsigned timerOverrun:1;
-            unsigned displayArrayFilled:1;
-            unsigned timerStarted:1;
-            unsigned firstSliceSent:1;                       
+        unsigned bufferFilling:1; 
+        unsigned nextSlice:1;
+        unsigned timerOverrun:1;
+        unsigned displayArrayFilled:1;
+        unsigned timerStarted:1;
+        unsigned firstSliceSent:1;    
+        unsigned readyForImage:1;
+        unsigned imageCopied:1;
     }status;   
     struct {
         uint8_t PWMIncrement;
@@ -233,83 +245,85 @@ typedef struct
     PIXEL_TYPE display[DISPLAY_ROWS][DISPLAY_COLUMNS];    
 } DISP_DATA;
 
+#define mBitClear(a,b)              (a ## CLR = 1<<b)
+#define mBitSet(a,b)                (a ## SET = 1<<b)
+#define mBitToggle(a,b)             (a ## INV = 1<<b)
 
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Application Callback Routines                                     */
-/******************************************************************************/
-/******************************************************************************/
-/* These routines are called by drivers when certain events occur.            */	
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Application Initialization and State Machine Functions            */
-/******************************************************************************/
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Application Callback Routines
+// *****************************************************************************
+// *****************************************************************************
+/* These routines are called by drivers when certain events occur.
+*/
 
-/******************************************************************************/
-/*  Function:                                                                 */
-/*    void DISP_Initialize ( void )                                           */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*     MPLAB Harmony application initialization routine.                      */
-/*                                                                            */
-/*  Description:                                                              */
-/*    This function initializes the Harmony application.  It places the       */
-/*    application in its initial state and prepares it to run so that its     */
-/*    APP_Tasks function can be called.                                       */
-/*                                                                            */
-/*  Precondition:                                                             */
-/*    All other system initialization routines should be called before calling*/
-/*    this routine (in "SYS_Initialize").                                     */
-/*                                                                            */
-/*  Parameters:                                                               */
-/*    None.                                                                   */
-/*                                                                            */
-/*  Returns:                                                                  */
-/*    None.                                                                   */
-/*                                                                            */
-/*  Example:                                                                  */
-/*    <code>                                                                  */
-/*    DISP_Initialize();                                                      */
-/*    </code>                                                                 */
-/*                                                                            */
-/*  Remarks:                                                                  */
-/*    This routine must be called from the SYS_Initialize function.           */
-/******************************************************************************/
+// *****************************************************************************
+// *****************************************************************************
+// Section: Application Initialization and State Machine Functions
+// *****************************************************************************
+// *****************************************************************************
+
+
+/*******************************************************************************
+  Summary:
+     MPLAB Harmony application initialization routine.
+
+  Description:
+    This function initializes the Harmony application.  It places the 
+    application in its initial state and prepares it to run so that its 
+    APP_Tasks function can be called.
+
+  Precondition:
+    All other system initialization routines should be called before calling
+    this routine (in "SYS_Initialize").
+
+  Parameters:
+    None.
+
+  Returns:
+    None.
+
+  Example:
+    <code>
+    DISP_Initialize();
+    </code>
+
+  Remarks:
+    This routine must be called from the SYS_Initialize function.
+*/
 
 bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX );
 
 
 /*******************************************************************************
-/*  Function:                                                                 */
-/*    void DISP_Tasks ( void )                                                */
-/*                                                                            */
-/*  Summary:                                                                  */
-/*    MPLAB Harmony Demo application tasks function                           */
-/*                                                                            */
-/*  Description:                                                              */
-/*    This routine is the Harmony Demo application's tasks function.  It      */
-/*    defines the application's state machine and core logic.                 */
-/*                                                                            */
-/*  Precondition:                                                             */
-/*    The system and application initialization ("SYS_Initialize") should be  */
-/*    called before calling this.                                             */
-/*                                                                            */
-/*  Parameters:                                                               */
-/*    None.                                                                   */
-/*                                                                            */
-/*  Returns:                                                                  */
-/*    None.                                                                   */
-/*                                                                            */
-/*  Example:                                                                  */
-/*    <code>                                                                  */
-/*    DISP_Tasks();                                                           */
-/*    </code>                                                                 */
-/*                                                                            */
-/*  Remarks:                                                                  */
-/*    This routine must be called from SYS_Tasks() routine.                   */
-/*                                                                            */
-/******************************************************************************/
+  Function:
+    void DISP_Tasks ( void )
+
+  Summary:
+    MPLAB Harmony Demo application tasks function
+
+  Description:
+    This routine is the Harmony Demo application's tasks function.  It
+    defines the application's state machine and core logic.
+
+  Precondition:
+    The system and application initialization ("SYS_Initialize") should be
+    called before calling this.
+
+  Parameters:
+    None.
+
+  Returns:
+    None.
+
+  Example:
+    <code>
+    DISP_Tasks();
+    </code>
+
+  Remarks:
+    This routine must be called from SYS_Tasks() routine.
+ */
 
 void DISP_Tasks( void );
 
@@ -323,6 +337,7 @@ void DISP_FillSlice(DISP_DATA *displayData);
 #endif
 //DOM-IGNORE-END
 
-/******************************************************************************/
-/* End of File                                                                */
-/******************************************************************************/
+/*******************************************************************************
+ End of File
+ */
+

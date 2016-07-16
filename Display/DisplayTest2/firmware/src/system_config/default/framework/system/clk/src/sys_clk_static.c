@@ -91,16 +91,45 @@ void SYS_CLK_Initialize( const SYS_CLK_INIT const * clkInit )
 {
     SYS_DEVCON_SystemUnlock ( );
     
-    PLIB_OSC_FRCDivisorSelect( OSC_ID_0, OSC_FRC_DIV_2);
+    PLIB_OSC_FRCDivisorSelect( OSC_ID_0, OSC_FRC_DIV_1);
 
     /* Enable Peripheral Bus 1 */
     PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 0, 2 );
-
-
-
-
-
-
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 0 );
+    /* Enable Peripheral Bus 2 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 1, 8 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 1 );
+    /* Enable Peripheral Bus 3 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 2, 2 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 2 );
+    /* Enable Peripheral Bus 4 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 3, 2 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 3 );
+    /* Enable Peripheral Bus 5 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 4, 2 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 4 );
+    /* Enable Peripheral Bus 7 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 6, 1 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 6 );
+    /* Enable Peripheral Bus 8 */
+    PLIB_OSC_PBClockDivisorSet (OSC_ID_0, 7, 2 );
+    PLIB_OSC_PBOutputClockEnable (OSC_ID_0, 7 );
+    /* Disable REFCLKO1*/
+    PLIB_OSC_ReferenceOscDisable ( OSC_ID_0, OSC_REFERENCE_1 );
+    /* Disable REFCLK1_OE*/
+    PLIB_OSC_ReferenceOutputDisable ( OSC_ID_0, OSC_REFERENCE_1 );
+    /* Disable REFCLKO2*/
+    PLIB_OSC_ReferenceOscDisable ( OSC_ID_0, OSC_REFERENCE_2 );
+    /* Disable REFCLK2_OE*/
+    PLIB_OSC_ReferenceOutputDisable ( OSC_ID_0, OSC_REFERENCE_2 );
+    /* Disable REFCLKO3*/
+    PLIB_OSC_ReferenceOscDisable ( OSC_ID_0, OSC_REFERENCE_3 );
+    /* Disable REFCLK3_OE*/
+    PLIB_OSC_ReferenceOutputDisable ( OSC_ID_0, OSC_REFERENCE_3 );
+    /* Disable REFCLKO4*/
+    PLIB_OSC_ReferenceOscDisable ( OSC_ID_0, OSC_REFERENCE_4 );
+    /* Disable REFCLK4_OE*/
+    PLIB_OSC_ReferenceOutputDisable ( OSC_ID_0, OSC_REFERENCE_4 );
 
     SYS_DEVCON_SystemLock ( );
 }
@@ -175,7 +204,38 @@ inline uint32_t SYS_CLK_SystemFrequencyGet ( void )
 
 inline uint32_t SYS_CLK_PeripheralFrequencyGet ( CLK_BUSES_PERIPHERAL peripheralBus )
 {
-    return SYS_CLK_BUS_PERIPHERAL_1;
+    uint32_t freq = 0;
+
+    switch (peripheralBus)
+    {
+        case CLK_BUS_PERIPHERAL_1:
+                freq = SYS_CLK_BUS_PERIPHERAL_1;
+            break;
+        case CLK_BUS_PERIPHERAL_2:
+                freq = SYS_CLK_BUS_PERIPHERAL_2;
+            break;
+        case CLK_BUS_PERIPHERAL_3:
+                freq = SYS_CLK_BUS_PERIPHERAL_3;
+            break;
+        case CLK_BUS_PERIPHERAL_4:
+                freq = SYS_CLK_BUS_PERIPHERAL_4;
+            break;
+        case CLK_BUS_PERIPHERAL_5:
+                freq = SYS_CLK_BUS_PERIPHERAL_5;
+            break;
+        case CLK_BUS_PERIPHERAL_6:
+            break;
+        case CLK_BUS_PERIPHERAL_7:
+                freq = SYS_CLK_BUS_PERIPHERAL_7;
+            break;
+        case CLK_BUS_PERIPHERAL_8:
+                freq = SYS_CLK_BUS_PERIPHERAL_8;
+            break;
+        default:
+            break;
+    }
+    
+    return freq;
 }
 
 
@@ -213,7 +273,25 @@ inline uint32_t SYS_CLK_PeripheralFrequencyGet ( CLK_BUSES_PERIPHERAL peripheral
 
 inline uint32_t SYS_CLK_ReferenceClockFrequencyGet ( CLK_BUSES_REFERENCE referenceBus )
 {
-	return 0;
+    uint32_t freq = 0;
+
+    switch (referenceBus)
+    {
+        case CLK_BUS_REFERENCE_1:
+            break;
+        case CLK_BUS_REFERENCE_2:
+            break;
+        case CLK_BUS_REFERENCE_3:
+            break;
+        case CLK_BUS_REFERENCE_4:
+            break;
+        case CLK_BUS_REFERENCE_5:
+            break;
+        default:
+            break;
+    }
+    
+    return freq;
 }
 
 /******************************************************************************

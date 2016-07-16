@@ -50,24 +50,25 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include "system/common/sys_common.h"
 #include "system/common/sys_module.h"
 #include "system/clk/sys_clk.h"
 #include "system/clk/sys_clk_static.h"
 #include "system/devcon/sys_devcon.h"
 #include "system/int/sys_int.h"
-#include "system/dma/sys_dma.h"
-#include "system/console/sys_console.h"
 #include "system/tmr/sys_tmr.h"
 #include "driver/tmr/drv_tmr.h"
 #include "driver/pmp/drv_pmp.h"
-#include "driver/usart/drv_usart.h"
+#include "driver/usart/drv_usart_static.h"
 #include "system/ports/sys_ports.h"
-#include "system/debug/sys_debug.h"
+#include "driver/spi/drv_spi.h"
+
 
 
 #include "disp.h"
 #include "comms.h"
+#include "flir.h"
 
 
 // DOM-IGNORE-BEGIN
@@ -103,12 +104,13 @@ typedef struct
 {
     SYS_MODULE_OBJ  sysDevcon;
     SYS_MODULE_OBJ  sysTmr;
-    SYS_MODULE_OBJ  sysDma;
     SYS_MODULE_OBJ  drvTmr0;
+    SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvUsart0;
     SYS_MODULE_OBJ  drvPMP0;
-    SYS_MODULE_OBJ  sysDebug;
-    SYS_MODULE_OBJ  sysConsole0;
+
+    /*** SPI Object for Index 0 ***/
+    SYS_MODULE_OBJ				spiObjectIdx0;
 
 } SYSTEM_OBJECTS;
 
