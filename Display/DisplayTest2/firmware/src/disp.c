@@ -196,12 +196,13 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.displayInfo.columns.value = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
     dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
-    dispData.displayInfo.numberSprites = NUMBER_SPRITES;
     dispData.address = 0;
     #ifdef USE_SPRITES
     {
         uint8_t sprite=0;
-        for(sprite=0;sprite<NUMBER_SPRITES;sprite++)
+        dispData.displayInfo.numberSprites = NUMBER_SPRITES;
+
+        for(sprite=0;sprite<dispData.displayInfo.numberSprites;sprite++)
         {
             dispData.sprite[sprite].position.row.value=sprite;
             dispData.sprite[sprite].position.column.value=sprite;
@@ -230,6 +231,18 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
         }
     }
     #endif /* #ifdef USE_SPRITES */
+    {
+        int x,y;
+        for(y=0;y<dispData.displayInfo.rows.value;y++)
+        {
+            for(x=0;x<dispData.displayInfo.columns.value;x++)
+            {
+                dispData.display[y][x].w = 0;
+                dispData.display[y][x].green = 10;
+                
+            }
+        }
+    }
     //ClearOE();
     ClearSTB();
     return true;

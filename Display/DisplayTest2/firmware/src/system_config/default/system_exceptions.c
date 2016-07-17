@@ -102,4 +102,42 @@ static char *cause[] =
 
 
 // *****************************************************************************
-// ****
+// *****************************************************************************
+// Section: Exception Handling
+// *****************************************************************************
+// *****************************************************************************
+
+/*******************************************************************************
+  Function:
+    void _general_exception_handler ( void )
+
+  Summary:
+    Overrides the XC32 _weak_ _generic_exception_handler.
+    
+  Description:
+    This function overrides the XC32 default _weak_ _generic_exception_handler.
+
+  Remarks:
+    Refer to the XC32 User's Guide for additional information.
+ */
+
+void _general_exception_handler ( void )
+{
+    /* Mask off Mask of the ExcCode Field from the Cause Register
+    Refer to the MIPs Software User's manual */
+    _excep_code = (_CP0_GET_CAUSE() & 0x0000007C) >> 2;
+    _excep_addr = _CP0_GET_EPC();
+    _cause_str  = cause[_excep_code];
+
+    SYS_DEBUG_PRINT(SYS_ERROR_ERROR, "\nGeneral Exception %s (cause=%d, addr=%x).\n", 
+                    _cause_str, _excep_code, _excep_addr);
+
+    while (1)
+    {
+        SYS_DEBUG_BreakPoint();
+    }
+}
+
+/*******************************************************************************
+ End of File
+*/

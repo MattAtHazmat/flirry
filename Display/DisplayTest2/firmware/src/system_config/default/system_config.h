@@ -73,11 +73,6 @@ extern "C" {
 // Section: System Service Configuration
 // *****************************************************************************
 // *****************************************************************************
-// *****************************************************************************
-/* Common System Service Configuration Options
-*/
-#define SYS_VERSION_STR           "1.08"
-#define SYS_VERSION               10800
 
 // *****************************************************************************
 /* Clock System Service Configuration Options
@@ -98,8 +93,8 @@ extern "C" {
 
 /*** Ports System Service Configuration ***/
 
-#define SYS_PORT_A_ANSEL        0x3
-#define SYS_PORT_A_TRIS         0x86ff
+#define SYS_PORT_A_ANSEL        0x0
+#define SYS_PORT_A_TRIS         0xc6ff
 #define SYS_PORT_A_LAT          0x0
 #define SYS_PORT_A_ODC          0x0
 #define SYS_PORT_A_CNPU         0x0
@@ -114,8 +109,8 @@ extern "C" {
 #define SYS_PORT_B_CNPD         0x0
 #define SYS_PORT_B_CNEN         0x0
 
-#define SYS_PORT_C_ANSEL        0x10
-#define SYS_PORT_C_TRIS         0xf01c
+#define SYS_PORT_C_ANSEL        0x0
+#define SYS_PORT_C_TRIS         0xf01e
 #define SYS_PORT_C_LAT          0x0
 #define SYS_PORT_C_ODC          0x0
 #define SYS_PORT_C_CNPU         0x0
@@ -123,7 +118,7 @@ extern "C" {
 #define SYS_PORT_C_CNEN         0x0
 
 #define SYS_PORT_D_ANSEL        0x0
-#define SYS_PORT_D_TRIS         0xf4fc
+#define SYS_PORT_D_TRIS         0xfcff
 #define SYS_PORT_D_LAT          0x0
 #define SYS_PORT_D_ODC          0x0
 #define SYS_PORT_D_CNPU         0x0
@@ -138,7 +133,15 @@ extern "C" {
 #define SYS_PORT_E_CNPD         0x0
 #define SYS_PORT_E_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x0
+#define SYS_PORT_F_ANSEL        0x0
+#define SYS_PORT_F_TRIS         0x313f
+#define SYS_PORT_F_LAT          0x0
+#define SYS_PORT_F_ODC          0x0
+#define SYS_PORT_F_CNPU         0x0
+#define SYS_PORT_F_CNPD         0x0
+#define SYS_PORT_F_CNEN         0x0
+
+#define SYS_PORT_G_ANSEL        0x40
 #define SYS_PORT_G_TRIS         0xf3c3
 #define SYS_PORT_G_LAT          0x0
 #define SYS_PORT_G_ODC          0x0
@@ -147,7 +150,7 @@ extern "C" {
 #define SYS_PORT_G_CNEN         0x0
 
 #define SYS_PORT_H_ANSEL        0x0
-#define SYS_PORT_H_TRIS         0x3770
+#define SYS_PORT_H_TRIS         0xfff8
 #define SYS_PORT_H_LAT          0x0
 #define SYS_PORT_H_ODC          0x0
 #define SYS_PORT_H_CNPU         0x0
@@ -155,7 +158,7 @@ extern "C" {
 #define SYS_PORT_H_CNEN         0x0
 
 #define SYS_PORT_J_ANSEL        0x0
-#define SYS_PORT_J_TRIS         0xb17
+#define SYS_PORT_J_TRIS         0xffff
 #define SYS_PORT_J_LAT          0x0
 #define SYS_PORT_J_ODC          0x0
 #define SYS_PORT_J_CNPU         0x0
@@ -165,9 +168,9 @@ extern "C" {
 #define SYS_TMR_POWER_STATE             SYS_MODULE_POWER_RUN_FULL
 #define SYS_TMR_DRIVER_INDEX            DRV_TMR_INDEX_0
 #define SYS_TMR_MAX_CLIENT_OBJECTS      5
-#define SYS_TMR_FREQUENCY               10000
+#define SYS_TMR_FREQUENCY               1000
 #define SYS_TMR_FREQUENCY_TOLERANCE     10
-#define SYS_TMR_UNIT_RESOLUTION         50000
+#define SYS_TMR_UNIT_RESOLUTION         10000
 #define SYS_TMR_CLIENT_TOLERANCE        10
 #define SYS_TMR_INTERRUPT_NOTIFICATION  false
 
@@ -179,7 +182,7 @@ extern "C" {
 // *****************************************************************************
 /*** Timer Driver Configuration ***/
 #define DRV_TMR_INTERRUPT_MODE             true
-#define DRV_TMR_INSTANCES_NUMBER           2
+#define DRV_TMR_INSTANCES_NUMBER           1
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
@@ -190,35 +193,81 @@ extern "C" {
 #define DRV_TMR_INTERRUPT_PRIORITY_IDX0     INT_PRIORITY_LEVEL1
 #define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX0 INT_SUBPRIORITY_LEVEL0
 #define DRV_TMR_CLOCK_SOURCE_IDX0           DRV_TMR_CLKSOURCE_INTERNAL
-#define DRV_TMR_PRESCALE_IDX0               TMR_PRESCALE_VALUE_64
+#define DRV_TMR_PRESCALE_IDX0               TMR_PRESCALE_VALUE_256
 #define DRV_TMR_OPERATION_MODE_IDX0         DRV_TMR_OPERATION_MODE_16_BIT
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX0     false
 #define DRV_TMR_POWER_STATE_IDX0            SYS_MODULE_POWER_RUN_FULL
 
-/*** Timer Driver 1 Configuration ***/
-#define DRV_TMR_PERIPHERAL_ID_IDX1          TMR_ID_3
-#define DRV_TMR_INTERRUPT_SOURCE_IDX1       INT_SOURCE_TIMER_3
-#define DRV_TMR_INTERRUPT_VECTOR_IDX1       INT_VECTOR_T3
-#define DRV_TMR_ISR_VECTOR_IDX1             _TIMER_3_VECTOR
-#define DRV_TMR_INTERRUPT_PRIORITY_IDX1     INT_PRIORITY_LEVEL1
-#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX1 INT_SUBPRIORITY_LEVEL0
-#define DRV_TMR_CLOCK_SOURCE_IDX1           DRV_TMR_CLKSOURCE_INTERNAL
-#define DRV_TMR_PRESCALE_IDX1               TMR_PRESCALE_VALUE_256
-#define DRV_TMR_OPERATION_MODE_IDX1         DRV_TMR_OPERATION_MODE_16_BIT
-#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX1     false
-#define DRV_TMR_POWER_STATE_IDX1            SYS_MODULE_POWER_RUN_FULL
-
  // *****************************************************************************
 /* USART Driver Configuration Options
 */
-#define DRV_USART_INSTANCES_NUMBER                  1
-#define DRV_USART_CLIENTS_NUMBER                    1
 #define DRV_USART_INTERRUPT_MODE                    false
+
 #define DRV_USART_BYTE_MODEL_SUPPORT                true
+
 #define DRV_USART_READ_WRITE_MODEL_SUPPORT          false
+
 #define DRV_USART_BUFFER_QUEUE_SUPPORT              false
+
+#define DRV_USART_CLIENTS_NUMBER                    1
 #define DRV_USART_SUPPORT_TRANSMIT_DMA              false
 #define DRV_USART_SUPPORT_RECEIVE_DMA               false
+#define DRV_USART_INSTANCES_NUMBER                  1
+
+#define DRV_USART_PERIPHERAL_ID_IDX0                USART_ID_2
+#define DRV_USART_OPER_MODE_IDX0                    DRV_USART_OPERATION_MODE_NORMAL
+#define DRV_USART_OPER_MODE_DATA_IDX0               
+#define DRV_USART_INIT_FLAG_WAKE_ON_START_IDX0      false
+#define DRV_USART_INIT_FLAG_AUTO_BAUD_IDX0          false
+#define DRV_USART_INIT_FLAG_STOP_IN_IDLE_IDX0       true
+#define DRV_USART_INIT_FLAGS_IDX0                   4
+#define DRV_USART_BRG_CLOCK_IDX0                    25000000
+#define DRV_USART_BAUD_RATE_IDX0                    9600
+#define DRV_USART_LINE_CNTRL_IDX0                   DRV_USART_LINE_CONTROL_8NONE1
+#define DRV_USART_HANDSHAKE_MODE_IDX0               DRV_USART_HANDSHAKE_NONE
+#define DRV_USART_XMIT_INT_SRC_IDX0                 INT_SOURCE_USART_2_TRANSMIT
+#define DRV_USART_RCV_INT_SRC_IDX0                  INT_SOURCE_USART_2_RECEIVE
+#define DRV_USART_ERR_INT_SRC_IDX0                  INT_SOURCE_USART_2_ERROR
+
+
+#define DRV_USART_POWER_STATE_IDX0                  SYS_MODULE_POWER_RUN_FULL
+
+// *****************************************************************************
+/* I2C Driver Configuration Options
+*/
+#define DRV_I2C_INTERRUPT_MODE                    		true
+#define DRV_I2C_CLIENTS_NUMBER                    		1
+#define DRV_I2C_INSTANCES_NUMBER                  		1
+
+#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_1
+#define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
+#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_A
+#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_14
+#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_A
+#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_15
+#define DRV_I2C_BIT_BANG_IDX0                           false
+#define DRV_I2C_STOP_IN_IDLE_IDX0                       false
+#define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
+#define DRV_I2C_BAUD_RATE_IDX0                    		50000
+#define DRV_I2C_BRG_CLOCK_IDX0	                  		25000000
+#define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
+#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_1_MASTER
+#define DRV_I2C_SLAVE_INT_SRC_IDX0                		
+#define DRV_I2C_ERR_MZ_INT_SRC_IDX0               		INT_SOURCE_I2C_1_BUS
+#define DRV_I2C_MASTER_INT_VECTOR_IDX0            		INT_VECTOR_I2C1_MASTER
+#define DRV_I2C_MASTER_ISR_VECTOR_IDX0                  _I2C1_MASTER_VECTOR
+#define DRV_I2C_MASTER_INT_PRIORITY_IDX0          		INT_PRIORITY_LEVEL1
+#define DRV_I2C_MASTER_INT_SUB_PRIORITY_IDX0      		INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_SLAVE_INT_VECTOR_IDX0             		INT_VECTOR_I2C1_SLAVE
+#define DRV_I2C_SLAVE_ISR_VECTOR_IDX0			  	    _I2C1_SLAVE_VECTOR
+#define DRV_I2C_SLAVE_INT_PRIORITY_IDX0           		
+#define DRV_I2C_SLAVE_INT_SUB_PRIORITY_IDX0       		
+#define DRV_I2C_ERR_INT_VECTOR_IDX0               		INT_VECTOR_I2C1_BUS
+#define DRV_I2C_ERR_ISR_VECTOR_IDX0                     _I2C1_BUS_VECTOR
+#define DRV_I2C_ERR_INT_PRIORITY_IDX0             		INT_PRIORITY_LEVEL1
+#define DRV_I2C_ERR_INT_SUB_PRIORITY_IDX0         		INT_SUBPRIORITY_LEVEL0
+#define DRV_I2C_POWER_STATE_IDX0                  		SYS_MODULE_POWER_RUN_FULL
+
 
 #define USE_16BIT_PMP
 
@@ -292,16 +341,16 @@ extern "C" {
 // *****************************************************************************
 
 /*** Application Instance 0 Configuration ***/
-#define USE_SPRITES
+//#define USE_SPRITES
     
 /*** Application Instance 1 Configuration ***/
-#define COMMS_DRV_USART                     0
+#define TX_MESSAGE "Hello world.\r\n"
 
 /*** Application Instance 2 Configuration ***/
     
 #define FLIR_TMR_DRV                       3
 #define FLIR_TMR_DRV_IS_PERIODIC           true
-#define FLIR_TMR_DRV_PERIOD                (125) /* 125 ms for 8 Hz */
+#define FLIR_TIMER_PERIOD_MS               (125) /* 125 ms for 8 Hz */
     
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus

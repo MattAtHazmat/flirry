@@ -166,12 +166,12 @@ static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 /* Application's Timer Setup Function                                         */
 //static bool COMMS_TimerSetup( COMMS_DATA* comms, uint32_t periodUS)
 
-static bool FLIR_TimerSetup( FLIR_Data* flir, uint32_t periodMS )
+static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS )
 {
     if(flirData.status.timerRunning == false)
     {
         uint32_t period;
-        period = (periodMS * DRV_TMR_CounterFrequencyGet(comms->timer.drvHandle))/1000;
+        period = (periodMS * DRV_TMR_CounterFrequencyGet(flir->timer.drvHandle))/1000;
         DRV_TMR_Alarm16BitRegister(flirData.timer.drvHandle, 
                                   period, 
                                   FLIR_TMR_DRV_IS_PERIODIC,
@@ -196,11 +196,14 @@ static bool FLIR_TimerSetup( FLIR_Data* flir, uint32_t periodMS )
 /*    See prototype in flir.h.                                                */
 /******************************************************************************/
 
-void FLIR_Initialize ( void )
+void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, SYS_MODULE_INDEX SPIIndex )
 {
     memset(&flirData,0,sizeof(flirData));
     /* Place the App state machine in its initial state.                      */
     flirData.state = FLIR_STATE_INIT;
+    flirData.timer.index = timerIndex;
+    flirData.i2c.index = I2CIndex;
+    flirData.spi.index = SPIIndex;
     flirData.timer.drvHandle = DRV_HANDLE_INVALID; 
     flirData.RXBuffer.size.max.b8 = BUFFER_SIZE_8;
     flirData.RXBuffer.size.max.b16 = BUFFER_SIZE_16;
@@ -233,6 +236,10 @@ void FLIR_Tasks ( void )
                 flirData.state = FLIR_OPEN_TIMER;
                 break;
             }
+            if(!flirData.status.timerRunning)
+            {
+                flirData.state = FLIR_START_TIMER;
+            }
             if(!flirData.status.SPIConfigured)
             {
                 flirData.state = FLIR_OPEN_SPI_PORT;
@@ -247,6 +254,12 @@ void FLIR_Tasks ( void )
             flirData.state = FLIR_STATE_INIT;
             break;            
         }
+        case FLIR_START_TIMER:
+        {
+            flirData.status.timerRunning = FLIR_TimerSetup(&flirData,FLIR_TIMER_PERIOD_MS);
+            flirData.state = FLIR_STATE_INIT;
+            break;
+        }            
         case FLIR_OPEN_SPI_PORT:
         {
             flirData.status.SPIConfigured = FLIR_OpenSPI(&flirData);
@@ -255,15 +268,8 @@ void FLIR_Tasks ( void )
         }
         case FLIR_START:
         {
-            if(!flirData.spi.status.running)
-            {
-                /* want to set a delay for the first image transmission*/
-                if(FLIR_TimerSetup())
-                {
-                    flirData.status.getImage = false;
-                    flirData.state = FLIR_STATE_SERVICE_TASKS;
-                }
-            }            
+            flirData.status.getImage = false;
+            flirData.state = FLIR_STATE_SERVICE_TASKS;
             if(flirData.state != FLIR_STATE_SERVICE_TASKS)
             {
                 break;

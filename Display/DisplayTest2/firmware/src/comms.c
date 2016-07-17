@@ -77,14 +77,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 */
 
 COMMS_DATA commsData;
-static uint8_t comms_tx_buf[] = "Hello World\r\n";
-static uint8_t comms_rx_buf[10];
-static enum 
-{
-    USART_BM_INIT,
-    USART_BM_WORKING,
-    USART_BM_DONE,
-} usartBMState;
+
 
 
 // *****************************************************************************
@@ -114,41 +107,40 @@ static enum
 */
 static void USART_Task (void)
 {
-    switch (usartBMState)
+    switch (commsData.uart.BMState)
     {
         default:
         case USART_BM_INIT:
         {
-            commsData.tx_count = 0;
-            commsData.rx_count = 0;
-            usartBMState = USART_BM_WORKING;
+            commsData.uart.tx.count = 0;
+            commsData.uart.rx.count = 0;
+            commsData.uart.BMState = USART_BM_WORKING;
             break;
         }
-
         case USART_BM_WORKING:
         {
-            if (commsData.tx_count < sizeof(comms_tx_buf)) 
+            if (commsData.uart.tx.count < sizeof(commsData.uart.tx.buffer)) 
             {
-                if(!DRV_USART_TransmitBufferIsFull(commsData.UARTHandle))
+                if(!DRV_USART_TransmitBufferIsFull(commsData.uart.handle))
                 {
-                    DRV_USART_WriteByte(commsData.UARTHandle, comms_tx_buf[commsData.tx_count]);
-                    commsData.tx_count++;
+                    DRV_USART_WriteByte(commsData.uart.handle, commsData.uart.tx.buffer[commsData.uart.tx.count]);
+                    commsData.uart.tx.count++;
                 }
             }
 
-            if (commsData.rx_count < sizeof(comms_rx_buf)) 
+            if (commsData.uart.rx.count < sizeof(commsData.uart.handle)) 
             {
-                if(!DRV_USART_ReceiverBufferIsEmpty(commsData.UARTHandle))
+                if(!DRV_USART_ReceiverBufferIsEmpty(commsData.uart.handle))
                 {
-                    comms_rx_buf[commsData.rx_count] = DRV_USART_ReadByte(commsData.UARTHandle);
-                    commsData.rx_count++;
+                    commsData.uart.rx.buffer[commsData.uart.rx.count] = DRV_USART_ReadByte(commsData.uart.handle);
+                    commsData.uart.rx.count++;
                 }
             }
 
             /* Have we finished? */
-            if (commsData.tx_count == sizeof(comms_tx_buf))// && commsData.rx_count == sizeof(comms_rx_buf))
+            if (commsData.uart.tx.count == sizeof(commsData.uart.tx.buffer))// && commsData.uart.rx.count == sizeof(commsData.uart.tx.buffer))
             {
-                usartBMState = USART_BM_DONE;
+                commsData.uart.BMState = USART_BM_DONE;
             }
             break;
         }
@@ -178,16 +170,13 @@ static void USART_Task (void)
     See prototype in comms.h.
  */
 
-void COMMS_Initialize ( void )
+void COMMS_Initialize ( SYS_MODULE_INDEX UARTIndex )
 {
+    memset(&commsData,0,sizeof(commsData));
     /* Place the App state machine in its initial state. */
     commsData.state = COMMS_STATE_INIT;
-
-    commsData.UARTHandle = DRV_HANDLE_INVALID;
-    
-    /* TODO: Initialize your application's state machine and other
-     * parameters.
-     */
+    commsData.uart.handle = DRV_HANDLE_INVALID;
+    commsData.uart.index = UARTIndex;
 }
 
 
@@ -210,17 +199,17 @@ void COMMS_Tasks ( void )
         {
             bool appInitialized = true;
        
-            if (commsData.UARTHandle == DRV_HANDLE_INVALID)
+            if (commsData.uart.handle == DRV_HANDLE_INVALID)
             {
-                commsData.UARTHandle = DRV_USART_Open(COMMS_DRV_USART, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
-                appInitialized &= ( DRV_HANDLE_INVALID != commsData.UARTHandle );
+                commsData.uart.handle = DRV_USART_Open(commsData.uart.index, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
+                appInitialized &= ( DRV_HANDLE_INVALID != commsData.uart.handle );
             }
         
             if (appInitialized)
             {
                 /* initialize the USART state machine */
-                usartBMState = USART_BM_INIT;
-            
+                commsData.uart.BMState = USART_BM_INIT;
+                strcpy(commsData.uart.tx.buffer,TX_MESSAGE);
                 commsData.state = COMMS_STATE_SERVICE_TASKS;
             }
             break;
@@ -228,15 +217,10 @@ void COMMS_Tasks ( void )
 
         case COMMS_STATE_SERVICE_TASKS:
         {
-			USART_Task();
-        
+			USART_Task();        
             break;
         }
 
-        /* TODO: implement your application state machine.*/
-        
-
-        /* The default state should never be executed. */
         default:
         {
             /* TODO: Handle error in application's state machine. */

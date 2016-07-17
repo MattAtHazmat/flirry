@@ -77,11 +77,6 @@ void IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
-    
-void IntHandlerDrvTmrInstance1(void)
-{
-    DRV_TMR_Tasks(sysObj.drvTmr1);
-}
   
 void IntHandlerSPIRxInstance0(void)
 {
@@ -95,7 +90,33 @@ void IntHandlerSPIFaultInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
+
+
+     
+void IntHandlerDrvI2CMasterInstance0(void)
+{
+    DRV_I2C_Tasks(sysObj.drvI2C0);
+}
+      
+
+void IntHandlerDrvI2CErrorInstance0(void) 
+{
+    SYS_ASSERT(false, "I2C Driver Instance 0 Error");
+}
+    
+     
+   
+  
+   
+   
+   
+  
  
+
+  
+  
+  
+  
 /*******************************************************************************
  End of File
 */

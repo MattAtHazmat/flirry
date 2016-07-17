@@ -67,6 +67,10 @@ extern "C" {
 #endif
 // DOM-IGNORE-END 
 
+#define UART_BUFFER_SIZE    (32)
+#define TX_UART_BUFFER_SIZE UART_BUFFER_SIZE
+#define RX_UART_BUFFER_SIZE UART_BUFFER_SIZE
+    
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -94,6 +98,12 @@ typedef enum
 
 } COMMS_STATES;
 
+typedef enum 
+{
+    USART_BM_INIT =0,
+    USART_BM_WORKING,
+    USART_BM_DONE,
+} UART_BM_STATE_TYPE;
 
 // *****************************************************************************
 /* Application Data
@@ -110,14 +120,20 @@ typedef enum
 
 typedef struct
 {
-    /* The application's current state */
     COMMS_STATES state;
-
-    /* TODO: Define any additional data used by the application. */
-    DRV_HANDLE UARTHandle;
-	int tx_count;
-	int rx_count;
-
+    struct {
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE handle;
+        UART_BM_STATE_TYPE BMState;
+        struct {
+           uint8_t  buffer[TX_UART_BUFFER_SIZE];
+           int count;
+        }tx;
+        struct {
+           uint8_t  buffer[RX_UART_BUFFER_SIZE];
+           int count;
+        }rx;
+    }uart;
 } COMMS_DATA;
 
 
@@ -166,7 +182,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-void COMMS_Initialize ( void );
+void COMMS_Initialize ( SYS_MODULE_INDEX UARTIndex );
 
 
 /*******************************************************************************

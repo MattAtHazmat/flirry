@@ -60,12 +60,15 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/tmr/sys_tmr.h"
 #include "driver/tmr/drv_tmr.h"
 #include "driver/pmp/drv_pmp.h"
-#include "driver/usart/drv_usart_static.h"
+#include "driver/usart/drv_usart.h"
+#include "driver/i2c/drv_i2c.h"
 #include "system/ports/sys_ports.h"
 #include "driver/spi/drv_spi.h"
 
 
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include "disp.h"
 #include "comms.h"
 #include "flir.h"
@@ -105,8 +108,8 @@ typedef struct
     SYS_MODULE_OBJ  sysDevcon;
     SYS_MODULE_OBJ  sysTmr;
     SYS_MODULE_OBJ  drvTmr0;
-    SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvUsart0;
+    SYS_MODULE_OBJ  drvI2C0;
     SYS_MODULE_OBJ  drvPMP0;
 
     /*** SPI Object for Index 0 ***/

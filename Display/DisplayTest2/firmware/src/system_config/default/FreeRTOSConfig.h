@@ -91,7 +91,7 @@
 #define configMINIMAL_STACK_SIZE                ( 128 )
 #define configISR_STACK_SIZE                    ( 400 )
 #define configTOTAL_HEAP_SIZE                   ( ( size_t ) 65535 )
-#define configMAX_TASK_NAME_LEN                 ( 64 )
+#define configMAX_TASK_NAME_LEN                 ( 16 )
 #define configUSE_16_BIT_TICKS                  0
 #define configIDLE_SHOULD_YIELD                 1
 #define configUSE_MUTEXES                       1

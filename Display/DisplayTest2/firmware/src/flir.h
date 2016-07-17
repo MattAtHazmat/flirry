@@ -81,6 +81,7 @@ typedef enum
 	FLIR_STATE_INIT=0,
     //FLIR_OPEN_I2C_PORT,
             FLIR_OPEN_TIMER,
+            FLIR_START_TIMER,
     FLIR_OPEN_SPI_PORT,
     FLIR_START,
 	FLIR_STATE_SERVICE_TASKS,
@@ -115,13 +116,16 @@ typedef enum
 typedef struct __attribute__((packed)) {
     FLIR_STATES state;
     struct {
+        SYS_MODULE_INDEX index;
         DRV_HANDLE drvHandle;
     } timer;
-    //struct {
-    //    DRV_HANDLE drvHandle;
-    //    DRV_I2C_BUFFER_HANDLE bufferHandle;        
-    //} i2c;
     struct {
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE drvHandle;
+        DRV_I2C_BUFFER_HANDLE bufferHandle;        
+    } i2c;
+    struct {
+        SYS_MODULE_INDEX index;
         DRV_HANDLE drvHandle;
         DRV_SPI_BUFFER_HANDLE bufferHandle;
         struct{
@@ -234,7 +238,7 @@ typedef struct __attribute__((packed)) {
     This routine must be called from the SYS_Initialize function.
 */
 
-void FLIR_Initialize ( void );
+void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, SYS_MODULE_INDEX SPIIndex );
 
 
 /*******************************************************************************
