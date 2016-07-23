@@ -214,9 +214,9 @@ bool DISP_InitializePMP(DISP_DATA* disp)
             for(x=0;x<disp->displayInfo.columns.value;x++)
             {
                 disp->display[0][y][x].w = 0;
-                disp->display[0][y][x].blue = intensity;
+                //disp->display[0][y][x].blue = intensity;
                 disp->display[1][y][x].w = 0;
-                disp->display[1][y][x].green = intensity;           
+                //disp->display[1][y][x].green = intensity;           
             }
         }
         dispData.status.displayArrayFilled = true;

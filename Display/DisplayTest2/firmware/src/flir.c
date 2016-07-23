@@ -86,21 +86,19 @@ extern DISP_DATA dispData;
 
 inline bool FLIR_ImageTimerTriggered(FLIR_DATA *flir)
 {
-    bool complete;
+    bool complete=false;
     __builtin_disable_interrupts();
-    complete = flir->status.flags.getImage;
+    if(flir->status.flags.getImage)
+    {
+        flir->status.flags.getImage = false;
+        complete=true;
+    }
     __builtin_enable_interrupts();
     return complete;
 }
 
 /******************************************************************************/
 
-inline void FLIR_ImageTimerReset(FLIR_DATA *flir)
-{
-    __builtin_disable_interrupts();
-    flir->status.flags.getImage = false;
-    __builtin_enable_interrupts();
-}
 
 /******************************************************************************/
 /******************************************************************************/
@@ -178,7 +176,11 @@ static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS )
                                   FLIR_TMR_DRV_IS_PERIODIC,
                                   (uintptr_t)NULL, 
                                   FLIR_TimerCallback);
-        flirData.status.flags.timerRunning = DRV_TMR_Start(flirData.timer.drvHandle);        
+        flirData.status.flags.timerRunning = DRV_TMR_Start(flirData.timer.drvHandle);    
+        if(flirData.status.flags.timerRunning)
+        {
+            flirData.status.flags.getImage = false;
+        }
     }
     return flirData.status.flags.timerRunning;
 }
@@ -270,7 +272,6 @@ void FLIR_Tasks ( void )
         }
         case FLIR_START:
         {
-            flirData.status.flags.getImage = false;
             flirData.state = FLIR_STATE_WAIT_TO_GET_IMAGE;
             if(flirData.state != FLIR_STATE_WAIT_TO_GET_IMAGE)
             {
@@ -290,7 +291,6 @@ void FLIR_Tasks ( void )
         {
             flirData.status.flags.imageStarted = false;
             flirData.counters.imagesStarted++;
-            flirData.counters.discarded = 0;
             flirData.status.lastLine = -1;
             flirData.state = FLIR_STATE_START_GET_LINE;
         }
@@ -327,19 +327,9 @@ void FLIR_Tasks ( void )
                         if(flirData.VoSPI.ID.line == 0)
                         {                            
                             flirData.status.flags.imageStarted = true;
-                        }  
-                        if((flirData.status.flags.imageStarted)&&(flirData.VoSPI.ID.line == 1 ))
-                        {
-                            /* reset the image timer flag when we get the 2nd */
-                            /* line */
-                            FLIR_ImageTimerReset(&flirData);
                         }
                     }
-                }
-                else
-                {
-                    flirData.counters.discarded++;                      
-                }
+                }                
                 /* get the next line */
                 flirData.state = FLIR_STATE_START_GET_LINE;
             }            
@@ -351,7 +341,7 @@ void FLIR_Tasks ( void )
             {
                 FLIR_CopyImage(&flirData);            
                 flirData.status.flags.imageCopied = true;
-                flirData.state = FLIR_STATE_START_READING_IMAGE;
+                flirData.state = FLIR_STATE_WAIT_TO_GET_IMAGE;
             }
             break;            
         }        
@@ -379,24 +369,22 @@ inline bool FLIR_DiscardLine(FLIR_DATA *flir)
 bool FLIR_CopyImage(FLIR_DATA *flir)
 {
     int32_t x,y;
-    //flir->status.flags.imageReady = true;
-    flir->counters.imagesTransmitted++;
+    flir->counters.imagesCopied++;
     for (x=0;x<flir->image.properties.dimensions.horizontal;x++)
     {
         for (y=0;y<flir->image.properties.dimensions.vertical;y++)
         {
-            dispData.display[dispData.displayInfo.buffer.filling][y][x].green = 
-                flir->image.buffer.pixel[y][x]&0xFF;
+            dispData.display[dispData.displayInfo.buffer.filling][y][x].w = 0;
+            if(dispData.displayInfo.buffer.filling)
+            {
+                dispData.display[dispData.displayInfo.buffer.filling][y][x].green = (flir->image.buffer.pixel[y][x])&0xFF;
+            }
+            else
+            {
+                dispData.display[dispData.displayInfo.buffer.filling][y][x+1].red = (flir->image.buffer.pixel[y][x])&0xFF;
+            }
         }
     }
-//    if(dispData.displayInfo.buffer.filling == 0)
-//    {
-//        Nop();
-//    }
-//    else
-//    {
-//        Nop();
-//    }
     BSP_LEDToggle(BSP_LED_3);
     return true;
 }
@@ -405,12 +393,7 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
 
 bool FLIR_PopulateLine(FLIR_DATA *flir)
 {
-    if(flir->VoSPI.ID.discard == DISCARD)
-    {
-        return false;
-    }
-    if((flir->VoSPI.ID.line>flir->status.lastLine) &&
-       (flir->VoSPI.ID.line < flir->image.properties.dimensions.vertical))
+    if((flir->VoSPI.ID.line < flir->image.properties.dimensions.vertical))
     {
         memcpy(&(flir->image.buffer.pixel[flir->VoSPI.ID.line][0]),
                flir->VoSPI.payload.b8,
@@ -515,23 +498,29 @@ bool FLIR_GetVoSPI(FLIR_DATA *flir)
 {
     if(FLIR_CheckSPIReadDone(flir))
     {
-        uint8_t temp;
         uint32_t byteIndex;
-        if((flir->RXBuffer.b8[0]&0x0F)==DISCARD)
+        /* fix the endianness on the first word to do a bit of decoding.      */
+        flir->VoSPI.b8[1]=flir->RXBuffer.b8[0];
+        flir->VoSPI.b8[0]=flir->RXBuffer.b8[1];
+        if(DISCARD == flir->VoSPI.ID.discard)
         {
-            /* don't worry about copying/correcting the endianness, just do
-             * the first 2 bytes and return  */
-            flir->VoSPI.ID.discard = DISCARD;            
+            flir->counters.discardLine++;
+            /* it will be discarded once we return*/            
+        } 
+        else if(flir->VoSPI.ID.line == flir->status.lastLine)
+        {
+            /* this will also be discarded, since it is the same as a line    */
+            /*  already received. Force it by setting the ID to DISCARD.      */
+            flir->VoSPI.ID.discard = DISCARD;    
+            flir->counters.duplicateLine++;            
         }
         else
         {
-            memcpy((void*)flir->VoSPI.b8,(void*)flir->RXBuffer.b8,sizeof(VOSPI_TYPE));                
-            /* fix endianness */        
-            for (byteIndex = 0;byteIndex<sizeof(VOSPI_TYPE);byteIndex=byteIndex+2)
+            /* copy the rest, fixing the endianness */        
+            for (byteIndex = 2;byteIndex<sizeof(VOSPI_TYPE);byteIndex=byteIndex+2)
             {
-                temp = flir->VoSPI.b8[byteIndex];
-                flir->VoSPI.b8[byteIndex] = flir->VoSPI.b8[byteIndex+1];
-                flir->VoSPI.b8[byteIndex+1] = temp;
+                flir->VoSPI.b8[byteIndex]   = flir->RXBuffer.b8[byteIndex+1];
+                flir->VoSPI.b8[byteIndex+1] = flir->RXBuffer.b8[byteIndex];
             }
         }
         return true;
@@ -539,6 +528,7 @@ bool FLIR_GetVoSPI(FLIR_DATA *flir)
     return false;
 }
 
+/******************************************************************************/
 
 bool FLIR_StartGetVoSPI(FLIR_DATA *flir)
 {

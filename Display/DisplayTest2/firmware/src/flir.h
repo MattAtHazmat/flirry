@@ -165,8 +165,9 @@ typedef struct __attribute__((packed)) {
     FLIR_IMAGE_TYPE image;
     struct {
         uint32_t imagesStarted;
-        uint32_t imagesTransmitted;
-        uint32_t discarded;
+        uint32_t imagesCopied;
+        uint32_t discardLine;
+        uint32_t duplicateLine;
         struct {
             uint32_t sendImageTimeout;
             uint32_t getLine;

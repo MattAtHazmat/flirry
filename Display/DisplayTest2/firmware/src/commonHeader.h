@@ -40,6 +40,7 @@ typedef uint16_t FLIR_PIXEL_TYPE;
 typedef union {
     FLIR_PIXEL_TYPE vector[HORIZONTAL_SIZE*VERTICAL_SIZE];
     FLIR_PIXEL_TYPE pixel[VERTICAL_SIZE][HORIZONTAL_SIZE];
+    uint8_t byte[HORIZONTAL_SIZE*VERTICAL_SIZE*sizeof(FLIR_PIXEL_TYPE)];
 } IMAGE_BUFFER_TYPE;
 
 /******************************************************************************/

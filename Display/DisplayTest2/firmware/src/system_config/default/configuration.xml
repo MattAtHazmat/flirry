@@ -391,6 +391,7 @@
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>FBB92A49895337F04DAC8D92B591A166</Checksum>
+        <ProjectFileChecksum>410487826AD867C4215D48988C685A8B</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.c</Name>
@@ -403,7 +404,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>16AD513D8EA0E3BD06ACBF8142CA9BA3</Checksum>
+        <Checksum>3C3BBB02FDAF838A8C992244B8F2F058</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
