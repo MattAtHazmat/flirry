@@ -77,7 +77,17 @@ void IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
-  
+    
+void IntHandlerDrvTmrInstance1(void)
+{
+    DRV_TMR_Tasks(sysObj.drvTmr1);
+}
+    
+void IntHandlerDrvTmrInstance2(void)
+{
+    DRV_TMR_Tasks(sysObj.drvTmr2);
+}
+ 
 void IntHandlerSPIRxInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);

@@ -69,7 +69,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
  
 static void _SYS_Tasks ( void );
 static void _DISP_Tasks(void);
-static void _COMMS_Tasks(void);
+//static void _COMMS_Tasks(void);
 static void _FLIR_Tasks(void);
 
 
@@ -100,9 +100,9 @@ void SYS_Tasks ( void )
                 1024, NULL, 1, NULL);
 
     /* Create OS Thread for COMMS Tasks. */
-    xTaskCreate((TaskFunction_t) _COMMS_Tasks,
-                "COMMS Tasks",
-                1024, NULL, 1, NULL);
+    //xTaskCreate((TaskFunction_t) _COMMS_Tasks,
+    //            "COMMS Tasks",
+    //            1024, NULL, 1, NULL);
 
     /* Create OS Thread for FLIR Tasks. */
     xTaskCreate((TaskFunction_t) _FLIR_Tasks,
@@ -133,9 +133,6 @@ static void _SYS_Tasks ( void)
     SYS_TMR_Tasks(sysObj.sysTmr);
 
         /* Maintain Device Drivers */
-    DRV_USART_TasksTransmit(sysObj.drvUsart0);
-    DRV_USART_TasksReceive(sysObj.drvUsart0);
-    DRV_USART_TasksError (sysObj.drvUsart0);
 
         /* Maintain Middleware */
 
@@ -171,14 +168,14 @@ static void _DISP_Tasks(void)
     Maintains state machine of COMMS.
 */
 
-static void _COMMS_Tasks(void)
-{
-    while(1)
-    {
-        COMMS_Tasks();
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-    }
-}
+//static void _COMMS_Tasks(void)
+//{
+//    while(1)
+//    {
+//        COMMS_Tasks();
+//        vTaskDelay(10 / portTICK_PERIOD_MS);
+//    }
+//}
 
 
 /*******************************************************************************

@@ -84,14 +84,12 @@ typedef enum
             FLIR_START_TIMER,
     FLIR_OPEN_SPI_PORT,
     FLIR_START,
-	FLIR_STATE_SERVICE_TASKS,
-    FLIR_STATE_START_IMAGE,
+	FLIR_STATE_WAIT_TO_GET_IMAGE,
+    FLIR_STATE_START_READING_IMAGE,
     FLIR_STATE_START_GET_LINE,
     FLIR_STATE_WAIT_FOR_LINE,
     FLIR_STATE_GET_LINE,
-    FLIR_STATE_WAIT_TO_TRANSMIT_IMAGE,
-    FLIR_STATE_TRANSMIT_IMAGE,
-    FLIR_STATE_COPY_IMAGE_WAIT,
+    FLIR_STATE_COPY_IMAGE,
     FLIR_ERROR,
 } FLIR_STATES;
 
@@ -152,31 +150,19 @@ typedef struct __attribute__((packed)) {
         }CRC;
     }RXBuffer;
     struct {
-        unsigned RTOSConfigured:1;
-        unsigned timerConfigured:1;
-        unsigned I2CConfigured:1;
-        unsigned timerRunning:1;
-        unsigned SPIConfigured:1;
-        //unsigned I2CRunning:1;        
-        //unsigned usingI2C:1;        
-        //unsigned SPIRunning:1;        
-        //unsigned usingSPI:1;
-        unsigned imageStarted:1;
-        unsigned transmittingFrame:1;
-        unsigned lineReady:1;
-        unsigned imageReady:1;
-        unsigned discardLimit:1;
-        unsigned restartFrame:1;
-        unsigned frameRestarted:1;
-        unsigned getImage:1;
-        unsigned getImageMissed:1;
+        struct {
+            unsigned timerConfigured:1;
+            unsigned SPIConfigured:1;
+            unsigned timerRunning:1;
+            unsigned imageStarted:1;
+            unsigned getImage:1;
+            unsigned getImageMissed:1;
+            unsigned imageCopied:1;
+        } flags;
+        int32_t lastLine;
     }status;
     VOSPI_TYPE VoSPI;
     FLIR_IMAGE_TYPE image;
-//    struct {
-//        TaskHandle_t myHandle;
-//        TaskHandle_t commsHandle;
-//    }RTOS;  
     struct {
         uint32_t imagesStarted;
         uint32_t imagesTransmitted;
@@ -276,10 +262,10 @@ void FLIR_Tasks( void );
 bool FLIR_OpenSPI(FLIR_DATA *flir);
 bool FLIR_GetVoSPI(FLIR_DATA *flir);
 bool FLIR_StartGetVoSPI(FLIR_DATA *flir);
-#define FLIR_SPISlaveSelect()       LATGCLR = 1<<9
-#define FLIR_SPISlaveDeselect()     LATGSET = 1<<9
+#define FLIR_SPISlaveSelect()       LATECLR = 1<<9
+#define FLIR_SPISlaveDeselect()     LATESET = 1<<9
 bool FLIR_PopulateLine(FLIR_DATA *flir);
-bool FLIR_TransmitImage(FLIR_DATA *flir);
+bool FLIR_CopyImage(FLIR_DATA *flir);
 inline bool FLIR_DiscardLine(FLIR_DATA *flir);
 bool FLIR_OpenTimer(FLIR_DATA *flir);
 static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS );

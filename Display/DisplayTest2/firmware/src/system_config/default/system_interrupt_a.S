@@ -69,6 +69,48 @@ IntVectorDrvTmrInstance0:
     .end	IntVectorDrvTmrInstance0
 
 
+/* TMR Instance 1 Interrupt */
+   .extern  IntHandlerDrvTmrInstance1
+
+   .section	.vector_14,code, keep
+   .equ     __vector_dispatch_14, IntVectorDrvTmrInstance1
+   .global  __vector_dispatch_14
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorDrvTmrInstance1
+
+IntVectorDrvTmrInstance1:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerDrvTmrInstance1
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorDrvTmrInstance1
+
+
+/* TMR Instance 2 Interrupt */
+   .extern  IntHandlerDrvTmrInstance2
+
+   .section	.vector_19,code, keep
+   .equ     __vector_dispatch_19, IntVectorDrvTmrInstance2
+   .global  __vector_dispatch_19
+   .set     nomicromips
+   .set     noreorder
+   .set     nomips16
+   .set     noat
+   .ent  IntVectorDrvTmrInstance2
+
+IntVectorDrvTmrInstance2:
+    portSAVE_CONTEXT
+    la    s6,  IntHandlerDrvTmrInstance2
+    jalr  s6
+    nop
+    portRESTORE_CONTEXT
+    .end	IntVectorDrvTmrInstance2
+
+
 
 
 /* SPI Instance 0 Interrupt */
@@ -137,9 +179,9 @@ IntVectorSPIFaultInstance0:
 
    .extern  IntHandlerDrvI2CMasterInstance0
 
-   .section	.vector_117,code, keep
-   .equ     __vector_dispatch_117, IntVectorDrvI2CMasterInstance0
-   .global  __vector_dispatch_117
+   .section	.vector_175,code, keep
+   .equ     __vector_dispatch_175, IntVectorDrvI2CMasterInstance0
+   .global  __vector_dispatch_175
    .set     nomicromips
    .set     noreorder
    .set     nomips16
@@ -157,9 +199,9 @@ IntVectorDrvI2CMasterInstance0:
 
    .extern  IntHandlerDrvI2CErrorInstance0
 
-   .section	.vector_115,code, keep
-   .equ     __vector_dispatch_115, IntVectorDrvI2CErrorInstance0
-   .global  __vector_dispatch_115
+   .section	.vector_173,code, keep
+   .equ     __vector_dispatch_173, IntVectorDrvI2CErrorInstance0
+   .global  __vector_dispatch_173
    .set     nomicromips
    .set     noreorder
    .set     nomips16

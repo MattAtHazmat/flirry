@@ -79,7 +79,7 @@ extern "C" {
 */
 #define SYS_CLK_FREQ                        200000000ul
 #define SYS_CLK_BUS_PERIPHERAL_1            100000000ul
-#define SYS_CLK_BUS_PERIPHERAL_2            25000000ul
+#define SYS_CLK_BUS_PERIPHERAL_2            100000000ul
 #define SYS_CLK_BUS_PERIPHERAL_3            100000000ul
 #define SYS_CLK_BUS_PERIPHERAL_4            100000000ul
 #define SYS_CLK_BUS_PERIPHERAL_5            100000000ul
@@ -105,7 +105,7 @@ extern "C" {
 #define SYS_PORT_B_TRIS         0xffdf
 #define SYS_PORT_B_LAT          0x0
 #define SYS_PORT_B_ODC          0x0
-#define SYS_PORT_B_CNPU         0x3000
+#define SYS_PORT_B_CNPU         0x7000
 #define SYS_PORT_B_CNPD         0x0
 #define SYS_PORT_B_CNEN         0x0
 
@@ -126,8 +126,8 @@ extern "C" {
 #define SYS_PORT_D_CNEN         0x0
 
 #define SYS_PORT_E_ANSEL        0x0
-#define SYS_PORT_E_TRIS         0x3ff
-#define SYS_PORT_E_LAT          0x0
+#define SYS_PORT_E_TRIS         0x1ff
+#define SYS_PORT_E_LAT          0x200
 #define SYS_PORT_E_ODC          0x0
 #define SYS_PORT_E_CNPU         0x0
 #define SYS_PORT_E_CNPD         0x0
@@ -175,6 +175,11 @@ extern "C" {
 #define SYS_TMR_INTERRUPT_NOTIFICATION  false
 
 
+/*** Debug System Service Configuration ***/
+#define SYS_DEBUG_ENABLE
+#define DEBUG_PRINT_BUFFER_SIZE       8192
+#define SYS_DEBUG_BUFFER_DMA_READY
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Driver Configuration
@@ -182,7 +187,7 @@ extern "C" {
 // *****************************************************************************
 /*** Timer Driver Configuration ***/
 #define DRV_TMR_INTERRUPT_MODE             true
-#define DRV_TMR_INSTANCES_NUMBER           1
+#define DRV_TMR_INSTANCES_NUMBER           3
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
@@ -198,72 +203,64 @@ extern "C" {
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX0     false
 #define DRV_TMR_POWER_STATE_IDX0            SYS_MODULE_POWER_RUN_FULL
 
+/*** Timer Driver 1 Configuration ***/
+#define DRV_TMR_PERIPHERAL_ID_IDX1          TMR_ID_3
+#define DRV_TMR_INTERRUPT_SOURCE_IDX1       INT_SOURCE_TIMER_3
+#define DRV_TMR_INTERRUPT_VECTOR_IDX1       INT_VECTOR_T3
+#define DRV_TMR_ISR_VECTOR_IDX1             _TIMER_3_VECTOR
+#define DRV_TMR_INTERRUPT_PRIORITY_IDX1     INT_PRIORITY_LEVEL1
+#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX1 INT_SUBPRIORITY_LEVEL0
+#define DRV_TMR_CLOCK_SOURCE_IDX1           DRV_TMR_CLKSOURCE_INTERNAL
+#define DRV_TMR_PRESCALE_IDX1               TMR_PRESCALE_VALUE_16
+#define DRV_TMR_OPERATION_MODE_IDX1         DRV_TMR_OPERATION_MODE_16_BIT
+#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX1     false
+#define DRV_TMR_POWER_STATE_IDX1            SYS_MODULE_POWER_RUN_FULL
+
+/*** Timer Driver 2 Configuration ***/
+#define DRV_TMR_PERIPHERAL_ID_IDX2          TMR_ID_4
+#define DRV_TMR_INTERRUPT_SOURCE_IDX2       INT_SOURCE_TIMER_4
+#define DRV_TMR_INTERRUPT_VECTOR_IDX2       INT_VECTOR_T4
+#define DRV_TMR_ISR_VECTOR_IDX2             _TIMER_4_VECTOR
+#define DRV_TMR_INTERRUPT_PRIORITY_IDX2     INT_PRIORITY_LEVEL1
+#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX2 INT_SUBPRIORITY_LEVEL0
+#define DRV_TMR_CLOCK_SOURCE_IDX2           DRV_TMR_CLKSOURCE_INTERNAL
+#define DRV_TMR_PRESCALE_IDX2               TMR_PRESCALE_VALUE_256
+#define DRV_TMR_OPERATION_MODE_IDX2         DRV_TMR_OPERATION_MODE_16_BIT
+#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX2     false
+#define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
+
  // *****************************************************************************
-/* USART Driver Configuration Options
-*/
-#define DRV_USART_INTERRUPT_MODE                    false
-
-#define DRV_USART_BYTE_MODEL_SUPPORT                true
-
-#define DRV_USART_READ_WRITE_MODEL_SUPPORT          false
-
-#define DRV_USART_BUFFER_QUEUE_SUPPORT              false
-
-#define DRV_USART_CLIENTS_NUMBER                    1
-#define DRV_USART_SUPPORT_TRANSMIT_DMA              false
-#define DRV_USART_SUPPORT_RECEIVE_DMA               false
-#define DRV_USART_INSTANCES_NUMBER                  1
-
-#define DRV_USART_PERIPHERAL_ID_IDX0                USART_ID_2
-#define DRV_USART_OPER_MODE_IDX0                    DRV_USART_OPERATION_MODE_NORMAL
-#define DRV_USART_OPER_MODE_DATA_IDX0               
-#define DRV_USART_INIT_FLAG_WAKE_ON_START_IDX0      false
-#define DRV_USART_INIT_FLAG_AUTO_BAUD_IDX0          false
-#define DRV_USART_INIT_FLAG_STOP_IN_IDLE_IDX0       true
-#define DRV_USART_INIT_FLAGS_IDX0                   4
-#define DRV_USART_BRG_CLOCK_IDX0                    25000000
-#define DRV_USART_BAUD_RATE_IDX0                    9600
-#define DRV_USART_LINE_CNTRL_IDX0                   DRV_USART_LINE_CONTROL_8NONE1
-#define DRV_USART_HANDSHAKE_MODE_IDX0               DRV_USART_HANDSHAKE_NONE
-#define DRV_USART_XMIT_INT_SRC_IDX0                 INT_SOURCE_USART_2_TRANSMIT
-#define DRV_USART_RCV_INT_SRC_IDX0                  INT_SOURCE_USART_2_RECEIVE
-#define DRV_USART_ERR_INT_SRC_IDX0                  INT_SOURCE_USART_2_ERROR
-
-
-#define DRV_USART_POWER_STATE_IDX0                  SYS_MODULE_POWER_RUN_FULL
-
-// *****************************************************************************
 /* I2C Driver Configuration Options
 */
 #define DRV_I2C_INTERRUPT_MODE                    		true
 #define DRV_I2C_CLIENTS_NUMBER                    		1
 #define DRV_I2C_INSTANCES_NUMBER                  		1
 
-#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_1
+#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_4
 #define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
-#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_A
-#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_14
-#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_A
-#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_15
+#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_G
+#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_8
+#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_G
+#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_7
 #define DRV_I2C_BIT_BANG_IDX0                           false
 #define DRV_I2C_STOP_IN_IDLE_IDX0                       false
 #define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
 #define DRV_I2C_BAUD_RATE_IDX0                    		50000
-#define DRV_I2C_BRG_CLOCK_IDX0	                  		25000000
+#define DRV_I2C_BRG_CLOCK_IDX0	                  		100000000
 #define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
-#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_1_MASTER
+#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_4_MASTER
 #define DRV_I2C_SLAVE_INT_SRC_IDX0                		
-#define DRV_I2C_ERR_MZ_INT_SRC_IDX0               		INT_SOURCE_I2C_1_BUS
-#define DRV_I2C_MASTER_INT_VECTOR_IDX0            		INT_VECTOR_I2C1_MASTER
-#define DRV_I2C_MASTER_ISR_VECTOR_IDX0                  _I2C1_MASTER_VECTOR
+#define DRV_I2C_ERR_MZ_INT_SRC_IDX0               		INT_SOURCE_I2C_4_BUS
+#define DRV_I2C_MASTER_INT_VECTOR_IDX0            		INT_VECTOR_I2C4_MASTER
+#define DRV_I2C_MASTER_ISR_VECTOR_IDX0                  _I2C4_MASTER_VECTOR
 #define DRV_I2C_MASTER_INT_PRIORITY_IDX0          		INT_PRIORITY_LEVEL1
 #define DRV_I2C_MASTER_INT_SUB_PRIORITY_IDX0      		INT_SUBPRIORITY_LEVEL0
-#define DRV_I2C_SLAVE_INT_VECTOR_IDX0             		INT_VECTOR_I2C1_SLAVE
-#define DRV_I2C_SLAVE_ISR_VECTOR_IDX0			  	    _I2C1_SLAVE_VECTOR
+#define DRV_I2C_SLAVE_INT_VECTOR_IDX0             		INT_VECTOR_I2C4_SLAVE
+#define DRV_I2C_SLAVE_ISR_VECTOR_IDX0			  	    _I2C4_SLAVE_VECTOR
 #define DRV_I2C_SLAVE_INT_PRIORITY_IDX0           		
 #define DRV_I2C_SLAVE_INT_SUB_PRIORITY_IDX0       		
-#define DRV_I2C_ERR_INT_VECTOR_IDX0               		INT_VECTOR_I2C1_BUS
-#define DRV_I2C_ERR_ISR_VECTOR_IDX0                     _I2C1_BUS_VECTOR
+#define DRV_I2C_ERR_INT_VECTOR_IDX0               		INT_VECTOR_I2C4_BUS
+#define DRV_I2C_ERR_ISR_VECTOR_IDX0                     _I2C4_BUS_VECTOR
 #define DRV_I2C_ERR_INT_PRIORITY_IDX0             		INT_PRIORITY_LEVEL1
 #define DRV_I2C_ERR_INT_SUB_PRIORITY_IDX0         		INT_SUBPRIORITY_LEVEL0
 #define DRV_I2C_POWER_STATE_IDX0                  		SYS_MODULE_POWER_RUN_FULL
@@ -332,6 +329,7 @@ extern "C" {
 #define BSP_OSC_FREQUENCY 24000000
 
 
+#define SYSTEM_TIMER_INSTANCE       DRV_TIMER_INDEX_0
 
 
 // *****************************************************************************
@@ -339,19 +337,23 @@ extern "C" {
 // Section: Application Configuration
 // *****************************************************************************
 // *****************************************************************************
-
+    
 /*** Application Instance 0 Configuration ***/
-//#define USE_SPRITES
-    
+#define APPLICATION_INSTANCE_0      DISP
+#define DISP_TIMER_INSTANCE         DRV_TMR_INDEX_1
+#define DISP_PMP_INSTANCE           DRV_PMP_INDEX_0
+#define DISP_DATA_SETUP_WAIT        PMP_DATA_WAIT_TWO
+#define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_4
+#define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_2
 /*** Application Instance 1 Configuration ***/
-#define TX_MESSAGE "Hello world.\r\n"
-
+    
 /*** Application Instance 2 Configuration ***/
-    
-#define FLIR_TMR_DRV                       3
-#define FLIR_TMR_DRV_IS_PERIODIC           true
-#define FLIR_TIMER_PERIOD_MS               (125) /* 125 ms for 8 Hz */
-    
+#define APPLICATION_INSTANCE_2      FLIR
+#define FLIR_TMR_DRV_IS_PERIODIC    true
+#define FLIR_TIMER_PERIOD_MS        (125) /* 125 ms for 8 Hz */
+#define FLIR_TIMER_INSTANCE         DRV_TMR_INDEX_2
+#define FLIR_I2C_INSTANCE           DRV_I2C_INDEX_0
+#define FLIR_SPI_INSTANCE           DRV_SPI_INDEX_1
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus
 }

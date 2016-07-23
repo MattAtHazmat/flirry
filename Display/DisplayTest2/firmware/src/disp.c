@@ -55,6 +55,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include "disp.h"
 #include "bsp_config.h"
+#include "flir.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -78,6 +79,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 */
 
 DISP_DATA dispData;
+extern FLIR_DATA flirData;
 
 // *****************************************************************************
 // *****************************************************************************
@@ -85,7 +87,7 @@ DISP_DATA dispData;
 // *****************************************************************************
 // *****************************************************************************
 
-void TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
+void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
     if(dispData.status.nextSlice==true)
     {
@@ -138,116 +140,113 @@ inline bool SendSlice(void)
 bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
                        SYS_MODULE_OBJ tmrModuleObj, SYS_MODULE_INDEX tmrIndex )
 {
-    DRV_PMP_MODE_CONFIG pmpConfig = {0};
-    uint32_t divider;
-    /* clear out the entire structure                                         */
     memset(&dispData,0,sizeof(dispData));
-    /* set up the timer driver                                                */
-    /* save the timer driver object and module index in the app's structure   */
     dispData.timer.moduleObject = tmrModuleObj;
     dispData.timer.index = tmrIndex;
-    if(DRV_TMR_Status(dispData.timer.moduleObject)!=SYS_STATUS_READY)
-    {
-        return false;
-    }
-    dispData.timer.driverHandle = DRV_TMR_Open(dispData.timer.index,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
-    if (DRV_TMR_ClientStatus(dispData.timer.driverHandle) != DRV_TMR_CLIENT_STATUS_READY)
-    {
-        return false;
-    }
-    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISPLAY_UPDATE*NUMBER_SLICES);    
-    if(!DRV_TMR_AlarmRegister(dispData.timer.driverHandle,divider,true,0,TimerAlarmCallback))
-    {
-        return false;
-    }
-    /* set up the parallel master port (PMP)                                  */
-    /* save the pmp driver object and module index in the app's structure     */
     dispData.pmp.moduleObject = pmpModuleObj;
     dispData.pmp.index = pmpIndex;
-    
-    dispData.pmp.driverHandle = DRV_PMP_Open(dispData.pmp.index,DRV_IO_INTENT_EXCLUSIVE| DRV_IO_INTENT_NONBLOCKING);
-    if(dispData.pmp.driverHandle == DRV_HANDLE_INVALID)
-    {
-        return false;
-    }
-    pmpConfig.pmpMode=  PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
-	/* Interrupt mode                                                         */
-    pmpConfig.intMode = PMP_INTERRUPT_NONE;
-	/* address/buffer increment mode                                          */
-    pmpConfig.incrementMode= PMP_ADDRESS_AUTO_INCREMENT;
-	/* Endian modes                                                           */
-    //pmpConfig.endianMode= LITTLE_ENDIAN;
-	/* Data Port Size                                                         */       
-    pmpConfig.portSize= PMP_DATA_SIZE_16_BITS;
-	/* Wait states                                                            */
-    pmpConfig.waitStates.dataWait = DATA_WAIT;
-    pmpConfig.waitStates.strobeWait = STROBE_WAIT;
-    pmpConfig.waitStates.dataHoldWait = DATA_HOLD_WAIT;
-    
-    /* PMP chip select pins selection                                         */
-	//pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-    pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
-	DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
-    PMCONbits.CSF = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-    PMAEN = 0x00000F00;//_PMAEN_PTEN14_MASK | 0xFFC;
-    /* Place the App state machine in its initial state.                      */
     dispData.state = DISP_STATE_INIT;
     dispData.displayInfo.rows.value = DISPLAY_ROWS;
     dispData.displayInfo.columns.value = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
     dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
     dispData.address = 0;
-    #ifdef USE_SPRITES
-    {
-        uint8_t sprite=0;
-        dispData.displayInfo.numberSprites = NUMBER_SPRITES;
-
-        for(sprite=0;sprite<dispData.displayInfo.numberSprites;sprite++)
-        {
-            dispData.sprite[sprite].position.row.value=sprite;
-            dispData.sprite[sprite].position.column.value=sprite;
-            dispData.sprite[sprite].color.red=0x7f;
-            dispData.sprite[sprite].color.blue=+sprite*10;
-        }
-
-        dispData.sprite[1].position.row.value=2;
-        dispData.sprite[1].position.column.value=2;
-        dispData.sprite[1].color.green=0x7f;
-        dispData.sprite[2].position.row.value=4;
-        dispData.sprite[2].position.column.value=4;
-        dispData.sprite[2].color.blue=0x7f;
-
-        //dispData.sprite[0].velocity.column.w =-(1<<8);
-        //dispData.sprite[0].velocity.row.w = 1<<8;
-        //dispData.sprite[1].velocity.row.w= 0b11<<7;
-        //dispData.sprite[2].velocity.row.w = 0b1<<4;
-        //dispData.sprite[2].velocity.column.w = 0b1<<7;
-        uint32_t index;
-        for(index=0;index<dispData.displayInfo.numberSprites;index++)
-        {
-            dispData.display[dispData.sprite[index].position.row.value]
-                            [dispData.sprite[index].position.column.value].w = 
-                                dispData.sprite[index].color.w;
-        }
-    }
-    #endif /* #ifdef USE_SPRITES */
-    {
-        int x,y;
-        for(y=0;y<dispData.displayInfo.rows.value;y++)
-        {
-            for(x=0;x<dispData.displayInfo.columns.value;x++)
-            {
-                dispData.display[y][x].w = 0;
-                dispData.display[y][x].green = 10;
-                
-            }
-        }
-    }
-    //ClearOE();
+    dispData.timer.driverHandle = DRV_HANDLE_INVALID;
+    dispData.pmp.driverHandle = DRV_HANDLE_INVALID;
+    dispData.displayInfo.buffer.displaying = 0;
+    dispData.displayInfo.buffer.filling = 1;
     ClearSTB();
     return true;
 }
 
+/******************************************************************************/
+
+bool DISP_InitializeTimer(DISP_DATA* disp)
+{
+    if(disp->timer.driverHandle == DRV_HANDLE_INVALID)
+    {    
+        disp->timer.driverHandle = DRV_TMR_Open(disp->timer.index,
+                                                DRV_IO_INTENT_EXCLUSIVE|
+                                                DRV_IO_INTENT_NONBLOCKING);
+    }        
+    return (disp->timer.driverHandle != DRV_HANDLE_INVALID);
+}
+
+/******************************************************************************/
+
+bool DISP_InitializePMP(DISP_DATA* disp)
+{
+    if(disp->pmp.driverHandle == DRV_HANDLE_INVALID)
+    {
+        DRV_PMP_MODE_CONFIG pmpConfig;
+        disp->pmp.driverHandle = DRV_PMP_Open(disp->pmp.index,
+                                              DRV_IO_INTENT_EXCLUSIVE|
+                                              DRV_IO_INTENT_NONBLOCKING);
+        //PLIB_PMP_Disable(disp->pmp.index);
+        //PLIB_PMP_WriteChipSelectXEnable(disp->pmp.index,PMP_CHIP_SELECT_TWO);
+        //PMCONbits.CSF = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
+        //PMAEN=0x00000F00;
+        //PMMODEbits.MODE = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
+        //PMMODEbits.INCM = 1;
+
+        pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
+        //pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
+        pmpConfig.endianMode=LITTLE; 
+        pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
+        pmpConfig.intMode = PMP_INTERRUPT_NONE;
+        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT; 
+        pmpConfig.portSize = PMP_DATA_SIZE_16_BITS;
+        pmpConfig.waitStates.dataHoldWait = DISP_DATA_HOLD_WAIT_STATES;
+        pmpConfig.waitStates.dataWait = DISP_DATA_SETUP_WAIT;
+        pmpConfig.waitStates.strobeWait = DISP_STROBE_WAIT_STATES;
+        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
+        DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
+        PLIB_PMP_AddressPortEnable(dispData.pmp.index, PMP_PMA8_PORT|PMP_PMA9_PORT|PMP_PMA10_PORT|PMP_PMA11_PORT);
+        PMCONbits.WRSP = true;       
+        PLIB_PMP_Enable(disp->pmp.index);
+    }
+    if(disp->pmp.driverHandle != DRV_HANDLE_INVALID)
+    {
+        int x,y;
+        uint8_t intensity=0x3f;
+        for(y=0;y<disp->displayInfo.rows.value;y++)
+        {
+            for(x=0;x<disp->displayInfo.columns.value;x++)
+            {
+                disp->display[0][y][x].w = 0;
+                disp->display[0][y][x].blue = intensity;
+                disp->display[1][y][x].w = 0;
+                disp->display[1][y][x].green = intensity;           
+            }
+        }
+        dispData.status.displayArrayFilled = true;
+    }
+    return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
+}
+
+/******************************************************************************/
+
+bool DISP_SetTimerAlarm(DISP_DATA* disp)
+{
+    uint32_t divider;
+    if(disp->timer.driverHandle == DRV_HANDLE_INVALID)
+    {    
+        return false;
+    }
+    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISPLAY_UPDATE*NUMBER_SLICES);
+    return DRV_TMR_AlarmRegister(disp->timer.driverHandle,
+                                divider,
+                                true,
+                                0,
+                                DISP_TimerAlarmCallback);    
+}
+
+/******************************************************************************/
+
+bool DISP_StartTimer(DISP_DATA* disp)
+{
+    return DRV_TMR_Start(disp->timer.driverHandle);
+}
 
 /******************************************************************************/
 /*  Function:                                                                 */
@@ -269,31 +268,59 @@ void DISP_Tasks ( void )
     {
         case DISP_STATE_INIT:
         {   
-            if(dispData.pmp.driverHandle == DRV_HANDLE_INVALID)
+            if(!dispData.status.timerInitialized)
             {
-                dispData.state = DISP_ERROR;
+                dispData.state = DISP_STATE_INITIALIZE_TIMER;
+                break;
             }
-            else if(!dispData.status.displayArrayFilled)
+            if(!dispData.status.timerAlarmSet)
             {
-                memset(dispData.display,0,sizeof(dispData.display));
-                dispData.status.displayArrayFilled = true;
-                dispData.state = DISP_FILL_FIRST_SLICE;
+                dispData.state = DISP_STATE_SET_TIMER_ALARM;
+                break;
             }
-            if(dispData.timer.driverHandle == DRV_HANDLE_INVALID)
+            if(!dispData.status.PMPInitialized)
             {
-                dispData.state = TIMER_ERROR;
+                dispData.state = DISP_STATE_INITIALIZE_PMP;
+                break;
             }
-            else
+            if(!dispData.status.timerStarted)
             {
-                /* start the timer                                            */
-                if(!dispData.status.timerStarted && DRV_TMR_Start(dispData.timer.driverHandle))
-                {
-                    dispData.status.timerStarted=true;
-                }
+                dispData.state = DISP_STATE_START_TIMER;
+                break;
             }
-            if(dispData.status.displayArrayFilled && dispData.status.timerStarted)
+            dispData.state = DISP_STATE_WAIT_FOR_IMAGE;
+            break;
+        }
+        // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
+        case DISP_STATE_INITIALIZE_TIMER:
+        {
+            dispData.status.timerInitialized = DISP_InitializeTimer(&dispData);
+            dispData.state = DISP_STATE_INIT;
+            break;
+        }
+        case DISP_STATE_INITIALIZE_PMP:
+        {
+            dispData.status.PMPInitialized = DISP_InitializePMP(&dispData);
+            dispData.state = DISP_STATE_INIT;
+            break;
+        }
+        case DISP_STATE_START_TIMER:
+        {
+            dispData.status.timerStarted = DISP_StartTimer(&dispData);
+            dispData.state = DISP_STATE_INIT;
+            break;
+        }
+        case DISP_STATE_SET_TIMER_ALARM:
+        {
+            dispData.status.timerAlarmSet = DISP_SetTimerAlarm(&dispData);
+            dispData.state = DISP_STATE_INIT;
+            break;
+        }// </editor-fold>
+        case DISP_STATE_WAIT_FOR_IMAGE:
+        {
+            if(dispData.status.displayArrayFilled)
             {
-                dispData.state = DISP_FILL_FIRST_SLICE;
+                dispData.state = DISP_FILL_FIRST_SLICE;                
             }
             break;
         }
@@ -309,58 +336,29 @@ void DISP_Tasks ( void )
         case DISP_WAIT_SEND_SLICE:
         {
             ClearSTB();
-            if(!SendSlice())
-            {         
-                #ifdef USE_SPRITES
-                uint8_t index;    
-                #endif
-                memset(dispData.display,0,sizeof(dispData.display));                
-                #ifdef USE_SPRITES
-                for(index=0;index<dispData.displayInfo.numberSprites;index++)
-                {
-                    // <editor-fold defaultstate="collapsed" desc="comment">
-                    //                                        dispData.sprite[index].position.row.w += dispData.sprite[index].velocity.row.w;
-                    //                                        if(dispData.sprite[index].position.row.value < 0)
-                    //                                        {
-                    //                                            dispData.sprite[index].position.row.w *= -1;
-                    //                                            dispData.sprite[index].velocity.row.w *= -1;
-                    //                                        }
-                    //                                        else if(((dispData.sprite[index].position.row.value))>=dispData.displayInfo.rows.value)
-                    //                                        {
-                    //                                            dispData.sprite[index].position.row.w -= (dispData.displayInfo.columns.w);
-                    //                                            dispData.sprite[index].velocity.row.w *= -1;
-                    //                                        }
-                    //                                        dispData.sprite[index].position.column.w += dispData.sprite[index].velocity.column.w;
-                    //                                        if(dispData.sprite[index].position.column.value<0)
-                    //                                        {
-                    //                                            dispData.sprite[index].position.column.w *= -1;
-                    //                                            dispData.sprite[index].velocity.column.w *= -1;
-                    //                                        }
-                    //                                        else if(((dispData.sprite[index].position.column.value))>= dispData.displayInfo.columns.value)
-                    //                                        {
-                    //                                            dispData.sprite[index].position.column.w -= (dispData.displayInfo.columns.w);
-                    //                                            dispData.sprite[index].velocity.column.w *= -1;
-                    //                                        }
-                    //                                        dispData.sprite[index].position.row.value &= dispData.displayInfo.rows.value -1;
-                    //                                        dispData.sprite[index].position.column.value &= dispData.displayInfo.columns.value-1;// </editor-fold>
-                    dispData.display[dispData.sprite[index].position.row.value]
-                                    [dispData.sprite[index].position.column.value].w = 
-                                        dispData.sprite[index].color.w;
-                }
-                #endif /* #ifdef USE_SPRITES */
+            dispData.state = DISP_WAIT_SEND_SLICE_NO_STROBE;
+        }
+        case DISP_WAIT_SEND_SLICE_NO_STROBE:
+        {
+            /* is a new image ready? */
+            if(SendSlice())
+            {
+                dispData.state = DISP_FIRST_SEND_SLICE;
+            }
+            else
+            {   /* not time to send the next display slice */
                 break;
-            }       
-            /* otherwise, drop through                                        */
+            }  
+            /* and drop through                                        */
         }
         case DISP_FIRST_SEND_SLICE:
         {
             PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address);
-            dispData.pmp.pQueue = DRV_PMP_Write(
-                &dispData.pmp.driverHandle,
-                0,
-                (uint32_t*)&dispData.sliceBuffer[dispData.status.bufferFilling],
-                ((DISPLAY_BUFFER_SIZE)*2), /* since it is in bytes*/
-                0);             
+            dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
+                                                0,
+                                                (uint32_t*)&dispData.sliceBuffer[dispData.status.bufferFilling],
+                                                sizeof(dispData.sliceBuffer[0]), 
+                                                0);             
             dispData.status.bufferFilling ^= 1; /* switch the filling buffer  */
             dispData.status.firstSliceSent = true;
             dispData.state = DISP_WAIT_FILL_NEXT_SLICE;
@@ -376,7 +374,7 @@ void DISP_Tasks ( void )
         case DISP_SENDING_SLICE:
         {
             if(DRV_PMP_TransferStatus(dispData.pmp.pQueue)==PMP_TRANSFER_FINISHED)
-            {          
+            {         
                 
                 dispData.state = DISP_DONE_SLICE;
             }
@@ -384,8 +382,19 @@ void DISP_Tasks ( void )
         }
         case DISP_DONE_SLICE:
         {
-            SetSTB();
-            
+            SetSTB();            
+            dispData.state = DISP_CHECK_FOR_NEW_IMAGE;
+            break;
+        }
+        case DISP_CHECK_FOR_NEW_IMAGE:
+        {
+            if(flirData.status.flags.imageCopied)
+            {
+                /* tell the future state that the latest image was copied */
+                flirData.status.flags.imageCopied = false;
+                dispData.displayInfo.buffer.displaying = dispData.displayInfo.buffer.filling;
+                dispData.displayInfo.buffer.filling ^= 1; 
+            }            
             dispData.state = DISP_WAIT_SEND_SLICE;
             break;
         }
@@ -405,91 +414,91 @@ void DISP_Tasks ( void )
  
 /******************************************************************************/
 
-void DISP_FillSlice(DISP_DATA *displayData)
+void DISP_FillSlice(DISP_DATA *disp)
 {
     uint32_t row;
     uint32_t column=0;   
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
     /* increment the slice.                                 */
-    if((displayData->slice) == (NUMBER_SLICES-1))
+    if((disp->slice) == (NUMBER_SLICES-1))
     {
         uint32_t tempLevel;
-        displayData->slice = 0;
+        disp->slice = 0;
         /* reached the last slice. time to increment the pwm reference        */
-        tempLevel = displayData->displayInfo.PWMLevel + displayData->displayInfo.PWMIncrement;
+        tempLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
         if(tempLevel>0xFF)
         {
-            displayData->displayInfo.PWMLevel = 0;
+            disp->displayInfo.PWMLevel = 0;
         }
         else
         {
-            displayData->displayInfo.PWMLevel = tempLevel;
+            disp->displayInfo.PWMLevel = tempLevel;
         }
     }
     else
     {
-        displayData->slice++;
+        disp->slice++;
     }
-    txColumn = displayData->displayInfo.columns.value;
+    txColumn = disp->displayInfo.columns.value;
     do {
         /* start filling in from the end, since the first data shifted in */
         /* will end up at the highest number column. */
         txColumn--;
-        row = displayData->slice;
+        row = disp->slice;
         displayPixel.w=0;
-        if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red0=true;            
         }
-        if(displayData->display[row][column].green>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
         {
             displayPixel.green0=true;
         }
-        if(displayData->display[row][column].blue>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
         {
             displayPixel.blue0=true;
         }
         row += NUMBER_SLICES;
-        if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red1 = true;
         }
-        if(displayData->display[row][column].green>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
         {
             displayPixel.green1 = true;
         }
-        if(displayData->display[row][column].blue>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
         {
             displayPixel.blue1 = true;
         }
         row += NUMBER_SLICES;
-        if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red2 = true;
         }
-        if(displayData->display[row][column].green>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
         {
             displayPixel.green2 = true;
         }
-        if(displayData->display[row][column].blue>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
         {
             displayPixel.blue2 = true;
         }
         row += NUMBER_SLICES;
-        if(displayData->display[row][column].red>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red3=true;
         }
-        if(displayData->display[row][column].green>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
         {
             displayPixel.green3=true;
         }
-        if(displayData->display[row][column].blue>(displayData->displayInfo.PWMLevel))
+        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
         {
             displayPixel.blue3=true;            
         }
-        displayData->sliceBuffer[displayData->status.bufferFilling].pixel[txColumn] = displayPixel;
+        disp->sliceBuffer[disp->status.bufferFilling].pixel[txColumn] = displayPixel;
         column++;
     } while (txColumn != 0); /* when it's zero, stop */
 }

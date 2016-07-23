@@ -59,8 +59,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define PWM_INCREMENT       (0x3F)
-#define DISPLAY_UPDATE      (300) /*Hz                                        */
+#define PWM_INCREMENT       (0x1F)
+#define DISPLAY_UPDATE      (480) /*Hz                                        */
 #define NUMBER_SLICES       (16)
 //#define NUMBER_SLICES_BITS  (4)
 #define DISPLAY_QUANTA      (32)
@@ -91,12 +91,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 //#define SetOE()             LATCSET = _LATC_LATC1_MASK 
 //#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
 //#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
-#ifdef USE_SPRITES
-#define NUMBER_SPRITES      (10)
-#endif
-#define DATA_WAIT           PMP_DATA_WAIT_FOUR
-#define STROBE_WAIT         PMP_STROBE_WAIT_10
-#define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
+
+//#define DATA_WAIT           PMP_DATA_WAIT_FOUR
+//#define STROBE_WAIT         PMP_STROBE_WAIT_10
+//#define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Type Definitions                                                  */
@@ -124,13 +122,20 @@ typedef enum
 {
 	/* Application's state machine's initial state.                              */
 	DISP_STATE_INIT=0,
+    DISP_STATE_INITIALIZE_TIMER,
+    DISP_STATE_INITIALIZE_PMP,
+    DISP_STATE_SET_TIMER_ALARM,
+    DISP_STATE_START_TIMER,
+    DISP_STATE_WAIT_FOR_IMAGE,
     DISP_FILL_FIRST_SLICE,
     DISP_FIRST_SEND_SLICE,
     DISP_SEND_ARRAY,
     DISP_WAIT_FILL_NEXT_SLICE,
     DISP_WAIT_SEND_SLICE,
+    DISP_WAIT_SEND_SLICE_NO_STROBE,
     DISP_SENDING_SLICE,
     DISP_DONE_SLICE,
+    DISP_CHECK_FOR_NEW_IMAGE,
     DISP_HALT,
     TIMER_ERROR,
     DISP_ERROR
@@ -194,29 +199,26 @@ typedef struct {
 
 typedef struct
 {
-    #ifdef USE_SPRITES
-        struct {
-            ROW_COLUMN_TYPE position;
-            ROW_COLUMN_TYPE velocity;
-            PIXEL_TYPE color;
-        } sprite[NUMBER_SPRITES];
-    #endif
     struct __attribute__ ((packed)) {
-        unsigned bufferFilling:1; 
-        unsigned nextSlice:1;
-        unsigned timerOverrun:1;
-        unsigned displayArrayFilled:1;
+        unsigned PMPInitialized:1;
+        unsigned timerInitialized:1;
         unsigned timerStarted:1;
-        unsigned firstSliceSent:1;    
-        unsigned readyForImage:1;
-        unsigned imageCopied:1;
+        unsigned timerAlarmSet:1;
+        unsigned timerOverrun:1;                
+        unsigned bufferFilling:1; 
+        unsigned nextSlice:1;        
+        unsigned displayArrayFilled:1;        
+        unsigned firstSliceSent:1; 
     }status;   
     struct {
         uint8_t PWMIncrement;
         uint8_t PWMLevel;
         int32_b_TYPE rows;
         int32_b_TYPE columns;
-        uint8_t numberSprites;
+        struct {
+            uint32_t displaying;
+            uint32_t filling;
+        }buffer;
     } displayInfo;
     union {
         struct {
@@ -242,7 +244,7 @@ typedef struct
         DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
         uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
     } sliceBuffer[2];    
-    PIXEL_TYPE display[DISPLAY_ROWS][DISPLAY_COLUMNS];    
+    PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
 } DISP_DATA;
 
 #define mBitClear(a,b)              (a ## CLR = 1<<b)

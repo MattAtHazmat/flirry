@@ -193,26 +193,25 @@ const DRV_TMR_INIT drvTmr0InitData =
     .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX0,
     .asyncWriteEnable = false,
 };
-// </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="DRV_USART Initialization Data">
-
-const DRV_USART_INIT drvUsart0InitData =
+const DRV_TMR_INIT drvTmr1InitData =
 {
-    .moduleInit.value = DRV_USART_POWER_STATE_IDX0,
-    .usartID = DRV_USART_PERIPHERAL_ID_IDX0, 
-    .mode = DRV_USART_OPER_MODE_IDX0,
-    .flags = DRV_USART_INIT_FLAGS_IDX0,
-    .brgClock = DRV_USART_BRG_CLOCK_IDX0,
-    .lineControl = DRV_USART_LINE_CNTRL_IDX0,
-    .baud = DRV_USART_BAUD_RATE_IDX0,
-    .handshake = DRV_USART_HANDSHAKE_MODE_IDX0,
-    .interruptTransmit = DRV_USART_XMIT_INT_SRC_IDX0,
-    .interruptReceive = DRV_USART_RCV_INT_SRC_IDX0,
-    .interruptError = DRV_USART_ERR_INT_SRC_IDX0,
-    .dmaChannelTransmit = DMA_CHANNEL_NONE,
-    .dmaInterruptTransmit = DRV_USART_XMIT_INT_SRC_IDX0,    
-    .dmaChannelReceive = DMA_CHANNEL_NONE,
-    .dmaInterruptReceive = DRV_USART_RCV_INT_SRC_IDX0,    
+    .moduleInit.sys.powerState = DRV_TMR_POWER_STATE_IDX1,
+    .tmrId = DRV_TMR_PERIPHERAL_ID_IDX1,
+    .clockSource = DRV_TMR_CLOCK_SOURCE_IDX1, 
+    .prescale = DRV_TMR_PRESCALE_IDX1,
+    .mode = DRV_TMR_OPERATION_MODE_16_BIT,
+    .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX1,
+    .asyncWriteEnable = false,
+};
+const DRV_TMR_INIT drvTmr2InitData =
+{
+    .moduleInit.sys.powerState = DRV_TMR_POWER_STATE_IDX2,
+    .tmrId = DRV_TMR_PERIPHERAL_ID_IDX2,
+    .clockSource = DRV_TMR_CLOCK_SOURCE_IDX2, 
+    .prescale = DRV_TMR_PRESCALE_IDX2,
+    .mode = DRV_TMR_OPERATION_MODE_IDX2,
+    .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX2,
+    .asyncWriteEnable = false,
 };
 // </editor-fold>
 
@@ -230,6 +229,15 @@ SYSTEM_OBJECTS sysObj;
 // Section: Module Initialization Data
 // *****************************************************************************
 // *****************************************************************************
+// <editor-fold defaultstate="collapsed" desc="SYS_DEBUG Initialization Data">
+/*** System Debug Initialization Data ***/
+
+SYS_DEBUG_INIT debugInit =
+{
+    .moduleInit = {0},
+    .errorLevel = SYS_ERROR_DEBUG
+};
+// </editor-fold>
 //<editor-fold defaultstate="collapsed" desc="SYS_DEVCON Initialization Data">
 /*******************************************************************************
   Device Control System Service Initialization Data
@@ -295,10 +303,10 @@ void SYS_Initialize ( void* data )
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
 
 
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C1_MASTER, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C1_MASTER, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C1_BUS, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C1_BUS, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_MASTER, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_MASTER, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_BUS, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
 
 
     sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
@@ -313,15 +321,23 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX0);
     sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
 
-    sysObj.drvTmr0 = DRV_TMR_Initialize (DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
+    sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
+    sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
+    sysObj.drvTmr2 = DRV_TMR_Initialize(DRV_TMR_INDEX_2, (SYS_MODULE_INIT *)&drvTmr2InitData);
 
     SYS_INT_VectorPrioritySet(INT_VECTOR_T2, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T2, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T3, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T3, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T4, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T4, INT_SUBPRIORITY_LEVEL0);
  
  
-     sysObj.drvUsart0 = DRV_USART_Initialize(DRV_USART_INDEX_0, (SYS_MODULE_INIT *)&drvUsart0InitData);
 
     /* Initialize System Services                                             */
+
+    /*** Debug Service Initialization Code ***/
+    sysObj.sysDebug = SYS_DEBUG_Initialize(SYS_DEBUG_INDEX_0, (SYS_MODULE_INIT*)&debugInit);
 
     /*** Interrupt Service Initialization Code ***/
     SYS_INT_Initialize();
@@ -333,9 +349,9 @@ void SYS_Initialize ( void* data )
     
     
     /* Initialize the Application                                             */
-    DISP_Initialize(sysObj.drvPMP0,DRV_PMP_INDEX_0,sysObj.drvTmr0,DRV_TMR_INDEX_0);
-    COMMS_Initialize(DRV_USART_INDEX_0);
-    FLIR_Initialize(DRV_TMR_INDEX_1,DRV_I2C_INDEX_0,DRV_SPI_INDEX_0);
+    DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,sysObj.drvTmr0,DISP_TIMER_INSTANCE);
+    //COMMS_Initialize(COMMS_USART_INSTANCE);
+    FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_I2C_INSTANCE,FLIR_SPI_INSTANCE);
 }
 
 

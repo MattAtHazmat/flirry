@@ -33,10 +33,6 @@
         <Path>Header Files/framework/driver/pmp/config</Path>
       </File>
       <File>
-        <Name>drv_usart_byte_model.c</Name>
-        <Path>Source Files/framework/driver/usart/src/dynamic</Path>
-      </File>
-      <File>
         <Name>sys_tmr.c</Name>
         <Path>Source Files/framework/system/tmr/src</Path>
       </File>
@@ -117,10 +113,6 @@
         <Path>Header Files/framework/system</Path>
       </File>
       <File>
-        <Name>drv_usart.h</Name>
-        <Path>Header Files/framework/driver/usart</Path>
-      </File>
-      <File>
         <Name>drv_i2c.h</Name>
         <Path>Header Files/framework/driver/i2c</Path>
       </File>
@@ -197,10 +189,6 @@
         <Path>Source Files/framework/driver/pmp/src/dynamic</Path>
       </File>
       <File>
-        <Name>drv_usart_local.h</Name>
-        <Path>Header Files/framework/driver/usart/src</Path>
-      </File>
-      <File>
         <Name>osal_freertos.c</Name>
         <Path>Source Files/framework/osal/src</Path>
       </File>
@@ -233,12 +221,12 @@
         <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
-        <Name>drv_usart.c</Name>
-        <Path>Source Files/framework/driver/usart/src/dynamic</Path>
-      </File>
-      <File>
         <Name>croutine.h</Name>
         <Path>Header Files/FreeRTOS</Path>
+      </File>
+      <File>
+        <Name>sys_debug_local.h</Name>
+        <Path>Header Files/framework/system/debug/src</Path>
       </File>
       <File>
         <Name>drv_i2c_compatibility.h</Name>
@@ -305,12 +293,12 @@
         <Path>Source Files/FreeRTOS/portable/MPLAB/PIC32MZ</Path>
       </File>
       <File>
-        <Name>sys_debug.h</Name>
-        <Path>Header Files/framework/system/debug</Path>
+        <Name>sys_debug.c</Name>
+        <Path>Source Files/framework/system/debug/src</Path>
       </File>
       <File>
-        <Name>drv_usart_variant_mapping.h</Name>
-        <Path>Header Files/framework/driver/usart/src</Path>
+        <Name>sys_debug.h</Name>
+        <Path>Header Files/framework/system/debug</Path>
       </File>
       <File>
         <Name>drv_i2c_mapping.h</Name>
@@ -349,39 +337,35 @@
       <Template>
         <Name>comms.c</Name>
         <Path>Source Files/app</Path>
-        <Checksum>75DAB83F87EBA4F1AE8D46CA591577E7</Checksum>
-        <ProjectFileChecksum>1E5D5046F9DBEADE39BC677E31F5D808</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
-        <Checksum>8E3A1AE1649C0B88E8EA788C167CD5BF</Checksum>
+        <Checksum>1D506B308B12B37FAE570E031E7F5D70</Checksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>ADDED07CB3781C6BDC65A2FBF380376A</Checksum>
+        <Checksum>DF0447EE06A2CB79321BF4438799F6F9</Checksum>
         <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>main.c</Name>
         <Path>Source Files/app</Path>
-        <Checksum>81A51474D8A80D41AD749DEAE4C1A7A3</Checksum>
       </Template>
       <Template>
         <Name>system_interrupt_a.S</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>0E7D75303935CF3711C51ADA622EF651</Checksum>
+        <Checksum>135443701EE713A47EFE4E7D82377E46</Checksum>
       </Template>
       <Template>
         <Name>comms.h</Name>
         <Path>Header Files/app</Path>
-        <Checksum>315FF5E32686D06AFB0FB7F867CE2168</Checksum>
       </Template>
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>CB61CEA4AB3D4911EA5A0481B28B5C48</Checksum>
+        <Checksum>AAFF45915BC5FC3CB239F456D8232D07</Checksum>
         <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
       </Template>
       <Template>
@@ -392,8 +376,6 @@
       <Template>
         <Name>flir.c</Name>
         <Path>Source Files/app</Path>
-        <Checksum>3F4C7D2F2DB2DF1C0F745D36D4D24B21</Checksum>
-        <ProjectFileChecksum>325AA0D56E02F8B35C3C73B2541983BA</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_tasks.c</Name>
@@ -408,24 +390,20 @@
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>B3F78002FDEAB530F07632875D5C151D</Checksum>
+        <Checksum>FBB92A49895337F04DAC8D92B591A166</Checksum>
       </Template>
       <Template>
         <Name>disp.c</Name>
         <Path>Source Files/app</Path>
-        <Checksum>42E7A8AA2970B45A1C44A05E640906E4</Checksum>
-        <ProjectFileChecksum>FD1C58BB5CAB12D0B1CC126C12A96A66</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>flir.h</Name>
         <Path>Header Files/app</Path>
-        <Checksum>98D719F7C225F51CAB29373D7AD82CDD</Checksum>
-        <ProjectFileChecksum>CFCE8625F1E8C7C8041C86D4C3C436F3</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>3451EBAE219A017EA13FC180A37986A5</Checksum>
+        <Checksum>16AD513D8EA0E3BD06ACBF8142CA9BA3</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
@@ -436,7 +414,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>FC398C4A18FAB35F0779C70689389E5A</Checksum>
+        <Checksum>8272271FB9C70A69CB93B653BB9EB408</Checksum>
       </Template>
       <Template>
         <Name>rtos_hooks.c</Name>
@@ -451,13 +429,11 @@
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
-        <Checksum>AF47A52DB0BBCC745E33F47F4BB3748E</Checksum>
+        <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
       </Template>
       <Template>
         <Name>disp.h</Name>
         <Path>Header Files/app</Path>
-        <Checksum>3D6583DD48D76236C4A8A9502A100E9D</Checksum>
-        <ProjectFileChecksum>F31C3037144E361F0C4529364FD170BD</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_api.c</Name>

@@ -98,12 +98,12 @@ typedef enum
 
 } COMMS_STATES;
 
-typedef enum 
-{
-    USART_BM_INIT =0,
-    USART_BM_WORKING,
-    USART_BM_DONE,
-} UART_BM_STATE_TYPE;
+//typedef enum 
+//{
+//    USART_BM_INIT =0,
+//    USART_BM_WORKING,
+//    USART_BM_DONE,
+//} UART_BM_STATE_TYPE;
 
 // *****************************************************************************
 /* Application Data
@@ -121,19 +121,19 @@ typedef enum
 typedef struct
 {
     COMMS_STATES state;
-    struct {
-        SYS_MODULE_INDEX index;
-        DRV_HANDLE handle;
-        UART_BM_STATE_TYPE BMState;
-        struct {
-           uint8_t  buffer[TX_UART_BUFFER_SIZE];
-           int count;
-        }tx;
-        struct {
-           uint8_t  buffer[RX_UART_BUFFER_SIZE];
-           int count;
-        }rx;
-    }uart;
+//    struct {
+//        SYS_MODULE_INDEX index;
+//        DRV_HANDLE handle;
+//        UART_BM_STATE_TYPE BMState;
+//        struct {
+//           uint8_t  buffer[TX_UART_BUFFER_SIZE];
+//           int count;
+//        }tx;
+//        struct {
+//           uint8_t  buffer[RX_UART_BUFFER_SIZE];
+//           int count;
+//        }rx;
+//    }uart;
 } COMMS_DATA;
 
 

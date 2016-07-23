@@ -105,52 +105,52 @@ COMMS_DATA commsData;
     generated application modules.  Typically, the pipe is connected to the application's
     USART receive function, but could be any other Harmony module which supports the pipe interface. 
 */
-static void USART_Task (void)
-{
-    switch (commsData.uart.BMState)
-    {
-        default:
-        case USART_BM_INIT:
-        {
-            commsData.uart.tx.count = 0;
-            commsData.uart.rx.count = 0;
-            commsData.uart.BMState = USART_BM_WORKING;
-            break;
-        }
-        case USART_BM_WORKING:
-        {
-            if (commsData.uart.tx.count < sizeof(commsData.uart.tx.buffer)) 
-            {
-                if(!DRV_USART_TransmitBufferIsFull(commsData.uart.handle))
-                {
-                    DRV_USART_WriteByte(commsData.uart.handle, commsData.uart.tx.buffer[commsData.uart.tx.count]);
-                    commsData.uart.tx.count++;
-                }
-            }
-
-            if (commsData.uart.rx.count < sizeof(commsData.uart.handle)) 
-            {
-                if(!DRV_USART_ReceiverBufferIsEmpty(commsData.uart.handle))
-                {
-                    commsData.uart.rx.buffer[commsData.uart.rx.count] = DRV_USART_ReadByte(commsData.uart.handle);
-                    commsData.uart.rx.count++;
-                }
-            }
-
-            /* Have we finished? */
-            if (commsData.uart.tx.count == sizeof(commsData.uart.tx.buffer))// && commsData.uart.rx.count == sizeof(commsData.uart.tx.buffer))
-            {
-                commsData.uart.BMState = USART_BM_DONE;
-            }
-            break;
-        }
-
-        case USART_BM_DONE:
-        {
-            break;
-        }
-    }
-}
+//static void USART_Task (void)
+//{
+//    switch (commsData.uart.BMState)
+//    {
+//        default:
+//        case USART_BM_INIT:
+//        {
+//            commsData.uart.tx.count = 0;
+//            commsData.uart.rx.count = 0;
+//            commsData.uart.BMState = USART_BM_WORKING;
+//            break;
+//        }
+//        case USART_BM_WORKING:
+//        {
+//            if (commsData.uart.tx.count < sizeof(commsData.uart.tx.buffer)) 
+//            {
+//                if(!DRV_USART_TransmitBufferIsFull(commsData.uart.handle))
+//                {
+//                    DRV_USART_WriteByte(commsData.uart.handle, commsData.uart.tx.buffer[commsData.uart.tx.count]);
+//                    commsData.uart.tx.count++;
+//                }
+//            }
+//
+//            if (commsData.uart.rx.count < sizeof(commsData.uart.handle)) 
+//            {
+//                if(!DRV_USART_ReceiverBufferIsEmpty(commsData.uart.handle))
+//                {
+//                    commsData.uart.rx.buffer[commsData.uart.rx.count] = DRV_USART_ReadByte(commsData.uart.handle);
+//                    commsData.uart.rx.count++;
+//                }
+//            }
+//
+//            /* Have we finished? */
+//            if (commsData.uart.tx.count == sizeof(commsData.uart.tx.buffer))// && commsData.uart.rx.count == sizeof(commsData.uart.tx.buffer))
+//            {
+//                commsData.uart.BMState = USART_BM_DONE;
+//            }
+//            break;
+//        }
+//
+//        case USART_BM_DONE:
+//        {
+//            break;
+//        }
+//    }
+//}
 
 /* TODO:  Add any necessary local functions.
 */
@@ -175,8 +175,8 @@ void COMMS_Initialize ( SYS_MODULE_INDEX UARTIndex )
     memset(&commsData,0,sizeof(commsData));
     /* Place the App state machine in its initial state. */
     commsData.state = COMMS_STATE_INIT;
-    commsData.uart.handle = DRV_HANDLE_INVALID;
-    commsData.uart.index = UARTIndex;
+    //commsData.uart.handle = DRV_HANDLE_INVALID;
+    //commsData.uart.index = UARTIndex;
 }
 
 
@@ -199,17 +199,17 @@ void COMMS_Tasks ( void )
         {
             bool appInitialized = true;
        
-            if (commsData.uart.handle == DRV_HANDLE_INVALID)
-            {
-                commsData.uart.handle = DRV_USART_Open(commsData.uart.index, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
-                appInitialized &= ( DRV_HANDLE_INVALID != commsData.uart.handle );
-            }
+//            if (commsData.uart.handle == DRV_HANDLE_INVALID)
+//            {
+//                commsData.uart.handle = DRV_USART_Open(commsData.uart.index, DRV_IO_INTENT_READWRITE|DRV_IO_INTENT_NONBLOCKING);
+//                appInitialized &= ( DRV_HANDLE_INVALID != commsData.uart.handle );
+//            }
         
             if (appInitialized)
             {
                 /* initialize the USART state machine */
-                commsData.uart.BMState = USART_BM_INIT;
-                strcpy(commsData.uart.tx.buffer,TX_MESSAGE);
+                //commsData.uart.BMState = USART_BM_INIT;
+                //strcpy(commsData.uart.tx.buffer,TX_MESSAGE);
                 commsData.state = COMMS_STATE_SERVICE_TASKS;
             }
             break;
@@ -217,7 +217,7 @@ void COMMS_Tasks ( void )
 
         case COMMS_STATE_SERVICE_TASKS:
         {
-			USART_Task();        
+			//USART_Task();        
             break;
         }
 
