@@ -66,7 +66,7 @@ extern "C" {
 
 #endif
 // DOM-IGNORE-END 
-
+#define RESYNC_TIME         (190) /* ms */
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -80,16 +80,20 @@ typedef enum
 	/* Application's state machine's initial state. */
 	FLIR_STATE_INIT=0,
     //FLIR_OPEN_I2C_PORT,
-            FLIR_OPEN_TIMER,
-            FLIR_START_TIMER,
+    FLIR_OPEN_TIMER,
+    FLIR_START_TIMER,
+    FLIR_OPEN_I2C,
     FLIR_OPEN_SPI_PORT,
     FLIR_START,
-	FLIR_STATE_WAIT_TO_GET_IMAGE,
-    FLIR_STATE_START_READING_IMAGE,
+    FLIR_STATE_START_NEW_IMAGE,
     FLIR_STATE_START_GET_LINE,
     FLIR_STATE_WAIT_FOR_LINE,
     FLIR_STATE_GET_LINE,
     FLIR_STATE_COPY_IMAGE,
+    FLIR_STATE_START_RESYNC,
+    FLIR_STATE_RESYNC_WAIT,
+    FLIR_STATE_PULL_DUMMY_LINE,
+    FLIR_STATE_WAIT_FOR_DUMMY_LINE,
     FLIR_ERROR,
 } FLIR_STATES;
 
@@ -120,7 +124,10 @@ typedef struct __attribute__((packed)) {
     struct {
         SYS_MODULE_INDEX index;
         DRV_HANDLE drvHandle;
-        DRV_I2C_BUFFER_HANDLE bufferHandle;        
+        DRV_I2C_BUFFER_HANDLE bufferHandle;     
+        LEP_CAMERA_PORT_DESC_T_PTR pFlirPort;
+        LEP_CAMERA_PORT_DESC_T FlirPort;
+        uint8_t slaveAddress;
     } i2c;
     struct {
         SYS_MODULE_INDEX index;
@@ -144,20 +151,21 @@ typedef struct __attribute__((packed)) {
             BUFFER_SIZE_TYPE max;
             BUFFER_SIZE_TYPE transfer;
         }size;
-        struct {
-            uint16_t calculated;
-            uint16_t packet;
-        }CRC;
     }RXBuffer;
     struct {
         struct {
             unsigned timerConfigured:1;
             unsigned SPIConfigured:1;
+            unsigned I2CConfigured:1;
+            unsigned I2CConfigureAttempted:1;
             unsigned timerRunning:1;
-            unsigned imageStarted:1;
+            unsigned receivedFirstLine:1;
             unsigned getImage:1;
             unsigned getImageMissed:1;
             unsigned imageCopied:1;
+            unsigned mysteryLine:1;
+            unsigned resync:1;
+            unsigned resyncComplete:1;
         } flags;
         int32_t lastLine;
     }status;
@@ -168,15 +176,18 @@ typedef struct __attribute__((packed)) {
         uint32_t imagesCopied;
         uint32_t discardLine;
         uint32_t duplicateLine;
+        uint32_t getImage;
+        uint32_t resync;
         struct {
-            uint32_t sendImageTimeout;
             uint32_t getLine;
             uint32_t timerSetup;
             uint32_t getImageMissed;
             uint32_t readStart;
+            uint32_t SPIStart;
+            uint32_t SPIEnd;
+            uint32_t mysteryLine;
         }failure;
     }counters;
-    //uint32_t debug;
 } FLIR_DATA;
 
 
@@ -185,8 +196,6 @@ typedef struct __attribute__((packed)) {
 // Section: Application Callback Routines
 // *****************************************************************************
 // *****************************************************************************
-/* These routines are called by drivers when certain events occur.
-*/
 	
 // *****************************************************************************
 // *****************************************************************************
@@ -259,17 +268,19 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, S
  */
 
 void FLIR_Tasks( void );
-
+bool FLIR_OpenI2C(FLIR_DATA *flir);
 bool FLIR_OpenSPI(FLIR_DATA *flir);
 bool FLIR_GetVoSPI(FLIR_DATA *flir);
 bool FLIR_StartGetVoSPI(FLIR_DATA *flir);
 #define FLIR_SPISlaveSelect()       LATECLR = 1<<9
 #define FLIR_SPISlaveDeselect()     LATESET = 1<<9
-bool FLIR_PopulateLine(FLIR_DATA *flir);
+void FLIR_PopulateLine(FLIR_DATA *flir);
 bool FLIR_CopyImage(FLIR_DATA *flir);
-inline bool FLIR_DiscardLine(FLIR_DATA *flir);
+//inline bool FLIR_DiscardLine(FLIR_DATA *flir);
 bool FLIR_OpenTimer(FLIR_DATA *flir);
 static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS );
+static inline bool FLIR_ImageTimerTriggered(void);
+bool FLIR_CheckSPIReadDone(FLIR_DATA *flir);
 #endif /* _FLIR_H */
 
 //DOM-IGNORE-BEGIN

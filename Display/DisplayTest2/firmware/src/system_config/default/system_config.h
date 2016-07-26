@@ -58,6 +58,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     define this configuration.
 */
 #include "bsp_config.h"
+#include "LEPTON_SDK.h"
 #include "commonHeader.h"
 
 // DOM-IGNORE-BEGIN
@@ -94,7 +95,7 @@ extern "C" {
 /*** Ports System Service Configuration ***/
 
 #define SYS_PORT_A_ANSEL        0x0
-#define SYS_PORT_A_TRIS         0xc6ff
+#define SYS_PORT_A_TRIS         0xc67f
 #define SYS_PORT_A_LAT          0x0
 #define SYS_PORT_A_ODC          0x0
 #define SYS_PORT_A_CNPU         0x0
@@ -142,7 +143,7 @@ extern "C" {
 #define SYS_PORT_F_CNEN         0x0
 
 #define SYS_PORT_G_ANSEL        0x40
-#define SYS_PORT_G_TRIS         0xf3c3
+#define SYS_PORT_G_TRIS         0x33c3
 #define SYS_PORT_G_LAT          0x0
 #define SYS_PORT_G_ODC          0x0
 #define SYS_PORT_G_CNPU         0x0
@@ -174,11 +175,6 @@ extern "C" {
 #define SYS_TMR_CLIENT_TOLERANCE        10
 #define SYS_TMR_INTERRUPT_NOTIFICATION  false
 
-
-/*** Debug System Service Configuration ***/
-#define SYS_DEBUG_ENABLE
-#define DEBUG_PRINT_BUFFER_SIZE       8192
-#define SYS_DEBUG_BUFFER_DMA_READY
 
 // *****************************************************************************
 // *****************************************************************************
@@ -218,14 +214,14 @@ extern "C" {
 
 /*** Timer Driver 2 Configuration ***/
 #define DRV_TMR_PERIPHERAL_ID_IDX2          TMR_ID_4
-#define DRV_TMR_INTERRUPT_SOURCE_IDX2       INT_SOURCE_TIMER_4
-#define DRV_TMR_INTERRUPT_VECTOR_IDX2       INT_VECTOR_T4
-#define DRV_TMR_ISR_VECTOR_IDX2             _TIMER_4_VECTOR
+#define DRV_TMR_INTERRUPT_SOURCE_IDX2       INT_SOURCE_TIMER_5
+#define DRV_TMR_INTERRUPT_VECTOR_IDX2       INT_VECTOR_T5
+#define DRV_TMR_ISR_VECTOR_IDX2             _TIMER_5_VECTOR
 #define DRV_TMR_INTERRUPT_PRIORITY_IDX2     INT_PRIORITY_LEVEL1
 #define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX2 INT_SUBPRIORITY_LEVEL0
 #define DRV_TMR_CLOCK_SOURCE_IDX2           DRV_TMR_CLKSOURCE_INTERNAL
 #define DRV_TMR_PRESCALE_IDX2               TMR_PRESCALE_VALUE_256
-#define DRV_TMR_OPERATION_MODE_IDX2         DRV_TMR_OPERATION_MODE_16_BIT
+#define DRV_TMR_OPERATION_MODE_IDX2         DRV_TMR_OPERATION_MODE_32_BIT
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX2     false
 #define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
 
@@ -320,8 +316,6 @@ extern "C" {
 // Section: Middleware & Other Library Configuration
 // *****************************************************************************
 // *****************************************************************************
-/*** OSAL Configuration ***/
-#define OSAL_USE_RTOS          1
 
 // *****************************************************************************
 /* BSP Configuration Options
@@ -354,6 +348,7 @@ extern "C" {
 #define FLIR_TIMER_INSTANCE         DRV_TMR_INDEX_2
 #define FLIR_I2C_INSTANCE           DRV_I2C_INDEX_0
 #define FLIR_SPI_INSTANCE           DRV_SPI_INDEX_1
+#define FLIR_I2C_SPEED              (100000)
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus
 }

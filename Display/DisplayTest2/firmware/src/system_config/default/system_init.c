@@ -229,15 +229,6 @@ SYSTEM_OBJECTS sysObj;
 // Section: Module Initialization Data
 // *****************************************************************************
 // *****************************************************************************
-// <editor-fold defaultstate="collapsed" desc="SYS_DEBUG Initialization Data">
-/*** System Debug Initialization Data ***/
-
-SYS_DEBUG_INIT debugInit =
-{
-    .moduleInit = {0},
-    .errorLevel = SYS_ERROR_DEBUG
-};
-// </editor-fold>
 //<editor-fold defaultstate="collapsed" desc="SYS_DEVCON Initialization Data">
 /*******************************************************************************
   Device Control System Service Initialization Data
@@ -329,15 +320,12 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T2, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T3, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T3, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_T4, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_T4, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T5, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T5, INT_SUBPRIORITY_LEVEL0);
  
  
 
     /* Initialize System Services                                             */
-
-    /*** Debug Service Initialization Code ***/
-    sysObj.sysDebug = SYS_DEBUG_Initialize(SYS_DEBUG_INDEX_0, (SYS_MODULE_INIT*)&debugInit);
 
     /*** Interrupt Service Initialization Code ***/
     SYS_INT_Initialize();
@@ -347,6 +335,8 @@ void SYS_Initialize ( void* data )
   
     /* Initialize Middleware                                                  */
     
+    /* Enable Global Interrupts */
+    SYS_INT_Enable();
     
     /* Initialize the Application                                             */
     DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,sysObj.drvTmr0,DISP_TIMER_INSTANCE);

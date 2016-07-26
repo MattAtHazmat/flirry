@@ -73,43 +73,43 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
     
-void IntHandlerDrvTmrInstance0(void)
+void __ISR(_TIMER_2_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr0);
 }
     
-void IntHandlerDrvTmrInstance1(void)
+void __ISR(_TIMER_3_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance1(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr1);
 }
     
-void IntHandlerDrvTmrInstance2(void)
+void __ISR(_TIMER_5_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance2(void)
 {
     DRV_TMR_Tasks(sysObj.drvTmr2);
 }
  
-void IntHandlerSPIRxInstance0(void)
+void __ISR(_SPI1_RX_VECTOR, ipl1AUTO) _IntHandlerSPIRxInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
-void IntHandlerSPITxInstance0(void)
+void __ISR(_SPI1_TX_VECTOR, ipl1AUTO) _IntHandlerSPITxInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
-void IntHandlerSPIFaultInstance0(void)
+void __ISR(_SPI1_FAULT_VECTOR, ipl1AUTO) _IntHandlerSPIFaultInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
 
 
      
-void IntHandlerDrvI2CMasterInstance0(void)
+void __ISR(_I2C4_MASTER_VECTOR, ipl1AUTO) _IntHandlerDrvI2CMasterInstance0(void)
 {
     DRV_I2C_Tasks(sysObj.drvI2C0);
 }
       
 
-void IntHandlerDrvI2CErrorInstance0(void) 
+void __ISR(_I2C4_BUS_VECTOR, ipl1AUTO) _IntHandlerDrvI2CErrorInstance0(void)
 {
     SYS_ASSERT(false, "I2C Driver Instance 0 Error");
 }

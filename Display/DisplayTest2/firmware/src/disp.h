@@ -209,6 +209,7 @@ typedef struct
         unsigned nextSlice:1;        
         unsigned displayArrayFilled:1;        
         unsigned firstSliceSent:1; 
+        unsigned imageSent:1;
     }status;   
     struct {
         uint8_t PWMIncrement;
@@ -245,6 +246,15 @@ typedef struct
         uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
     } sliceBuffer[2];    
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
+    struct {
+        uint32_t sliceSend;
+        uint32_t imageCheck;
+        uint32_t imagesCopied;
+        uint32_t imageSentFlag;
+        //struct {
+        //    
+        //} failure;
+    } counters;
 } DISP_DATA;
 
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
@@ -329,7 +339,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE
 
 void DISP_Tasks( void );
 
-void DISP_FillSlice(DISP_DATA *displayData);
+bool DISP_FillSlice(DISP_DATA *displayData);
 
 #endif /* _DISP_H                                                             */
 

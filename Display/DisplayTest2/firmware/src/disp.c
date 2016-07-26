@@ -265,7 +265,8 @@ void DISP_Tasks ( void )
         DRV_PMP_Tasks(dispData.pmp.moduleObject);
     }
     switch ( dispData.state )
-    {
+    {        
+        // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
         case DISP_STATE_INIT:
         {   
             if(!dispData.status.timerInitialized)
@@ -291,7 +292,6 @@ void DISP_Tasks ( void )
             dispData.state = DISP_STATE_WAIT_FOR_IMAGE;
             break;
         }
-        // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
         case DISP_STATE_INITIALIZE_TIMER:
         {
             dispData.status.timerInitialized = DISP_InitializeTimer(&dispData);
@@ -334,8 +334,7 @@ void DISP_Tasks ( void )
             break;
         }        
         case DISP_WAIT_SEND_SLICE:
-        {
-            ClearSTB();
+        {            
             dispData.state = DISP_WAIT_SEND_SLICE_NO_STROBE;
         }
         case DISP_WAIT_SEND_SLICE_NO_STROBE:
@@ -367,15 +366,19 @@ void DISP_Tasks ( void )
         case DISP_WAIT_FILL_NEXT_SLICE:
         {
             /* fill up the next slice while the current is being sent */
-            DISP_FillSlice(&dispData);
+            dispData.status.imageSent = DISP_FillSlice(&dispData);
+            if(dispData.status.imageSent)
+            {
+                dispData.counters.imageSentFlag++;
+            }
             dispData.state = DISP_SENDING_SLICE;
+            dispData.counters.sliceSend++;
             break;
         }
         case DISP_SENDING_SLICE:
         {
             if(DRV_PMP_TransferStatus(dispData.pmp.pQueue)==PMP_TRANSFER_FINISHED)
             {         
-                
                 dispData.state = DISP_DONE_SLICE;
             }
             break;
@@ -388,13 +391,17 @@ void DISP_Tasks ( void )
         }
         case DISP_CHECK_FOR_NEW_IMAGE:
         {
-            if(flirData.status.flags.imageCopied)
+            dispData.counters.imageCheck++;
+            if(dispData.status.imageSent && flirData.status.flags.imageCopied)
             {
+                dispData.counters.imagesCopied++;
+                dispData.status.imageSent = false;
                 /* tell the future state that the latest image was copied */
                 flirData.status.flags.imageCopied = false;
                 dispData.displayInfo.buffer.displaying = dispData.displayInfo.buffer.filling;
                 dispData.displayInfo.buffer.filling ^= 1; 
             }            
+            ClearSTB();
             dispData.state = DISP_WAIT_SEND_SLICE;
             break;
         }
@@ -414,32 +421,33 @@ void DISP_Tasks ( void )
  
 /******************************************************************************/
 
-void DISP_FillSlice(DISP_DATA *disp)
+bool DISP_FillSlice(DISP_DATA *disp)
 {
+    bool returnValue=false;
     uint32_t row;
     uint32_t column=0;   
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
-    /* increment the slice.                                 */
-    if((disp->slice) == (NUMBER_SLICES-1))
-    {
-        uint32_t tempLevel;
-        disp->slice = 0;
-        /* reached the last slice. time to increment the pwm reference        */
-        tempLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
-        if(tempLevel>0xFF)
-        {
-            disp->displayInfo.PWMLevel = 0;
-        }
-        else
-        {
-            disp->displayInfo.PWMLevel = tempLevel;
-        }
-    }
-    else
-    {
-        disp->slice++;
-    }
+//    /* increment the slice.                                 */
+//    if((disp->slice) == (NUMBER_SLICES-1))
+//    {
+//        uint32_t tempLevel;
+//        disp->slice = 0;
+//        /* reached the last slice. time to increment the pwm reference        */
+//        tempLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
+//        if(tempLevel>0xFF)
+//        {
+//            disp->displayInfo.PWMLevel = 0;
+//        }
+//        else
+//        {
+//            disp->displayInfo.PWMLevel = tempLevel;
+//        }
+//    }
+//    else
+//    {
+//        disp->slice++;
+//    }
     txColumn = disp->displayInfo.columns.value;
     do {
         /* start filling in from the end, since the first data shifted in */
@@ -501,6 +509,28 @@ void DISP_FillSlice(DISP_DATA *disp)
         disp->sliceBuffer[disp->status.bufferFilling].pixel[txColumn] = displayPixel;
         column++;
     } while (txColumn != 0); /* when it's zero, stop */
+    /* increment the slice.                                 */
+    if((disp->slice) == (NUMBER_SLICES-1))
+    {
+        uint32_t tempLevel;
+        disp->slice = 0;
+        /* reached the last slice. time to increment the pwm reference        */
+        tempLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
+        if(tempLevel>0xFF)
+        {
+            disp->displayInfo.PWMLevel = 0;
+            returnValue = true;
+        }
+        else
+        {
+            disp->displayInfo.PWMLevel = tempLevel;
+        }
+    }
+    else
+    {
+        disp->slice++;
+    }
+    return returnValue;
 }
 
 /*******************************************************************************

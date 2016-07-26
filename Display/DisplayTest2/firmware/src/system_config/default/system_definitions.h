@@ -63,12 +63,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "driver/i2c/drv_i2c.h"
 #include "system/ports/sys_ports.h"
 #include "driver/spi/drv_spi.h"
-#include "system/debug/sys_debug.h"
 
 
 
-#include "FreeRTOS.h"
-#include "task.h"
 #include "disp.h"
 #include "comms.h"
 #include "flir.h"
@@ -110,10 +107,8 @@ typedef struct
     SYS_MODULE_OBJ  drvTmr0;
     SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvTmr2;
-    SYS_MODULE_OBJ  drvUsart0;
     SYS_MODULE_OBJ  drvI2C0;
     SYS_MODULE_OBJ  drvPMP0;
-    SYS_MODULE_OBJ  sysDebug;
 
     /*** SPI Object for Index 0 ***/
     SYS_MODULE_OBJ				spiObjectIdx0;

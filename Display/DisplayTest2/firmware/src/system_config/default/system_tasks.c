@@ -11,7 +11,7 @@
   Description:
     This file contains source code necessary to maintain system's polled state
     machines.  It implements the "SYS_Tasks" function that calls the individual
-    "Tasks" functions for all the MPLAB Harmony modules in the system.
+    "Tasks" functions for all polled MPLAB Harmony modules in the system.
 
   Remarks:
     This file requires access to the systemObjects global data structure that
@@ -45,7 +45,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
  *******************************************************************************/
 // DOM-IGNORE-END
 
-
 // *****************************************************************************
 // *****************************************************************************
 // Section: Included Files
@@ -57,20 +56,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "disp.h"
 #include "comms.h"
 #include "flir.h"
-
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Local Prototypes
-// *****************************************************************************
-// *****************************************************************************
-
-
- 
-static void _SYS_Tasks ( void );
-static void _DISP_Tasks(void);
-//static void _COMMS_Tasks(void);
-static void _FLIR_Tasks(void);
 
 
 // *****************************************************************************
@@ -89,110 +74,19 @@ static void _FLIR_Tasks(void);
 
 void SYS_Tasks ( void )
 {
-    /* Create OS Thread for Sys Tasks. */
-    xTaskCreate((TaskFunction_t) _SYS_Tasks,
-                "Sys Tasks",
-                1024, NULL, 1, NULL);
-
-    /* Create OS Thread for DISP Tasks. */
-    xTaskCreate((TaskFunction_t) _DISP_Tasks,
-                "DISP Tasks",
-                1024, NULL, 1, NULL);
-
-    /* Create OS Thread for COMMS Tasks. */
-    //xTaskCreate((TaskFunction_t) _COMMS_Tasks,
-    //            "COMMS Tasks",
-    //            1024, NULL, 1, NULL);
-
-    /* Create OS Thread for FLIR Tasks. */
-    xTaskCreate((TaskFunction_t) _FLIR_Tasks,
-                "FLIR Tasks",
-                1024, NULL, 1, NULL);
-
-    /**************
-     * Start RTOS * 
-     **************/
-    vTaskStartScheduler(); /* This function never returns. */
-}
-
-
-/*******************************************************************************
-  Function:
-    void _SYS_Tasks ( void )
-
-  Summary:
-    Maintains state machines of system modules.
-*/
-static void _SYS_Tasks ( void)
-{
-    while(1)
-    {
-        /* Maintain system services */
-        SYS_DEVCON_Tasks(sysObj.sysDevcon);
+    /* Maintain system services */
+    SYS_DEVCON_Tasks(sysObj.sysDevcon);
     /* SYS_TMR Device layer tasks routine */ 
     SYS_TMR_Tasks(sysObj.sysTmr);
 
-        /* Maintain Device Drivers */
+    /* Maintain Device Drivers */
 
-        /* Maintain Middleware */
+    /* Maintain Middleware & Other Libraries */
 
-        /* Task Delay */
-        vTaskDelay(1 / portTICK_PERIOD_MS);
-    }
-}
-
-
-/*******************************************************************************
-  Function:
-    void _DISP_Tasks ( void )
-
-  Summary:
-    Maintains state machine of DISP.
-*/
-
-static void _DISP_Tasks(void)
-{
-    while(1)
-    {
-        DISP_Tasks();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
-    }
-}
-
-
-/*******************************************************************************
-  Function:
-    void _COMMS_Tasks ( void )
-
-  Summary:
-    Maintains state machine of COMMS.
-*/
-
-//static void _COMMS_Tasks(void)
-//{
-//    while(1)
-//    {
-//        COMMS_Tasks();
-//        vTaskDelay(10 / portTICK_PERIOD_MS);
-//    }
-//}
-
-
-/*******************************************************************************
-  Function:
-    void _FLIR_Tasks ( void )
-
-  Summary:
-    Maintains state machine of FLIR.
-*/
-
-static void _FLIR_Tasks(void)
-{
-    while(1)
-    {
-        FLIR_Tasks();
-        vTaskDelay(1 / portTICK_PERIOD_MS);
-    }
+    /* Maintain the application's state machine. */
+    DISP_Tasks();
+    //COMMS_Tasks();
+    FLIR_Tasks();
 }
 
 
