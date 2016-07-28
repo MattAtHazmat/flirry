@@ -61,9 +61,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 #include <xc.h>
 #include <sys/attribs.h>
+#include "flir.h"
 #include "disp.h"
 #include "comms.h"
-#include "flir.h"
+
 #include "system_definitions.h"
 
 // *****************************************************************************

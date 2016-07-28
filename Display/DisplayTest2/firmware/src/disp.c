@@ -52,10 +52,11 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // Section: Included Files 
 // *****************************************************************************
 // *****************************************************************************
-
-#include "disp.h"
 #include "bsp_config.h"
 #include "flir.h"
+#include "disp.h"
+
+
 
 // *****************************************************************************
 // *****************************************************************************
@@ -149,7 +150,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.displayInfo.rows.value = DISPLAY_ROWS;
     dispData.displayInfo.columns.value = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
-    dispData.displayInfo.PWMIncrement = PWM_INCREMENT;
+    dispData.displayInfo.PWMIncrement = DISP_PWM_INCREMENT;
     dispData.address = 0;
     dispData.timer.driverHandle = DRV_HANDLE_INVALID;
     dispData.pmp.driverHandle = DRV_HANDLE_INVALID;
@@ -182,15 +183,7 @@ bool DISP_InitializePMP(DISP_DATA* disp)
         disp->pmp.driverHandle = DRV_PMP_Open(disp->pmp.index,
                                               DRV_IO_INTENT_EXCLUSIVE|
                                               DRV_IO_INTENT_NONBLOCKING);
-        //PLIB_PMP_Disable(disp->pmp.index);
-        //PLIB_PMP_WriteChipSelectXEnable(disp->pmp.index,PMP_CHIP_SELECT_TWO);
-        //PMCONbits.CSF = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
-        //PMAEN=0x00000F00;
-        //PMMODEbits.MODE = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-        //PMMODEbits.INCM = 1;
-
         pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-        //pmpConfig.chipSelect = PMCS1_PMCS2_AS_ADDRESS_LINES;
         pmpConfig.endianMode=LITTLE; 
         pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
         pmpConfig.intMode = PMP_INTERRUPT_NONE;
@@ -214,9 +207,7 @@ bool DISP_InitializePMP(DISP_DATA* disp)
             for(x=0;x<disp->displayInfo.columns.value;x++)
             {
                 disp->display[0][y][x].w = 0;
-                //disp->display[0][y][x].blue = intensity;
-                disp->display[1][y][x].w = 0;
-                //disp->display[1][y][x].green = intensity;           
+                disp->display[1][y][x].w = 0;                          
             }
         }
         dispData.status.displayArrayFilled = true;
@@ -233,7 +224,7 @@ bool DISP_SetTimerAlarm(DISP_DATA* disp)
     {    
         return false;
     }
-    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISPLAY_UPDATE*NUMBER_SLICES);
+    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISP_SLICE_UPDATE_RATE*DISP_NUMBER_SLICES);
     return DRV_TMR_AlarmRegister(disp->timer.driverHandle,
                                 divider,
                                 true,
@@ -339,7 +330,7 @@ void DISP_Tasks ( void )
         }
         case DISP_WAIT_SEND_SLICE_NO_STROBE:
         {
-            /* is a new image ready? */
+            /* is a new image slice ready? */
             if(SendSlice())
             {
                 dispData.state = DISP_FIRST_SEND_SLICE;
@@ -467,7 +458,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
         {
             displayPixel.blue0=true;
         }
-        row += NUMBER_SLICES;
+        row += DISP_NUMBER_SLICES;
         if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red1 = true;
@@ -480,7 +471,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
         {
             displayPixel.blue1 = true;
         }
-        row += NUMBER_SLICES;
+        row += DISP_NUMBER_SLICES;
         if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red2 = true;
@@ -493,7 +484,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
         {
             displayPixel.blue2 = true;
         }
-        row += NUMBER_SLICES;
+        row += DISP_NUMBER_SLICES;
         if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
         {
             displayPixel.red3=true;
@@ -510,13 +501,13 @@ bool DISP_FillSlice(DISP_DATA *disp)
         column++;
     } while (txColumn != 0); /* when it's zero, stop */
     /* increment the slice.                                 */
-    if((disp->slice) == (NUMBER_SLICES-1))
+    if((disp->slice) == (DISP_NUMBER_SLICES-1))
     {
         uint32_t tempLevel;
         disp->slice = 0;
         /* reached the last slice. time to increment the pwm reference        */
         tempLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
-        if(tempLevel>0xFF)
+        if(tempLevel>DISP_PEAK_INTENSITY)
         {
             disp->displayInfo.PWMLevel = 0;
             returnValue = true;

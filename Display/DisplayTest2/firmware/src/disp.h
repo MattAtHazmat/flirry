@@ -59,10 +59,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define PWM_INCREMENT       (0x1F)
-#define DISPLAY_UPDATE      (480) /*Hz                                        */
-#define NUMBER_SLICES       (16)
-//#define NUMBER_SLICES_BITS  (4)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
 #define DISPLAY_COLUMNS     (DISPLAY_QUANTA*3)

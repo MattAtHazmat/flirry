@@ -66,7 +66,7 @@ extern "C" {
 
 #endif
 // DOM-IGNORE-END 
-#define RESYNC_TIME         (190) /* ms */
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Type Definitions
@@ -166,12 +166,14 @@ typedef struct __attribute__((packed)) {
             unsigned mysteryLine:1;
             unsigned resync:1;
             unsigned resyncComplete:1;
+            unsigned remadeMap:1;
         } flags;
         int32_t lastLine;
     }status;
     VOSPI_TYPE VoSPI;
     FLIR_IMAGE_TYPE image;
     struct {
+        uint32_t recalibrateCount;
         uint32_t imagesStarted;
         uint32_t imagesCopied;
         uint32_t discardLine;
@@ -188,6 +190,16 @@ typedef struct __attribute__((packed)) {
             uint32_t mysteryLine;
         }failure;
     }counters;
+    struct{
+        PIXEL_TYPE LUT[FLIR_LUT_SIZE];
+        uint32_t minimum;
+        uint32_t maximum;
+        uint32_t size;
+        struct {
+            uint32_t minimum;
+            uint32_t maximum;
+        }building;
+    } colorMap;
 } FLIR_DATA;
 
 
@@ -281,6 +293,8 @@ bool FLIR_OpenTimer(FLIR_DATA *flir);
 static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS );
 static inline bool FLIR_ImageTimerTriggered(void);
 bool FLIR_CheckSPIReadDone(FLIR_DATA *flir);
+bool FLIR_MakeIntensityMap(FLIR_DATA *flir);
+bool FLIR_ReMakeIntensityMap(FLIR_DATA *flir);
 #endif /* _FLIR_H */
 
 //DOM-IGNORE-BEGIN
