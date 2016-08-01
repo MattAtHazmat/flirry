@@ -1,3 +1,4 @@
+// <editor-fold defaultstate="collapsed" desc="SLA">
 /*******************************************************************************
   MPLAB Harmony Application Header File
 
@@ -41,7 +42,7 @@ CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF PROCUREMENT OF
 SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
  *******************************************************************************/
-//DOM-IGNORE-END
+//DOM-IGNORE-END// </editor-fold>
 
 #ifndef _DISP_H
 #define _DISP_H
@@ -59,6 +60,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
+#define BLANK_SLICE         (2)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
 #define DISPLAY_COLUMNS     (DISPLAY_QUANTA*3)
@@ -81,8 +83,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     #define SetSTB()        LATDCLR = _LATD_LATD9_MASK
     #define ClearSTB()      LATDSET = _LATD_LATD9_MASK
 #else
-    #define SetSTB()        LATDSET = _LATD_LATD9_MASK //_LATD_LATD10_MASK
-    #define ClearSTB()      LATDCLR = _LATD_LATD9_MASK //_LATD_LATD10_MASK
+    #define SetSTB()        LATDSET = _LATD_LATD9_MASK 
+    #define ClearSTB()      LATDCLR = _LATD_LATD9_MASK 
 #endif
 //#define SetOE()             LATCSET = _LATC_LATC1_MASK 
 //#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
@@ -113,29 +115,25 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     This enumeration defines the valid application states.  These states
     determine the behavior of the application at various times.
 */
-
+/******************************************************************************/
 typedef enum
 {
-	/* Application's state machine's initial state.                              */
 	DISP_STATE_INIT=0,
     DISP_STATE_INITIALIZE_TIMER,
     DISP_STATE_INITIALIZE_PMP,
     DISP_STATE_SET_TIMER_ALARM,
     DISP_STATE_START_TIMER,
     DISP_STATE_WAIT_FOR_IMAGE,
-    DISP_FILL_FIRST_SLICE,
-    DISP_FIRST_SEND_SLICE,
-    DISP_SEND_ARRAY,
-    DISP_WAIT_FILL_NEXT_SLICE,
-    DISP_WAIT_SEND_SLICE,
-    DISP_WAIT_SEND_SLICE_NO_STROBE,
-    DISP_SENDING_SLICE,
-    DISP_DONE_SLICE,
-    DISP_CHECK_FOR_NEW_IMAGE,
-    DISP_HALT,
-    TIMER_ERROR,
-    DISP_ERROR
-} DISP_STATES;
+    DISP_STATE_FILL_FIRST_SLICE,
+    DISP_STATE_WAIT_SLICE_SEND_START,
+    DISP_STATE_FILL_SLICE,    
+    DISP_STATE_CHECK_FOR_NEW_IMAGE,
+    DISP_STATE_HALT,
+    DISP_STATE_TIMER_ERROR,
+    DISP_STATE_ERROR
+} DISP_STATE_TYPE;
+
+/******************************************************************************/
 
 typedef union {
     uint32_t w;
@@ -179,6 +177,8 @@ typedef union {
     };
 } DISPLAY_PIXEL_TYPE;
 
+/******************************************************************************/
+
 typedef union {
     int32_t w;
     struct __attribute__ ((packed)) {
@@ -188,24 +188,30 @@ typedef union {
     };
 } int32_b_TYPE;
 
+/******************************************************************************/
+
 typedef struct {
     int32_b_TYPE row;
     int32_b_TYPE column;
 } ROW_COLUMN_TYPE;
 
+/******************************************************************************/
+
 typedef struct
 {
-    struct __attribute__ ((packed)) {
+    DISP_STATE_TYPE state;
+    struct {
         unsigned PMPInitialized:1;
         unsigned timerInitialized:1;
         unsigned timerStarted:1;
-        unsigned timerAlarmSet:1;
-        unsigned timerOverrun:1;                
-        unsigned bufferFilling:1; 
-        unsigned nextSlice:1;        
+        unsigned timerAlarmSet:1;            
+        unsigned sliceDisplaying:1;
         unsigned displayArrayFilled:1;        
         unsigned firstSliceSent:1; 
-        unsigned imageSent:1;
+        unsigned sliceReady:1;
+        unsigned sliceSendStart:1;
+        unsigned forceBlankSlice:1;
+        unsigned pwmCycleComplete:1;
     }status;   
     struct {
         uint8_t PWMIncrement;
@@ -215,7 +221,7 @@ typedef struct
         struct {
             uint32_t displaying;
             uint32_t filling;
-        }buffer;
+        } buffer;
     } displayInfo;
     union {
         struct {
@@ -223,9 +229,8 @@ typedef struct
             unsigned slice:4;
             unsigned :4;
         };
-        uint16_t address;
-    };
-    DISP_STATES state;
+        uint16_t w;
+    } address;
     struct {
         SYS_MODULE_INDEX index;
         DRV_HANDLE driverHandle;
@@ -240,16 +245,14 @@ typedef struct
     union __attribute__ ((packed)){
         DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
         uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
-    } sliceBuffer[2];    
+    } sliceBuffer[3];    
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
     struct {
         uint32_t sliceSend;
         uint32_t imageCheck;
         uint32_t imagesCopied;
-        uint32_t imageSentFlag;
-        //struct {
-        //    
-        //} failure;
+        uint32_t imageSent;
+        uint32_t timerOverrun;
     } counters;
 } DISP_DATA;
 

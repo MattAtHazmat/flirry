@@ -83,53 +83,7 @@ FLIR_DATA flirData;
 extern DISP_DATA dispData;
 
 /******************************************************************************/
-
-static inline bool FLIR_ImageTimerTriggered(void)
-{
-    __builtin_disable_interrupts();
-    if(flirData.status.flags.getImage)
-    {
-        flirData.status.flags.getImage = false;
-        __builtin_enable_interrupts();
-        return true;
-    }
-    __builtin_enable_interrupts();
-    return false;
-}
-
-static inline bool FLIR_ResyncComplete(void)
-{
-    __builtin_disable_interrupts();
-    if(flirData.status.flags.resyncComplete)
-    {
-        __builtin_enable_interrupts();
-        return true;
-    }
-    __builtin_enable_interrupts();
-    return false;
-}
-/******************************************************************************/
-
-static inline bool FLIR_ImageTimerMissed(void)
-{
-    __builtin_disable_interrupts();
-    if(flirData.status.flags.getImageMissed)
-    {
-        flirData.status.flags.getImageMissed = false;
-        flirData.status.flags.getImage = false;
-        __builtin_enable_interrupts();
-        return true;
-    }
-    __builtin_enable_interrupts();
-    return false;
-}
-/******************************************************************************/
-
-
-/******************************************************************************/
-/******************************************************************************/
 /* Section: Application Callback Functions                                    */
-/******************************************************************************/
 /******************************************************************************/
 
 /* Timer Callback                                                             */
@@ -189,10 +143,51 @@ static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 }
 
 /******************************************************************************/
-/******************************************************************************/
 /* Section: Application Local Functions                                       */
 /******************************************************************************/
+
+static inline bool FLIR_ImageTimerTriggered(void)
+{
+    __builtin_disable_interrupts();
+    if(flirData.status.flags.getImage)
+    {
+        flirData.status.flags.getImage = false;
+        __builtin_enable_interrupts();
+        return true;
+    }
+    __builtin_enable_interrupts();
+    return false;
+}
+
 /******************************************************************************/
+
+static inline bool FLIR_ResyncComplete(void)
+{
+    __builtin_disable_interrupts();
+    if(flirData.status.flags.resyncComplete)
+    {
+        __builtin_enable_interrupts();
+        return true;
+    }
+    __builtin_enable_interrupts();
+    return false;
+}
+
+/******************************************************************************/
+
+static inline bool FLIR_ImageTimerMissed(void)
+{
+    __builtin_disable_interrupts();
+    if(flirData.status.flags.getImageMissed)
+    {
+        flirData.status.flags.getImageMissed = false;
+        flirData.status.flags.getImage = false;
+        __builtin_enable_interrupts();
+        return true;
+    }
+    __builtin_enable_interrupts();
+    return false;
+}
 
 /******************************************************************************/
 /* Application's Timer Setup Function                                         */
@@ -290,14 +285,11 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, S
     flirData.colorMap.size = FLIR_LUT_SIZE;
 }
 
-
-
 /******************************************************************************/
 /*  Function:                                                                 */
 /*    void FLIR_Tasks ( void )                                                */
 /*                                                                            */
 /*  Remarks:                                                                  */
-/*    See prototype in flir.h.                                                */
 /******************************************************************************/
 
 void FLIR_Tasks ( void )
@@ -490,7 +482,6 @@ void FLIR_Tasks ( void )
             break;
         }
     }
-    //FLIR_LedTask();            
 }
 
 /******************************************************************************/
@@ -502,10 +493,6 @@ bool FLIR_OpenI2C(FLIR_DATA *flir)
     
     return (result==LEP_OK);
 }
-//inline bool FLIR_DiscardLine(FLIR_DATA *flir)
-//{
-//    return (flir->VoSPI.ID.discard == DISCARD);
-//}
 
 /******************************************************************************/
 
@@ -537,8 +524,7 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
                     flir->colorMap.LUT[index].w;
             }
             else
-            {
-                
+            {                
                 dispData.display[dispData.displayInfo.buffer.filling][y][x+8].w = 
                     flir->colorMap.LUT[(flir->image.buffer.pixel[y][x])&0x3FFF].w;
             }
