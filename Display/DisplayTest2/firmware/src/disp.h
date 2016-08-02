@@ -80,11 +80,11 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS)
 //#define STROBE_ACTIVE_LOW
 #ifdef STROBE_ACTIVE_LOW
-    #define SetSTB()        LATDCLR = _LATD_LATD9_MASK
-    #define ClearSTB()      LATDSET = _LATD_LATD9_MASK
+    #define SetSTB()        mBitClear(LATD,9)//LATDCLR = _LATD_LATD9_MASK
+    #define ClearSTB()      mBitSet(LATD,9);//LATDSET = _LATD_LATD9_MASK
 #else
-    #define SetSTB()        LATDSET = _LATD_LATD9_MASK 
-    #define ClearSTB()      LATDCLR = _LATD_LATD9_MASK 
+    #define SetSTB()        mBitSet(LATD,9) //LATDSET = _LATD_LATD9_MASK 
+    #define ClearSTB()      mBitClear(LATD,9) //LATDCLR = _LATD_LATD9_MASK 
 #endif
 //#define SetOE()             LATCSET = _LATC_LATC1_MASK 
 //#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
@@ -105,16 +105,16 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // *****************************************************************************
 
-// *****************************************************************************
-/* Application states
-
-  Summary:
-    Application states enumeration
-
-  Description:
-    This enumeration defines the valid application states.  These states
-    determine the behavior of the application at various times.
-*/
+/******************************************************************************/
+/* Application states */
+/**/
+/*  Summary:*/
+/*    Application states enumeration*/
+/**/
+/*  Description:*/
+/*    This enumeration defines the valid application states.  These states*/
+/*    determine the behavior of the application at various times.*/
+/**/
 /******************************************************************************/
 typedef enum
 {
@@ -190,38 +190,45 @@ typedef union {
 
 /******************************************************************************/
 
-typedef struct {
-    int32_b_TYPE row;
-    int32_b_TYPE column;
-} ROW_COLUMN_TYPE;
+//typedef struct {
+//    int32_b_TYPE row;
+//    int32_b_TYPE column;
+//} ROW_COLUMN_TYPE;
 
 /******************************************************************************/
 
 typedef struct
 {
     DISP_STATE_TYPE state;
-    struct {
-        unsigned PMPInitialized:1;
-        unsigned timerInitialized:1;
-        unsigned timerStarted:1;
-        unsigned timerAlarmSet:1;            
-        unsigned sliceDisplaying:1;
-        unsigned displayArrayFilled:1;        
-        unsigned firstSliceSent:1; 
-        unsigned sliceReady:1;
-        unsigned sliceSendStart:1;
-        unsigned forceBlankSlice:1;
-        unsigned pwmCycleComplete:1;
+    union {
+        struct {
+            unsigned PMPInitialized:1;
+            unsigned timerInitialized:1;
+            unsigned timerStarted:1;
+            unsigned timerAlarmSet:1;            
+            unsigned sliceDisplaying:1;
+            unsigned displayArrayFilled:1;        
+            unsigned firstSliceSent:1; 
+            unsigned sliceReady:1;
+            unsigned sliceSent:1;
+            unsigned forceBlankSlice:1;
+            unsigned pwmCycleComplete:1;
+        } flags;
+        uint32_t w;
     }status;   
     struct {
         uint8_t PWMIncrement;
         uint8_t PWMLevel;
-        int32_b_TYPE rows;
-        int32_b_TYPE columns;
+        int32_t rows;
+        int32_t columns;
         struct {
             uint32_t displaying;
             uint32_t filling;
         } buffer;
+        struct {
+            uint32_t horizontal;
+            uint32_t vertical;
+        } offset;
     } displayInfo;
     union {
         struct {
@@ -235,6 +242,7 @@ typedef struct
         SYS_MODULE_INDEX index;
         DRV_HANDLE driverHandle;
         SYS_MODULE_OBJ moduleObject;
+        uint32_t divider;
     } timer;
     struct {
         DRV_PMP_INDEX index;
@@ -244,7 +252,7 @@ typedef struct
     } pmp;
     union __attribute__ ((packed)){
         DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
-        uint8_t  b8[2*(DISPLAY_BUFFER_SIZE)];
+        uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
     } sliceBuffer[3];    
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
     struct {
@@ -253,12 +261,12 @@ typedef struct
         uint32_t imagesCopied;
         uint32_t imageSent;
         uint32_t timerOverrun;
+        uint32_t blankSlice;
+        uint32_t timerCallback;
     } counters;
 } DISP_DATA;
 
-#define mBitClear(a,b)              (a ## CLR = 1<<b)
-#define mBitSet(a,b)                (a ## SET = 1<<b)
-#define mBitToggle(a,b)             (a ## INV = 1<<b)
+
 
 // *****************************************************************************
 // *****************************************************************************

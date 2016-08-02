@@ -420,14 +420,13 @@ void FLIR_Tasks ( void )
         case FLIR_STATE_COPY_IMAGE: 
         {               
             FLIR_CopyImage(&flirData);
-            if(flirData.counters.recalibrateCount++==50)
+            if((flirData.counters.recalibrateCount++)==50)
             {
                 flirData.counters.recalibrateCount = 0;
                 FLIR_ReMakeIntensityMap(&flirData);
             }
             flirData.status.flags.imageCopied = true;
-            flirData.state = FLIR_STATE_PULL_DUMMY_LINE;
-            
+            flirData.state = FLIR_STATE_PULL_DUMMY_LINE;            
             break;            
         }        
         case FLIR_STATE_PULL_DUMMY_LINE:
@@ -499,7 +498,6 @@ bool FLIR_OpenI2C(FLIR_DATA *flir)
 bool FLIR_CopyImage(FLIR_DATA *flir)
 {
     int32_t x,y;
-    flir->counters.imagesCopied++;
     for (x=0;x<flir->image.properties.dimensions.horizontal;x++)
     {
         for (y=0;y<flir->image.properties.dimensions.vertical;y++)
@@ -520,13 +518,14 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
                 {
                     index = flir->colorMap.size-1;
                 }
-                dispData.display[dispData.displayInfo.buffer.filling][y][x+8].w = 
+                dispData.display[dispData.displayInfo.buffer.filling][y+dispData.displayInfo.offset.vertical][x+dispData.displayInfo.offset.horizontal].w = 
                     flir->colorMap.LUT[index].w;
             }
             else
-            {                
-                dispData.display[dispData.displayInfo.buffer.filling][y][x+8].w = 
-                    flir->colorMap.LUT[(flir->image.buffer.pixel[y][x])&0x3FFF].w;
+            {   
+                /* not the remade map */
+                dispData.display[dispData.displayInfo.buffer.filling][y+dispData.displayInfo.offset.vertical][x+dispData.displayInfo.offset.horizontal].w = 
+                    flir->colorMap.LUT[(flir->image.buffer.pixel[y][x])&(FLIR_LUT_SIZE-1)].w;
             }
         }
     }

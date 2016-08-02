@@ -344,12 +344,13 @@ extern "C" {
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
 #define DISP_PEAK_INTENSITY         (0x1F)
 #define DISP_PWM_INCREMENT          (DISP_PEAK_INTENSITY>>3)
+#define DISP_HORIZONTAL_OFFSET      (8)
+#define DISP_VERTICAL_OFFSET        (0)
     
 /*** Application Instance 1 Configuration ***/
     
 /*** Application Instance 2 Configuration ***/
 #define APPLICATION_INSTANCE_2      FLIR
-#define FLIR_TMR_DRV_IS_PERIODIC    true
 #define FLIR_TIMER_PERIOD_MS        (125) /* 125 ms for 8 Hz */
 #define FLIR_TIMER_INSTANCE         DRV_TMR_INDEX_2
 #define FLIR_I2C_INSTANCE           DRV_I2C_INDEX_0
@@ -358,6 +359,10 @@ extern "C" {
 #define FLIR_RESYNC_TIME            (190) /* ms */
 #define FLIR_LUT_SIZE               (0x4000)
 #define FLIR_PEAK_INTENSITY         DISP_PEAK_INTENSITY    
+/* useful macros */    
+#define mBitClear(a,b)              (a ## CLR = 1<<b)
+#define mBitSet(a,b)                (a ## SET = 1<<b)
+#define mBitToggle(a,b)             (a ## INV = 1<<b)
 //DOM-IGNORE-BEGIN
 #ifdef __cplusplus
 }

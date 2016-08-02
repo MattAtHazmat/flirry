@@ -93,23 +93,26 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
     uint32_t* sliceToSend;   
     SetSTB();
-    if(dispData.status.firstSliceSent &&
+    dispData.counters.timerCallback++;
+    if(dispData.status.flags.firstSliceSent &&
        (DRV_PMP_TransferStatus(dispData.pmp.pQueue)!=PMP_TRANSFER_FINISHED))
     {
         dispData.counters.timerOverrun++;
     }
     else
     {
-        if(dispData.status.sliceReady&(!dispData.status.forceBlankSlice))
+        if(dispData.status.flags.sliceReady&(!dispData.status.flags.forceBlankSlice))
         {
-            sliceToSend = (uint32_t*)&dispData.sliceBuffer[dispData.status.sliceDisplaying];
-            dispData.status.sliceReady = false;        
+            sliceToSend = (uint32_t*)&dispData.sliceBuffer[dispData.status.flags.sliceDisplaying];
+            dispData.status.flags.sliceReady = false;   
+            dispData.counters.sliceSend++;     
         }
         else
         {
             /* not ready or forcing a blank slice- send a blank line so we don't 
              * get a bright streak */
-            sliceToSend = (uint32_t*)&dispData.sliceBuffer[BLANK_SLICE];      
+            sliceToSend = (uint32_t*)&dispData.sliceBuffer[BLANK_SLICE];    
+            dispData.counters.blankSlice++;
         }
         ClearSTB();
         dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
@@ -117,8 +120,9 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
                                             sliceToSend,
                                             sizeof(dispData.sliceBuffer[0].b8), 
                                             0);
-        dispData.status.sliceSendStart = true;
-        dispData.status.firstSliceSent = true;   
+        
+        dispData.status.flags.sliceSent = true;
+        dispData.status.flags.firstSliceSent = true;   
     }
 }
 
@@ -128,12 +132,12 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 // *****************************************************************************
 // *****************************************************************************
 
-static inline bool DISP_SliceSendStart(void)
+static inline bool DISP_SliceSent(void)
 {
     __builtin_disable_interrupts();
-    if(dispData.status.sliceSendStart)
+    if(dispData.status.flags.sliceSent)
     {
-        dispData.status.sliceSendStart = false;
+        dispData.status.flags.sliceSent = false;
         __builtin_enable_interrupts();
         return true;
     }
@@ -159,8 +163,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.pmp.moduleObject = pmpModuleObj;
     dispData.pmp.index = pmpIndex;
     dispData.state = DISP_STATE_INIT;
-    dispData.displayInfo.rows.value = DISPLAY_ROWS;
-    dispData.displayInfo.columns.value = DISPLAY_COLUMNS;
+    dispData.displayInfo.rows = DISPLAY_ROWS;
+    dispData.displayInfo.columns = DISPLAY_COLUMNS;
     dispData.displayInfo.PWMLevel=0;
     dispData.displayInfo.PWMIncrement = DISP_PWM_INCREMENT;
     dispData.address.w = 0; /* the address we start sending from the PMP each time */
@@ -168,6 +172,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.pmp.driverHandle = DRV_HANDLE_INVALID;
     dispData.displayInfo.buffer.displaying = 0;
     dispData.displayInfo.buffer.filling = 1;
+    dispData.displayInfo.offset.horizontal = DISP_HORIZONTAL_OFFSET;
+    dispData.displayInfo.offset.vertical = DISP_VERTICAL_OFFSET;
     ClearSTB();
     return true;
 }
@@ -213,7 +219,7 @@ bool DISP_InitializePMP(DISP_DATA* disp)
     if(disp->pmp.driverHandle != DRV_HANDLE_INVALID)
     {
         /* filled with empty */
-        dispData.status.displayArrayFilled = true;
+        dispData.status.flags.displayArrayFilled = true;
     }
     return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
 }
@@ -222,14 +228,19 @@ bool DISP_InitializePMP(DISP_DATA* disp)
 
 bool DISP_SetTimerAlarm(DISP_DATA* disp)
 {
-    uint32_t divider;
     if(disp->timer.driverHandle == DRV_HANDLE_INVALID)
     {    
         return false;
     }
-    divider = DRV_TMR_CounterFrequencyGet(dispData.timer.driverHandle)/(DISP_SLICE_UPDATE_RATE);
+    disp->timer.divider = DRV_TMR_CounterFrequencyGet(disp->timer.driverHandle)/(DISP_SLICE_UPDATE_RATE);
+    if((DRV_TMR_OPERATION_MODE_16_BIT ==
+       DRV_TMR_OperationModeGet(disp->timer.driverHandle))&&(disp->timer.divider>0xFFFF))
+    {
+        /* the divider is not gonna work for a 16 bit timer */
+        return false;
+    }
     return DRV_TMR_AlarmRegister(disp->timer.driverHandle,
-                                divider,
+                                disp->timer.divider,
                                 true,
                                 0,
                                 DISP_TimerAlarmCallback);    
@@ -243,6 +254,13 @@ bool DISP_StartTimer(DISP_DATA* disp)
 }
 
 /******************************************************************************/
+
+void DISP_StopTimer(DISP_DATA* disp)
+{
+    DRV_TMR_Stop(disp->timer.driverHandle);
+}
+
+/******************************************************************************/
 /*  Function:                                                                 */
 /*    void DISP_Tasks ( void )                                                */
 /*                                                                            */
@@ -252,7 +270,7 @@ bool DISP_StartTimer(DISP_DATA* disp)
 
 void DISP_Tasks ( void )
 {
-    if(dispData.status.firstSliceSent)
+    if(dispData.status.flags.firstSliceSent)
     {
         /* appears to break if the tasks gets called before anything has      */
         /* been put in the queue                                              */
@@ -263,22 +281,22 @@ void DISP_Tasks ( void )
         // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
         case DISP_STATE_INIT:
         {   
-            if(!dispData.status.timerInitialized)
+            if(!dispData.status.flags.timerInitialized)
             {
                 dispData.state = DISP_STATE_INITIALIZE_TIMER;
                 break;
             }
-            if(!dispData.status.timerAlarmSet)
+            if(!dispData.status.flags.timerAlarmSet)
             {
                 dispData.state = DISP_STATE_SET_TIMER_ALARM;
                 break;
             }
-            if(!dispData.status.PMPInitialized)
+            if(!dispData.status.flags.PMPInitialized)
             {
                 dispData.state = DISP_STATE_INITIALIZE_PMP;
                 break;
             }
-            if(!dispData.status.timerStarted)
+            if(!dispData.status.flags.timerStarted)
             {
                 dispData.state = DISP_STATE_START_TIMER;
                 break;
@@ -288,31 +306,31 @@ void DISP_Tasks ( void )
         }
         case DISP_STATE_INITIALIZE_TIMER:
         {
-            dispData.status.timerInitialized = DISP_InitializeTimer(&dispData);
+            dispData.status.flags.timerInitialized = DISP_InitializeTimer(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }
         case DISP_STATE_INITIALIZE_PMP:
         {
-            dispData.status.PMPInitialized = DISP_InitializePMP(&dispData);
+            dispData.status.flags.PMPInitialized = DISP_InitializePMP(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }
         case DISP_STATE_START_TIMER:
         {
-            dispData.status.timerStarted = DISP_StartTimer(&dispData);
+            dispData.status.flags.timerStarted = DISP_StartTimer(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }
         case DISP_STATE_SET_TIMER_ALARM:
         {
-            dispData.status.timerAlarmSet = DISP_SetTimerAlarm(&dispData);
+            dispData.status.flags.timerAlarmSet = DISP_SetTimerAlarm(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }// </editor-fold>
         case DISP_STATE_WAIT_FOR_IMAGE:
         {
-            if(dispData.status.displayArrayFilled)
+            if(dispData.status.flags.displayArrayFilled)
             {
                 dispData.state = DISP_STATE_FILL_FIRST_SLICE;                
             }
@@ -322,7 +340,7 @@ void DISP_Tasks ( void )
         {
             if(DRV_PMP_ClientStatus(dispData.pmp.driverHandle)==DRV_PMP_CLIENT_STATUS_OPEN)
             {
-                dispData.status.pwmCycleComplete = DISP_FillSlice(&dispData);
+                dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
                 dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
             }
             else
@@ -333,7 +351,7 @@ void DISP_Tasks ( void )
         case DISP_STATE_WAIT_SLICE_SEND_START:        
         {
             /* has the current slice been sent? */
-            if(DISP_SliceSendStart())
+            if(DISP_SliceSent())
             {
                 dispData.state = DISP_STATE_FILL_SLICE;
                 /* and drop through                                        */
@@ -346,13 +364,13 @@ void DISP_Tasks ( void )
         case DISP_STATE_FILL_SLICE:
         {   
             /* fill up the next slice while the current is being sent */            
-            dispData.status.pwmCycleComplete = DISP_FillSlice(&dispData);
-            if(dispData.status.pwmCycleComplete)
+            dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
+            if(dispData.status.flags.pwmCycleComplete)
             {
                 dispData.counters.imageSent++;
             }            
-            dispData.counters.sliceSend++;
-            if(dispData.status.pwmCycleComplete)
+            
+            if(dispData.status.flags.pwmCycleComplete)
             {
                 /* check to see if there is a new image only when we have     */
                 /* completed sending an image- the full PWM cycle.            */
@@ -370,18 +388,26 @@ void DISP_Tasks ( void )
             if(flirData.status.flags.imageCopied)
             {
                 dispData.counters.imagesCopied++;
-                /* tell the future state that the latest image was copied */
+                /* tell the future state that the latest image was copied     */
                 flirData.status.flags.imageCopied = false;
+                /* make the displaying image the one we were filling          */
                 dispData.displayInfo.buffer.displaying = dispData.displayInfo.buffer.filling;
-                dispData.displayInfo.buffer.filling ^= 1; 
+                if(dispData.displayInfo.buffer.filling == 0)
+                {
+                    dispData.displayInfo.buffer.filling = 1;
+                }
+                else
+                {
+                    dispData.displayInfo.buffer.filling = 0;
+                }
             }            
             /* no matter what, just fill up the next slice. */
             dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
             break;
         }
         case DISP_STATE_HALT:
-        {
-            
+        {        
+            DISP_StopTimer(&dispData);
             break;
         }
         case DISP_STATE_TIMER_ERROR:
@@ -403,7 +429,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
     uint32_t sliceBufferFilling;
-    if(disp->status.sliceDisplaying == 0)
+    if(disp->status.flags.sliceDisplaying == 0)
     {
         sliceBufferFilling = 1;
     }
@@ -411,8 +437,9 @@ bool DISP_FillSlice(DISP_DATA *disp)
     {
         sliceBufferFilling = 0;
     }
-    txColumn = disp->displayInfo.columns.value;
-    do {
+    txColumn = 0x60;//disp->displayInfo.columns;
+    do 
+    {
         /* start filling in from the end, since the first data shifted in */
         /* will end up at the highest number column. */
         txColumn--;
@@ -474,18 +501,24 @@ bool DISP_FillSlice(DISP_DATA *disp)
     } while (txColumn != 0); /* when it's zero, stop */
     /* increment the slice.                                 */
     disp->address.slice++;
-    if((disp->address.slice) == DISP_NUMBER_SLICES)
+    if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over */
     {
+        uint16_t newPWMLevel;
         disp->address.w = 0;
         /* reached the last slice. time to increment the pwm reference        */
+        newPWMLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
         disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
-        if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
+        if(newPWMLevel>DISP_PEAK_INTENSITY)
         {
             disp->displayInfo.PWMLevel = 0;
             pwmIntervalEnd = true;
-        }        
+        }     
+        else
+        {
+            disp->displayInfo.PWMLevel = newPWMLevel;
+        }
     }    
-    disp->status.sliceReady = true;
+    disp->status.flags.sliceReady = true;
     return pwmIntervalEnd;
 }
 
