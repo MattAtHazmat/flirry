@@ -103,22 +103,22 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     {
         if(dispData.status.flags.sliceReady&(!dispData.status.flags.forceBlankSlice))
         {
-            sliceToSend = (uint32_t*)&dispData.sliceBuffer[dispData.status.flags.sliceDisplaying];
+            sliceToSend = (uint32_t*)&dispData.slice.buffer[dispData.slice.displaying];
             dispData.status.flags.sliceReady = false;   
-            dispData.counters.sliceSend++;     
+            dispData.counters.sliceSent++;     
         }
         else
         {
-            /* not ready or forcing a blank slice- send a blank line so we don't 
-             * get a bright streak */
-            sliceToSend = (uint32_t*)&dispData.sliceBuffer[BLANK_SLICE];    
-            dispData.counters.blankSlice++;
+            /* not ready or forcing a blank slice- send a blank line so we */
+            /* don't  get a bright streak */
+            sliceToSend = (uint32_t*)&dispData.slice.buffer[BLANK_SLICE];    
+            dispData.counters.blankSliceSent++;
         }
         ClearSTB();
         dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
                                             0,
                                             sliceToSend,
-                                            sizeof(dispData.sliceBuffer[0].b8), 
+                                            sizeof(dispData.slice.buffer[0].b8), 
                                             0);
         
         dispData.status.flags.sliceSent = true;
@@ -172,6 +172,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.pmp.driverHandle = DRV_HANDLE_INVALID;
     dispData.displayInfo.buffer.displaying = 0;
     dispData.displayInfo.buffer.filling = 1;
+    dispData.slice.filling = 0;
+    dispData.slice.displaying = 1;
     dispData.displayInfo.offset.horizontal = DISP_HORIZONTAL_OFFSET;
     dispData.displayInfo.offset.vertical = DISP_VERTICAL_OFFSET;
     ClearSTB();
@@ -431,16 +433,15 @@ bool DISP_FillSlice(DISP_DATA *disp)
     uint32_t column=0;   
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
-    uint32_t sliceBufferFilling;
-    if(disp->status.flags.sliceDisplaying == 0)
+    if(disp->slice.displaying == 0)
     {
-        sliceBufferFilling = 1;
+        disp->slice.filling = 1;
     }
     else
     {
-        sliceBufferFilling = 0;
+        disp->slice.filling = 0;
     }
-    txColumn = 0x60;//disp->displayInfo.columns;
+    txColumn = disp->displayInfo.columns;
     do 
     {
         /* start filling in from the end, since the first data shifted in */
@@ -448,77 +449,35 @@ bool DISP_FillSlice(DISP_DATA *disp)
         txColumn--;
         row = disp->address.slice;
         displayPixel.w=0;
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.red0=true;            
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.green0=true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.blue0=true;
-        }
+        displayPixel.red0   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
+        displayPixel.green0 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+        displayPixel.blue0  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
         row += DISP_NUMBER_SLICES;
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.red1 = true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.green1 = true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.blue1 = true;
-        }
+        displayPixel.red1   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
+        displayPixel.green1 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+        displayPixel.blue1  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
         row += DISP_NUMBER_SLICES;
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.red2 = true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.green2 = true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.blue2 = true;
-        }
+        displayPixel.red2   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
+        displayPixel.green2 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+        displayPixel.blue2  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
         row += DISP_NUMBER_SLICES;
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.red3=true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.green3=true;
-        }
-        if(disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel))
-        {
-            displayPixel.blue3=true;            
-        }
-        disp->sliceBuffer[sliceBufferFilling].pixel[txColumn] = displayPixel;
+        displayPixel.red3   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
+        displayPixel.green3 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+        displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
+        disp->slice.buffer[disp->slice.filling].pixel[txColumn] = displayPixel;
         column++;
     } while (txColumn != 0); /* when it's zero, stop */
     /* increment the slice.                                 */
     disp->address.slice++;
     if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over */
     {
-        uint16_t newPWMLevel;
         disp->address.w = 0;
         /* reached the last slice. time to increment the pwm reference        */
-        newPWMLevel = disp->displayInfo.PWMLevel + disp->displayInfo.PWMIncrement;
         disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
-        if(newPWMLevel>DISP_PEAK_INTENSITY)
+        if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
         {
             disp->displayInfo.PWMLevel = 0;
             pwmIntervalEnd = true;
-        }     
-        else
-        {
-            disp->displayInfo.PWMLevel = newPWMLevel;
         }
     }    
     disp->status.flags.sliceReady = true;

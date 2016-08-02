@@ -205,8 +205,7 @@ typedef struct
             unsigned PMPInitialized:1;
             unsigned timerInitialized:1;
             unsigned timerStarted:1;
-            unsigned timerAlarmSet:1;            
-            unsigned sliceDisplaying:1;
+            unsigned timerAlarmSet:1;  
             unsigned displayArrayFilled:1;        
             unsigned firstSliceSent:1; 
             unsigned sliceReady:1;
@@ -217,8 +216,8 @@ typedef struct
         uint32_t w;
     }status;   
     struct {
-        uint8_t PWMIncrement;
-        uint8_t PWMLevel;
+        uint32_t PWMIncrement;
+        uint32_t PWMLevel;
         int32_t rows;
         int32_t columns;
         struct {
@@ -250,18 +249,22 @@ typedef struct
         SYS_MODULE_OBJ moduleObject;
         PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
-    union __attribute__ ((packed)){
-        DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
-        uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
-    } sliceBuffer[3];    
+    struct {
+        union __attribute__ ((packed)){
+            DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
+            uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
+        } buffer[3];
+        uint32_t displaying;
+        uint32_t filling;
+    }slice;
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
     struct {
-        uint32_t sliceSend;
+        uint32_t sliceSent;
+        uint32_t blankSliceSent;
         uint32_t imageCheck;
         uint32_t imagesCopied;
         uint32_t imageSent;
         uint32_t timerOverrun;
-        uint32_t blankSlice;
         uint32_t timerCallback;
     } counters;
 } DISP_DATA;
