@@ -202,7 +202,7 @@ bool DISP_InitializePMP(DISP_DATA* disp)
                                               DRV_IO_INTENT_EXCLUSIVE|
                                               DRV_IO_INTENT_NONBLOCKING);
         pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-        pmpConfig.endianMode=LITTLE; 
+        pmpConfig.endianMode = LITTLE; 
         pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
         pmpConfig.intMode = PMP_INTERRUPT_NONE;
         pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT; 
@@ -340,6 +340,7 @@ void DISP_Tasks ( void )
         {
             if(DRV_PMP_ClientStatus(dispData.pmp.driverHandle)==DRV_PMP_CLIENT_STATUS_OPEN)
             {
+                /* fill the first slice with display data */
                 dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
                 dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
             }
@@ -353,6 +354,8 @@ void DISP_Tasks ( void )
             /* has the current slice been sent? */
             if(DISP_SliceSent())
             {
+                /* once the current slice has started to be sent, fill the    */
+                /* next slice */
                 dispData.state = DISP_STATE_FILL_SLICE;
                 /* and drop through                                        */
             }
@@ -392,7 +395,7 @@ void DISP_Tasks ( void )
                 flirData.status.flags.imageCopied = false;
                 /* make the displaying image the one we were filling          */
                 dispData.displayInfo.buffer.displaying = dispData.displayInfo.buffer.filling;
-                if(dispData.displayInfo.buffer.filling == 0)
+                if(dispData.displayInfo.buffer.displaying == 0)
                 {
                     dispData.displayInfo.buffer.filling = 1;
                 }
@@ -401,7 +404,7 @@ void DISP_Tasks ( void )
                     dispData.displayInfo.buffer.filling = 0;
                 }
             }            
-            /* no matter what, just fill up the next slice. */
+            /* no matter what, just wait for the current slice to be sent */
             dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
             break;
         }
