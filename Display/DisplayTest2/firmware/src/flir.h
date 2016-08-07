@@ -115,6 +115,16 @@ typedef enum
 
 /******************************************************************************/
 
+typedef struct {
+    uint32_t maximum;
+    uint32_t minimum;
+    uint32_t depth;
+    uint32_t mode;
+    uint32_t median;
+    uint32_t mean;
+    uint32_t standardDeviation;
+} STATISTICS_TYPE;
+
 typedef struct __attribute__((packed)) {
     FLIR_STATES state;
     struct {
@@ -167,13 +177,14 @@ typedef struct __attribute__((packed)) {
             unsigned resync:1;
             unsigned resyncComplete:1;
             unsigned remadeMap:1;
+            unsigned calculateStatistics:1;
+            unsigned resetStatistics:1;
         } flags;
         int32_t lastLine;
     }status;
     VOSPI_TYPE VoSPI;
     FLIR_IMAGE_TYPE image;
     struct {
-        uint32_t recalibrateCount;
         uint32_t imagesStarted;
         uint32_t imagesCopied;
         uint32_t discardLine;
@@ -194,12 +205,14 @@ typedef struct __attribute__((packed)) {
         PIXEL_TYPE LUT[FLIR_LUT_SIZE];
         uint32_t minimum;
         uint32_t maximum;
-        uint32_t size;
-        struct {
-            uint32_t minimum;
-            uint32_t maximum;
-        }building;
+        PIXEL_TYPE maxIntensity;
     } colorMap;
+    struct {
+        STATISTICS_TYPE mean;
+        STATISTICS_TYPE history[FLIR_STATISTICS_SIZE];        
+        uint32_t count;
+        uint32_t size;
+    }statistics;
 } FLIR_DATA;
 
 
@@ -293,8 +306,9 @@ bool FLIR_OpenTimer(FLIR_DATA *flir);
 static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS );
 static inline bool FLIR_ImageTimerTriggered(void);
 bool FLIR_CheckSPIReadDone(FLIR_DATA *flir);
-bool FLIR_MakeIntensityMap(FLIR_DATA *flir);
-bool FLIR_ReMakeIntensityMap(FLIR_DATA *flir);
+bool FLIR_MakeIntensityMap(FLIR_DATA *flir,bool initial);
+bool FLIR_CalculateStatistics(FLIR_DATA *flir);
+
 #endif /* _FLIR_H */
 
 //DOM-IGNORE-BEGIN

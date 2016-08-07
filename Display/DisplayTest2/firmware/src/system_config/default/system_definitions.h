@@ -51,6 +51,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
+#include <limits.h>
 #include "system/common/sys_common.h"
 #include "system/common/sys_module.h"
 #include "system/clk/sys_clk.h"

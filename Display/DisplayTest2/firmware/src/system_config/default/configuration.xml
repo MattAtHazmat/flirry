@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<configuration version="1.0.7.16">
+<configuration version="1.0.8.7">
   <General>
     <HarmonyPath path="../../../../microchip/harmony/v1_08"/>
+    <Processor name="PIC32MZ2048EFM144"/>
     <ForceOptimization flag="true"/>
+    <MergeStrategy flag="USER_ALL"/>
   </General>
   <Manifest>
     <Files>

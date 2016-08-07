@@ -103,6 +103,7 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     {
         if(dispData.status.flags.sliceReady&(!dispData.status.flags.forceBlankSlice))
         {
+            dispData.slice.displaying = dispData.slice.filling;
             sliceToSend = (uint32_t*)&dispData.slice.buffer[dispData.slice.displaying];
             dispData.status.flags.sliceReady = false;   
             dispData.counters.sliceSent++;     
@@ -115,6 +116,7 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
             dispData.counters.blankSliceSent++;
         }
         ClearSTB();
+        PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
         dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
                                             0,
                                             sliceToSend,
@@ -242,10 +244,10 @@ bool DISP_SetTimerAlarm(DISP_DATA* disp)
         return false;
     }
     return DRV_TMR_AlarmRegister(disp->timer.driverHandle,
-                                disp->timer.divider,
-                                true,
-                                0,
-                                DISP_TimerAlarmCallback);    
+                                 disp->timer.divider,
+                                 true,
+                                 0,
+                                 DISP_TimerAlarmCallback);    
 }
 
 /******************************************************************************/
@@ -340,7 +342,7 @@ void DISP_Tasks ( void )
         }
         case DISP_STATE_FILL_FIRST_SLICE:
         {
-            if(DRV_PMP_ClientStatus(dispData.pmp.driverHandle)==DRV_PMP_CLIENT_STATUS_OPEN)
+            if(DRV_PMP_CLIENT_STATUS_OPEN == DRV_PMP_ClientStatus(dispData.pmp.driverHandle))
             {
                 /* fill the first slice with display data */
                 dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
@@ -428,9 +430,9 @@ void DISP_Tasks ( void )
 
 bool DISP_FillSlice(DISP_DATA *disp)
 {
-    bool pwmIntervalEnd=false;
+    bool pwmIntervalEnd = false;
     uint32_t row;
-    uint32_t column=0;   
+    uint32_t column;   
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
     if(disp->slice.displaying == 0)
@@ -441,11 +443,11 @@ bool DISP_FillSlice(DISP_DATA *disp)
     {
         disp->slice.filling = 0;
     }
+    /* start filling in from the end, since the first data shifted in will    */
+    /* end up at the highest number column.                                   */
     txColumn = disp->displayInfo.columns;
-    do 
-    {
-        /* start filling in from the end, since the first data shifted in */
-        /* will end up at the highest number column. */
+    column = 0;
+    do {        
         txColumn--;
         row = disp->address.slice;
         displayPixel.w=0;
@@ -466,10 +468,10 @@ bool DISP_FillSlice(DISP_DATA *disp)
         displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
         disp->slice.buffer[disp->slice.filling].pixel[txColumn] = displayPixel;
         column++;
-    } while (txColumn != 0); /* when it's zero, stop */
-    /* increment the slice.                                 */
+    } while (txColumn != 0); /* when it's zero, stop                          */
+    /* increment the slice.                                                   */
     disp->address.slice++;
-    if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over */
+    if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over       */
     {
         disp->address.w = 0;
         /* reached the last slice. time to increment the pwm reference        */
