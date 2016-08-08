@@ -18,29 +18,29 @@
 #ifndef COMMON_HEADERS_H    /* Guard against multiple inclusion */
 #define COMMON_HEADERS_H
 
+#define FLIR_HORIZONTAL_SIZE    (80)
+#define FLIR_VERTICAL_SIZE      (60)
+typedef uint16_t FLIR_PIXEL_TYPE;
+
 #define IMAGE_BUFFERS           (2) /* must be a power of 2 */
 #define BUFFER_SIZE_32          (64)
 #define BUFFER_SIZE_16          (BUFFER_SIZE_32*2)
 #define BUFFER_SIZE_8           (BUFFER_SIZE_32*4)
 #define VOSPI_HEADER_LENGTH     (4)
-#define VOSPI_PAYLOAD_LENGTH    (160)
+#define VOSPI_PAYLOAD_LENGTH    (FLIR_HORIZONTAL_SIZE * sizeof(FLIR_PIXEL_TYPE))
 #define VOSPI_LENGTH            (VOSPI_HEADER_LENGTH+VOSPI_PAYLOAD_LENGTH)
 #define DISCARD                 (0x0f)
 
-#define HORIZONTAL_SIZE         (VOSPI_PAYLOAD_LENGTH>>1)
-#define VERTICAL_SIZE           (60)
-
-
 /******************************************************************************/
 
-typedef uint16_t FLIR_PIXEL_TYPE;
+
 
 /******************************************************************************/
 
 typedef union {
-    FLIR_PIXEL_TYPE vector[HORIZONTAL_SIZE*VERTICAL_SIZE];
-    FLIR_PIXEL_TYPE pixel[VERTICAL_SIZE][HORIZONTAL_SIZE];
-    uint8_t byte[HORIZONTAL_SIZE*VERTICAL_SIZE*sizeof(FLIR_PIXEL_TYPE)];
+    FLIR_PIXEL_TYPE vector[FLIR_HORIZONTAL_SIZE*FLIR_VERTICAL_SIZE];
+    FLIR_PIXEL_TYPE pixel[FLIR_VERTICAL_SIZE][FLIR_HORIZONTAL_SIZE];
+    uint8_t byte[FLIR_HORIZONTAL_SIZE*FLIR_VERTICAL_SIZE*sizeof(FLIR_PIXEL_TYPE)];
 } IMAGE_BUFFER_TYPE;
 
 /******************************************************************************/

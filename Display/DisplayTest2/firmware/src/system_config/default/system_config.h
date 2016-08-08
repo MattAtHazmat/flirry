@@ -340,7 +340,7 @@ extern "C" {
 #define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_10
 #define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_1
 #define DISP_NUMBER_SLICES          (16)
-#define DISP_DISPLAY_UPDATE_RATE    (300) /* Hz */
+#define DISP_DISPLAY_UPDATE_RATE    (480) /* Hz */
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
 #define DISP_PEAK_INTENSITY         (0x1F)
 #define DISP_PWM_INCREMENT          (DISP_PEAK_INTENSITY>>3)
@@ -360,6 +360,8 @@ extern "C" {
 #define FLIR_LUT_SIZE               (0x4000)
 #define FLIR_PEAK_INTENSITY         DISP_PEAK_INTENSITY    
 #define FLIR_STATISTICS_SIZE        (16)
+
+    
 /* useful macros */    
 #define mBitClear(a,b)              (a ## CLR = 1<<b)
 #define mBitSet(a,b)                (a ## SET = 1<<b)

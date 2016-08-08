@@ -178,7 +178,8 @@ typedef struct __attribute__((packed)) {
             unsigned resyncComplete:1;
             unsigned remadeMap:1;
             unsigned calculateStatistics:1;
-            unsigned resetStatistics:1;
+            unsigned resetStatistics:1;            
+            unsigned statisticsComplete:1;
         } flags;
         int32_t lastLine;
     }status;

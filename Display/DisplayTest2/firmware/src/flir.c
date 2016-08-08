@@ -277,8 +277,8 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, S
     flirData.RXBuffer.size.max.b8 = BUFFER_SIZE_8;
     flirData.RXBuffer.size.max.b16 = BUFFER_SIZE_16;
     flirData.RXBuffer.size.max.b32 = BUFFER_SIZE_32;
-    flirData.image.properties.dimensions.horizontal = HORIZONTAL_SIZE;
-    flirData.image.properties.dimensions.vertical = VERTICAL_SIZE;
+    flirData.image.properties.dimensions.horizontal = FLIR_HORIZONTAL_SIZE;
+    flirData.image.properties.dimensions.vertical = FLIR_VERTICAL_SIZE;
     flirData.image.properties.size.pixels = flirData.image.properties.dimensions.horizontal *
                                             flirData.image.properties.dimensions.vertical;
     flirData.image.properties.size.bytes = sizeof(FLIR_IMAGE_TYPE);
@@ -351,7 +351,7 @@ void FLIR_Tasks ( void )
         }// </editor-fold>
         case FLIR_START:
         {
-            flirData.state = FLIR_STATE_START_RESYNC;//FLIR_STATE_START_NEW_IMAGE;
+            flirData.state = FLIR_STATE_START_RESYNC;
             break;
         }        
         case FLIR_STATE_START_NEW_IMAGE:
@@ -426,7 +426,7 @@ void FLIR_Tasks ( void )
                 flirData.status.flags.calculateStatistics = FLIR_CalculateStatistics(&flirData);
                 if(flirData.status.flags.calculateStatistics == false)
                 {
-                    FLIR_ReMakeIntensityMap(&flirData);
+                    FLIR_MakeIntensityMap(&flirData,false);
                 }
             }
             flirData.status.flags.imageCopied = true;
@@ -491,6 +491,7 @@ void FLIR_Tasks ( void )
         {
             flirData.status.flags.calculateStatistics = true;
             flirData.status.flags.resetStatistics = true;
+            flirData.status.flags.statisticsComplete = false;
         }
     }
 }
@@ -515,7 +516,7 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
         for (y=0;y<flir->image.properties.dimensions.vertical;y++)
         {
             dispData.display[dispData.displayInfo.buffer.filling][y+dispData.displayInfo.offset.vertical][x+dispData.displayInfo.offset.horizontal].w = 
-                flir->colorMap[(flir->image.buffer.pixel[y][x])&(FLIR_LUT_SIZE-1)].w;
+                flir->colorMap.LUT[(flir->image.buffer.pixel[y][x])&(FLIR_LUT_SIZE-1)].w;
         }
     }
     BSP_LEDToggle(BSP_LED_3);
@@ -736,39 +737,41 @@ bool FLIR_StartGetVoSPI(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-//bool FLIR_ReMakeIntensityMap(FLIR_DATA *flir)
+
 bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
 {
-    uint32_t index;
-    int32_t red,green,blue;
-    uint32_t size;
-    uint32_t midpoint;
-    if(initialMap)
+    double red;
+    double green;
+    double blue;
+    double size;
+    double midpoint;
+    uint32_t index;    
+    if(initialMap ||(flir->status.flags.statisticsComplete == false))
     {
         flir->colorMap.maximum = FLIR_LUT_SIZE - 1;
         flir->colorMap.minimum = 0;
         flir->colorMap.maxIntensity.w = 0;
-        flir->colorMap.maxIntensity.blue = FLIR_PEAK_INTENSITY;
+        flir->colorMap.maxIntensity.blue  = FLIR_PEAK_INTENSITY;
         flir->colorMap.maxIntensity.green = FLIR_PEAK_INTENSITY;
-        flir->colorMap.maxIntensity.red = FLIR_PEAK_INTENSITY;
+        flir->colorMap.maxIntensity.red   = FLIR_PEAK_INTENSITY;
     }
     else
     {
-        flir->colorMap.maximum = 
+        flir->colorMap.maximum = flir->statistics.mean.median + flir->statistics.mean.standardDeviation;
+        flir->colorMap.minimum = flir->statistics.mean.median - flir->statistics.mean.standardDeviation;
     }
     size = flir->colorMap.maximum - flir->colorMap.minimum;
-    midpoint = flir->colorMap.minimum + (size>>1);
+    midpoint = flir->colorMap.minimum + (size/2);
     /* Start at the beginning of the map, fill everything from the beginning */
     /* to colorMap.minimum to be full blue*/
     for(index=0;index<flir->colorMap.minimum;index++)
-    {
-        flir->colorMap.LUT[index].w = 0;
+    {        
         flir->colorMap.LUT[index].blue = flir->colorMap.maxIntensity.blue;
     }
     for(;index<midpoint;index++)
     {
-        /* calculate red negative slope */
-        blue = ((-2 * flir->colorMap.maxIntensity.blue)/size)*(index - midpoint);       
+        /* calculate Blue negative slope */
+        blue = (((2 * flir->colorMap.maxIntensity.blue)*(midpoint - index))/size);       
         if(blue<0)
         {
             blue=0;
@@ -776,8 +779,7 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         else if (blue>flir->colorMap.maxIntensity.blue)
         {
             blue = flir->colorMap.maxIntensity.blue;
-        }
-        flir->colorMap.LUT[index].blue = blue;
+        }        
         /* calculate green positive slope */
         green = ((2*flir->colorMap.maxIntensity.green)/size)*(index-flir->colorMap.minimum);
         if(green<0)
@@ -787,15 +789,15 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         else if (green>flir->colorMap.maxIntensity.green)
         {
             green=flir->colorMap.maxIntensity.green;
-        }        
-        flir->colorMap.LUT[index].green = green;     
-        flir->colorMap.LUT[index].red = 0;
+        }           
+        flir->colorMap.LUT[index].blue = blue;
+        flir->colorMap.LUT[index].green = green;
     }
     for(;index<flir->colorMap.maximum;index++)
-    {
-        flir->colorMap.LUT[index].blue = 0;
+    {        
         /* calculate green negative slope */
-        green = (((-1 * flir->colorMap.maxIntensity.green)/(flir->colorMap.maximum-midpoint))*(index-flir->colorMap.maximum);
+        green = ((flir->colorMap.maximum - index)*(flir->colorMap.maxIntensity.green))/
+                (flir->colorMap.maximum - midpoint);
         if(green<0)
         {
             green = 0;
@@ -803,10 +805,10 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         else if (green > flir->colorMap.maxIntensity.green)
         {
             green = flir->colorMap.maxIntensity.green;
-        }
-        flir->colorMap.LUT[index].green = green;
+        }        
         /* calculate red positive slope */
-        red = (flir->colorMap.maxIntensity.red/(flir->colorMap.maximum-midpoint))*(index-midpoint);
+        red = ((index - midpoint) * flir->colorMap.maxIntensity.red)/
+               (flir->colorMap.maximum - midpoint);
         if(red<0)
         {
             red = 0;
@@ -815,6 +817,8 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         {
             red = flir->colorMap.maxIntensity.red;
         }
+        flir->colorMap.LUT[index].w = 0;
+        flir->colorMap.LUT[index].green = green;
         flir->colorMap.LUT[index].red = red;        
     }
     for(;index<FLIR_LUT_SIZE;index++)
@@ -988,7 +992,8 @@ bool FLIR_CalculateStatistics(FLIR_DATA *flir)
         }
         flir->statistics.mean.standardDeviation = sum / flir->statistics.size; 
         // </editor-fold>
-        BSP_LEDOff(BSP_LED_1);        
+        BSP_LEDOff(BSP_LED_1);  
+        flir->status.flags.statisticsComplete = true;
         return false;
     }
     return true;
