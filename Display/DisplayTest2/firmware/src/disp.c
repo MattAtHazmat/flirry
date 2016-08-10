@@ -56,9 +56,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "flir.h"
 #include "disp.h"
 #include "peripheral/int/processor/int_p32mz2048efm144.h"
-//#include "driver/tmr/drv_tmr_mapping.h"
-
-
 
 // *****************************************************************************
 // *****************************************************************************
@@ -93,20 +90,12 @@ extern FLIR_DATA flirData;
 
 void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
-    //uint32_t* sliceToSend;   
     uint32_t sliceToSend;
     SetSTB();
     dispData.counters.timerCallback++;
-    if((dispData.status.flags.forceBlankSlice == false)&&
-       (dispData.status.flags.sliceReady == false))
-    {
-        /* nothing to do */
-        return;
-    }
     if(dispData.status.flags.sliceReady)
     {
         dispData.slice.displaying = dispData.slice.filling;
-        //sliceToSend = (uint32_t*)&dispData.slice.buffer[dispData.slice.displaying];
         sliceToSend = dispData.slice.displaying;
         dispData.status.flags.sliceReady = false;   
         dispData.counters.sliceSent++;     
@@ -115,8 +104,7 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     {
         /* not ready or forcing a blank slice- send a blank line so we */
         /* don't  get a bright streak */
-        //sliceToSend = (uint32_t*)&dispData.slice.buffer[BLANK_SLICE];  
-        sliceToSend  = BLANK_SLICE;
+        sliceToSend = BLANK_SLICE;
         dispData.counters.blankSliceSent++;
     }
     ClearSTB();
@@ -127,9 +115,6 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
         SYS_DMA_ChannelEnable(dispData.dma.handle[sliceToSend]);
         SYS_DMA_ChannelForceStart(dispData.dma.handle[sliceToSend]);
         dispData.status.flags.sliceSent = true;
-        IFS4CLR = _IFS4_PMPIF_MASK;
-        SYS_INT_SourceEnable(INT_SOURCE_PARALLEL_PORT);
-        IFS4SET = _IFS4_PMPIF_MASK;
      }
      else
      {
@@ -145,7 +130,6 @@ void DISP_DMATransferComplete( SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HAN
     {
         case SYS_DMA_TRANSFER_EVENT_COMPLETE:
         {
-            SYS_INT_SourceDisable(INT_SOURCE_PARALLEL_PORT);
             dispData.status.flags.DMAComplete = true;
             break;
         }
@@ -249,7 +233,7 @@ bool DISP_InitializePMP(DISP_DATA* disp)
         //                                      DRV_IO_INTENT_NONBLOCKING);
         PMCONbits.ON = false;        
         PMAEN  = 0x0F00;
-        PMMODE = 0x2e64;
+        PMMODE = 0x2e65;
         PMCON  = 0xc270;
         //PLIB_PMP_Disable(disp->pmp.index);
         //PLIB_PMP_ChipSelectFunctionSelect(disp->pmp.index,PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT);
@@ -307,19 +291,18 @@ bool DISP_InitializeDMA(DISP_DATA* disp)
             return false;
         }    
         SYS_DMA_ChannelSetup(disp->dma.handle[index],
-                             SYS_DMA_CHANNEL_OP_MODE_BASIC, 
+                             SYS_DMA_CHANNEL_OP_MODE_BASIC|SYS_DMA_CHANNEL_OP_MODE_AUTO, 
                              DMA_TRIGGER_PARALLEL_PORT);
         SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle[index],
                                                (void*)DISP_DMATransferComplete,
                                                index);
         SYS_DMA_ChannelTransferSet(disp->dma.handle[index],
                                    (void*)&disp->slice.buffer[index],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
-                                   (const void*)&PMRDIN,sizeof(DISPLAY_PIXEL_TYPE),
+                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
                                    sizeof(DISPLAY_PIXEL_TYPE));
-        PLIB_DMA_ChannelXINTSourceEnable(disp->dma.module,disp->dma.channel[0],DMA_INT_BLOCK_TRANSFER_COMPLETE);
+        PLIB_DMA_ChannelXINTSourceEnable(disp->dma.module,disp->dma.channel[index],DMA_INT_BLOCK_TRANSFER_COMPLETE);
     }
     dispData.status.flags.DMAComplete = true;
-
     return true;
 }
 

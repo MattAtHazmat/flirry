@@ -311,12 +311,6 @@ void SYS_Initialize ( void* data )
 
 
     //sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_PMP,INT_PRIORITY_LEVEL2);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_PMP,INT_SUBPRIORITY_LEVEL1);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_PMP_ERROR,INT_PRIORITY_LEVEL2);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_PMP_ERROR,INT_SUBPRIORITY_LEVEL1);
-    //SYS_INT_SourceEnable(INT_SOURCE_PARALLEL_PORT);
-    //SYS_INT_SourceEnable(INT_SOURCE_PARALLEL_PORT_ERROR);
     
     /*** SPI Driver Index 0 initialization***/
 
@@ -370,7 +364,9 @@ void SYS_Initialize ( void* data )
     /* Initialize the Application                                             */
     DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,
                     sysObj.drvTmr0,DISP_TIMER_INSTANCE,
-                    sysObj.sysDma,DISP_DMA_CHANNEL_0,DISP_DMA_CHANNEL_1,DISP_DMA_CHANNEL_2);
+                    sysObj.sysDma,DISP_DMA_CHANNEL_0,
+                                  DISP_DMA_CHANNEL_1,
+                                  DISP_DMA_CHANNEL_2);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
     FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_I2C_INSTANCE,FLIR_SPI_INSTANCE);
 }
