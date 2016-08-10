@@ -241,6 +241,15 @@ const SYS_DEVCON_INIT sysDevconInit =
 };
 
 // </editor-fold>
+//<editor-fold defaultstate="collapsed" desc="SYS_DMA Initialization Data">
+/*** System DMA Initialization Data ***/
+
+const SYS_DMA_INIT sysDmaInit =
+{
+	.sidl = SYS_DMA_SIDL_DISABLE,
+
+};
+// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="SYS_TMR Initialization Data">
 /*** TMR Service Initialization Data **                                       */
 const SYS_TMR_INIT sysTmrInitData =
@@ -301,8 +310,14 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
 
 
-    sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
-
+    //sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_PMP,INT_PRIORITY_LEVEL2);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_PMP,INT_SUBPRIORITY_LEVEL1);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_PMP_ERROR,INT_PRIORITY_LEVEL2);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_PMP_ERROR,INT_SUBPRIORITY_LEVEL1);
+    //SYS_INT_SourceEnable(INT_SOURCE_PARALLEL_PORT);
+    //SYS_INT_SourceEnable(INT_SOURCE_PARALLEL_PORT_ERROR);
+    
     /*** SPI Driver Index 0 initialization***/
 
     SYS_INT_VectorPrioritySet(DRV_SPI_TX_INT_VECTOR_IDX0, DRV_SPI_TX_INT_PRIORITY_IDX0);
@@ -312,6 +327,19 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorPrioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_PRIORITY_IDX0);
     SYS_INT_VectorSubprioritySet(DRV_DRV_SPI_ERROR_INT_VECTOR_IDX0, DRV_SPI_ERROR_INT_SUB_PRIORITY_IDX0);
     sysObj.spiObjectIdx0 = DRV_SPI_Initialize(DRV_SPI_INDEX_0, (const SYS_MODULE_INIT  * const)&drvSpi0InitData);
+    sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA1, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA1, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA2, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA2, INT_SUBPRIORITY_LEVEL0);
+
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_1);
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_2);
+
+
 
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
@@ -323,9 +351,9 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T3, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T5, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T5, INT_SUBPRIORITY_LEVEL0);
- 
- 
 
+ 
+ 
     /* Initialize System Services                                             */
 
     /*** Interrupt Service Initialization Code ***/
@@ -340,7 +368,9 @@ void SYS_Initialize ( void* data )
     SYS_INT_Enable();
     
     /* Initialize the Application                                             */
-    DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,sysObj.drvTmr0,DISP_TIMER_INSTANCE);
+    DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,
+                    sysObj.drvTmr0,DISP_TIMER_INSTANCE,
+                    sysObj.sysDma,DISP_DMA_CHANNEL_0,DISP_DMA_CHANNEL_1,DISP_DMA_CHANNEL_2);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
     FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_I2C_INSTANCE,FLIR_SPI_INSTANCE);
 }

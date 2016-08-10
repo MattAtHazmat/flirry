@@ -678,66 +678,6 @@ bool FLIR_StartGetVoSPI(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-//bool FLIR_MakeIntensityMap(FLIR_DATA *flir)
-//{
-//    uint32_t index;
-//    int32_t red,green,blue;
-//    for(index=0;index<(FLIR_LUT_SIZE>>1);index++)
-//    {
-//        /* calculate red negative slope */
-//        red = ((-2 * FLIR_PEAK_INTENSITY * index)/(FLIR_LUT_SIZE)) +FLIR_PEAK_INTENSITY;       
-//        if(red<0)
-//        {
-//            red=0;
-//        }
-//        else if (red>FLIR_PEAK_INTENSITY)
-//        {
-//            red = FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].blue = red;
-//        /* calculate green positive slope */
-//        green = ((2*FLIR_PEAK_INTENSITY*index)/(FLIR_LUT_SIZE));
-//        if(green<0)
-//        {
-//            green = 0;
-//        }
-//        else if (green>FLIR_PEAK_INTENSITY)
-//        {
-//            green=FLIR_PEAK_INTENSITY;
-//        }        
-//        flir->colorMap.LUT[index].green = green;        
-//    }
-//    for(;index<FLIR_LUT_SIZE;index++)
-//    {
-//        /* calculate green negative slope */
-//        green = ((-2 * FLIR_PEAK_INTENSITY * index)/(FLIR_LUT_SIZE))+ (2*FLIR_PEAK_INTENSITY);
-//        if(green<0)
-//        {
-//            green = 0;
-//        }
-//        else if (green>FLIR_PEAK_INTENSITY)
-//        {
-//            green=FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].green = green;
-//        /* calculate blue positive slope */
-//        blue = ((2*FLIR_PEAK_INTENSITY*index)/(FLIR_LUT_SIZE)) - FLIR_PEAK_INTENSITY;
-//        if(blue<0)
-//        {
-//            blue = 0;
-//        }
-//        else if (blue>FLIR_PEAK_INTENSITY)
-//        {
-//            blue = FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].red = blue;        
-//    }
-//    return true;
-//}
-
-/******************************************************************************/
-
-
 bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
 {
     double red;

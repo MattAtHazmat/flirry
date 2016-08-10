@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration version="1.0.8.7">
   <General>
-    <HarmonyPath path="../../../../microchip/harmony/v1_08"/>
+    <HarmonyPath path="../../../../microchip/harmony/v1_08_01"/>
     <Processor name="PIC32MZ2048EFM144"/>
     <ForceOptimization flag="true"/>
     <MergeStrategy flag="USER_ALL"/>
@@ -97,6 +97,10 @@
         <Path>Header Files/framework/driver/spi/src</Path>
       </File>
       <File>
+        <Name>sys_dma.c</Name>
+        <Path>Source Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_int.h</Name>
         <Path>Header Files/framework/system/int</Path>
       </File>
@@ -129,12 +133,20 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
+        <Name>sys_dma.h</Name>
+        <Path>Header Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_tmr.h</Name>
         <Path>Header Files/framework/system/tmr</Path>
       </File>
       <File>
         <Name>osal.h</Name>
         <Path>Header Files/framework/osal</Path>
+      </File>
+      <File>
+        <Name>sys_dma_local.h</Name>
+        <Path>Header Files/framework/system/dma/src</Path>
       </File>
       <File>
         <Name>drv_pmp_dynamic.c</Name>
@@ -234,7 +246,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>00BE02701840F62A006BB4A65BA95F2B</Checksum>
+        <Checksum>A1FA51CE7E0DADBDF68DAC333DDBA719</Checksum>
         <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
@@ -248,13 +260,13 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>4FAE77622E353DC824F16DEF8343C6F9</Checksum>
+        <Checksum>27D93FC8FD594DDB1C7374BECAF2C5B5</Checksum>
         <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+        <Checksum>CD782FDEE3718461156F2CD7CB6E28F3</Checksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -282,7 +294,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>D7D40CA14AA6BF915DFCBF8D1498DFEF</Checksum>
+        <Checksum>B9B138B76803A3823194ABEC10BE5BB0</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
@@ -293,7 +305,8 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>675BE1FF6653D80BABF21BA4B278F285</Checksum>
+        <Checksum>A6E7C9CEB843AA7F977999C4AFF6AB8A</Checksum>
+        <ProjectFileChecksum>A39B60B3538176DCD1CCE32285980E75</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_master_ebm_tasks.c</Name>
@@ -320,14 +333,14 @@
         <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src"/>
         <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default"/>
         <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/default"/>
-        <Include value="/home/mjb/microchip/harmony/v1_08/framework"/>
+        <Include value="/home/mjb/microchip/harmony/v1_08_01/framework"/>
         <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default/framework"/>
-        <Include value="../../../../../../microchip/harmony/v1_08/bsp/pic32mz_ef_sk"/>
+        <Include value="../../../../../../microchip/harmony/v1_08_01/bsp/pic32mz_ef_sk"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../microchip/harmony/v1_08/framework/tcpip/src/crypto/aes_pic32mx.a"/>
-      <Library value="../../../../../../microchip/harmony/v1_08/bin/framework/peripheral/PIC32MZ2048EFM144_peripherals.a"/>
+      <Library value="../../../../../../microchip/harmony/v1_08_01/framework/tcpip/src/crypto/aes_pic32mx.a"/>
+      <Library value="../../../../../../microchip/harmony/v1_08_01/bin/framework/peripheral/PIC32MZ2048EFM144_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

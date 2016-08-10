@@ -120,6 +120,7 @@ typedef enum
 {
 	DISP_STATE_INIT=0,
     DISP_STATE_INITIALIZE_TIMER,
+    DISP_STATE_INITIALIZE_DMA,
     DISP_STATE_INITIALIZE_PMP,
     DISP_STATE_SET_TIMER_ALARM,
     DISP_STATE_START_TIMER,
@@ -202,12 +203,15 @@ typedef struct
     DISP_STATE_TYPE state;
     union {
         struct {
+            unsigned useDMA:1;
+            unsigned DMAComplete:1;
+            unsigned DMAInitialized:1;
             unsigned PMPInitialized:1;
             unsigned timerInitialized:1;
             unsigned timerStarted:1;
             unsigned timerAlarmSet:1;  
             unsigned displayArrayFilled:1;        
-            unsigned firstSliceSent:1; 
+            unsigned firstPMPSliceSent:1; 
             unsigned sliceReady:1;
             unsigned sliceSent:1;
             unsigned forceBlankSlice:1;
@@ -250,7 +254,13 @@ typedef struct
         PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
-        union __attribute__ ((packed)){
+        DMA_CHANNEL channel[3];
+        SYS_DMA_CHANNEL_HANDLE handle[3];
+        SYS_MODULE_OBJ object;    
+        DMA_MODULE_ID module;
+    } dma;
+    struct {
+        union __attribute__ ((packed)) __attribute__((coherent)) __attribute__((aligned(16))) {
             DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
             uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
         } buffer[3];
@@ -266,6 +276,7 @@ typedef struct
         uint32_t imageSent;
         uint32_t timerOverrun;
         uint32_t timerCallback;
+        uint32_t DMANotReady;
     } counters;
 } DISP_DATA;
 
@@ -314,7 +325,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX );
+bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, DMA_CHANNEL, DMA_CHANNEL, DMA_CHANNEL );
 
 
 /*******************************************************************************

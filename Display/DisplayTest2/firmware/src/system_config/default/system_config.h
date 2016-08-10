@@ -18,7 +18,7 @@
     definitions for build-time configuration options that are not instantiated
     until used by another MPLAB Harmony module or application.
     
-    Created with MPLAB Harmony Version 1.08
+    Created with MPLAB Harmony Version 1.08.01
 *******************************************************************************/
 
 // DOM-IGNORE-BEGIN
@@ -142,7 +142,7 @@ extern "C" {
 #define SYS_PORT_F_CNPD         0x0
 #define SYS_PORT_F_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x40
+#define SYS_PORT_G_ANSEL        0x0
 #define SYS_PORT_G_TRIS         0x33c3
 #define SYS_PORT_G_LAT          0x0
 #define SYS_PORT_G_ODC          0x0
@@ -336,11 +336,14 @@ extern "C" {
 #define APPLICATION_INSTANCE_0      DISP
 #define DISP_TIMER_INSTANCE         DRV_TMR_INDEX_1
 #define DISP_PMP_INSTANCE           DRV_PMP_INDEX_0
+#define DISP_DMA_CHANNEL_0          DMA_CHANNEL_0
+#define DISP_DMA_CHANNEL_1          DMA_CHANNEL_1
+#define DISP_DMA_CHANNEL_2          DMA_CHANNEL_2
 #define DISP_DATA_SETUP_WAIT        PMP_DATA_WAIT_TWO
 #define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_10
 #define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_1
 #define DISP_NUMBER_SLICES          (16)
-#define DISP_DISPLAY_UPDATE_RATE    (480) /* Hz */
+#define DISP_DISPLAY_UPDATE_RATE    (40) /* Hz */
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
 #define DISP_PEAK_INTENSITY         (0x1F)
 #define DISP_PWM_INCREMENT          (DISP_PEAK_INTENSITY>>3)
