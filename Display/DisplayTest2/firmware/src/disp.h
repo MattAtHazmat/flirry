@@ -60,23 +60,9 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_config.h"
 #include "system_definitions.h"
 
-#define BLANK_SLICE         (2)
 #define DISPLAY_QUANTA      (32)
 #define DISPLAY_ROWS        (DISPLAY_QUANTA*2)
 #define DISPLAY_COLUMNS     (DISPLAY_QUANTA*3)
-//#define COLUMNS_BITS        (7)
-//#define RED_0_MASK          (0b00000001)
-//#define GREEN_0_MASK        (0b00000010)
-//#define BLUE_0_MASK         (0b00000100)
-//#define RED_1_MASK          (RED_0_MASK<<3)
-//#define GREEN_1_MASK        (GREEN_0_MASK<<3)
-//#define BLUE_1_MASK         (BLUE_0_MASK<<3)
-//#define RED_2_MASK          (RED_0_MASK<<6)
-//#define GREEN_2_MASK        (GREEN_0_MASK<<6)
-//#define BLUE_2_MASK         (BLUE_0_MASK<<6)
-//#define RED_3_MASK          (RED_0_MASK<<9)
-//#define GREEN_3_MASK        (GREEN_0_MASK<<9)
-//#define BLUE_3_MASK         (BLUE_0_MASK<<9)
 #define DISPLAY_BUFFER_SIZE (DISPLAY_COLUMNS)
 //#define STROBE_ACTIVE_LOW
 #ifdef STROBE_ACTIVE_LOW
@@ -86,13 +72,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     #define SetSTB()        mBitSet(LATD,9) //LATDSET = _LATD_LATD9_MASK 
     #define ClearSTB()      mBitClear(LATD,9) //LATDCLR = _LATD_LATD9_MASK 
 #endif
-//#define SetOE()             LATCSET = _LATC_LATC1_MASK 
-//#define ClearOE()           LATCCLR = _LATC_LATC1_MASK 
-//#define SLICE_TO_ADDRESS_SHIFT  (COLUMNS_BITS +1)
 
-//#define DATA_WAIT           PMP_DATA_WAIT_FOUR
-//#define STROBE_WAIT         PMP_STROBE_WAIT_10
-//#define DATA_HOLD_WAIT      PMP_DATA_HOLD_1
 /******************************************************************************/
 /******************************************************************************/
 /* Section: Type Definitions                                                  */
@@ -190,13 +170,6 @@ typedef union {
 
 /******************************************************************************/
 
-//typedef struct {
-//    int32_b_TYPE row;
-//    int32_b_TYPE column;
-//} ROW_COLUMN_TYPE;
-
-/******************************************************************************/
-
 typedef struct
 {
     DISP_STATE_TYPE state;
@@ -246,12 +219,10 @@ typedef struct
         SYS_MODULE_OBJ moduleObject;
         uint32_t divider;
     } timer;
-    struct {
-        //DRV_PMP_INDEX index;
+    struct {        
         uint32_t index;
         DRV_HANDLE driverHandle;
         SYS_MODULE_OBJ moduleObject;
-        //PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
         DMA_CHANNEL channel;
@@ -260,21 +231,15 @@ typedef struct
         DMA_MODULE_ID module;
     } dma;
     struct {
-        union __attribute__ ((packed)) __attribute__((coherent)) __attribute__((aligned(16))) {
-            DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
-            uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
-        } buffer[3];
         uint32_t displaying;
         uint32_t filling;
     }slice;
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
 #ifdef __DEBUG
     struct {
-        uint32_t blankSliceSent;
         uint32_t imageCheck;
         uint32_t imagesCopied;
-        uint32_t imageSent;
-        uint32_t DMANotReady;        
+        uint32_t imageSent;       
     } counters;
 #endif
 } DISP_DATA;

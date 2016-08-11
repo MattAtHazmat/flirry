@@ -80,7 +80,11 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 DISP_DATA dispData;
 extern FLIR_DATA flirData;
-
+__attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceBuffer[2][DISPLAY_BUFFER_SIZE];
+//union  {
+//    DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
+//    
+//} slibuffer[2];
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -89,42 +93,25 @@ extern FLIR_DATA flirData;
 
 void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
-    uint32_t sliceToSend;
-    SetSTB();
-    if(dispData.status.flags.sliceReady)
+    if((dispData.status.flags.DMAComplete == false)||
+       (dispData.status.flags.sliceReady == false))
     {
-        dispData.slice.displaying = dispData.slice.filling;
-        sliceToSend = dispData.slice.displaying;
-        dispData.status.flags.sliceReady = false;   
+        /* nothing to do. */
+        return;
     }
-    else
-    {
-        /* not ready or forcing a blank slice- send a blank line so we */
-        /* don't  get a bright streak */
-        sliceToSend = BLANK_SLICE;
-        #ifdef __DEBUG
-        dispData.counters.blankSliceSent++;
-        #endif
-    }
+    /* prepare to start the next DMA of data to the panel. Clear the strobe.  */
     ClearSTB();
-    if(dispData.status.flags.DMAComplete)
-    {
-        dispData.status.flags.DMAComplete = false;            
-        PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
-        SYS_DMA_ChannelTransferSet(dispData.dma.handle,
-                                   (void*)&dispData.slice.buffer[sliceToSend],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
-                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
-                                   sizeof(DISPLAY_PIXEL_TYPE));
-        SYS_DMA_ChannelEnable(dispData.dma.handle);
-        SYS_DMA_ChannelForceStart(dispData.dma.handle);
-        dispData.status.flags.sliceSent = true;
-     }
-    #ifdef __DEBUG
-    else
-    {
-        dispData.counters.DMANotReady++;
-    }      
-    #endif
+    dispData.slice.displaying = dispData.slice.filling;
+    dispData.status.flags.sliceReady = false;   
+    dispData.status.flags.DMAComplete = false;      
+    PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
+    SYS_DMA_ChannelTransferSet(dispData.dma.handle,
+                               (void*)&sliceBuffer[dispData.slice.displaying][0],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
+                               (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
+                               sizeof(DISPLAY_PIXEL_TYPE));
+    SYS_DMA_ChannelEnable(dispData.dma.handle);
+    SYS_DMA_ChannelForceStart(dispData.dma.handle);
+    dispData.status.flags.sliceSent = true;
 }
 
 /******************************************************************************/
@@ -135,6 +122,8 @@ void DISP_DMATransferComplete( SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HAN
     {
         case SYS_DMA_TRANSFER_EVENT_COMPLETE:
         {
+            /* latch the data into the panel */
+            SetSTB();
             dispData.status.flags.DMAComplete = true;
             break;
         }
@@ -183,6 +172,7 @@ bool DISP_Initialize ( DRV_PMP_INDEX pmpIndex,
                        SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel)
 {
     memset(&dispData,0,sizeof(dispData));
+    memset(&sliceBuffer,0,sizeof(sliceBuffer));
     dispData.timer.moduleObject = tmrModuleObj;
     dispData.timer.index = tmrIndex;
     dispData.pmp.index = pmpIndex;
@@ -469,51 +459,55 @@ void DISP_Tasks ( void )
 bool DISP_FillSlice(DISP_DATA *disp)
 {
     bool pwmIntervalEnd = false;
-    uint32_t row;
-    uint32_t column;   
-    uint32_t txColumn;
-    DISPLAY_PIXEL_TYPE displayPixel;
-    disp->slice.filling = (disp->slice.displaying == 0);
-    /* start filling in from the end, since the first data shifted in will    */
-    /* end up at the highest number column.                                   */
-    txColumn = disp->displayInfo.columns;
-    column = 0;
-    do {        
-        txColumn--;
-        row = disp->address.slice;
-        displayPixel.w=0;
-        displayPixel.red0   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
-        displayPixel.green0 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
-        displayPixel.blue0  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        row += DISP_NUMBER_SLICES;
-        displayPixel.red1   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
-        displayPixel.green1 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
-        displayPixel.blue1  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        row += DISP_NUMBER_SLICES;
-        displayPixel.red2   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
-        displayPixel.green2 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
-        displayPixel.blue2  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        row += DISP_NUMBER_SLICES;
-        displayPixel.red3   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
-        displayPixel.green3 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
-        displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        disp->slice.buffer[disp->slice.filling].pixel[txColumn] = displayPixel;
-        column++;
-    } while (txColumn != 0); /* when it's zero, stop                          */
-    /* increment the slice.                                                   */
-    disp->address.slice++;
-    if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over       */
+    /* only build up a new slice if the previous has been transmitted.        */
+    if(disp->status.flags.sliceReady == false)
     {
-        disp->address.w = 0;
-        /* reached the last slice. time to increment the pwm reference        */
-        disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
-        if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
+        uint32_t row;
+        uint32_t column;   
+        uint32_t txColumn;
+        DISPLAY_PIXEL_TYPE displayPixel;
+        disp->slice.filling = (disp->slice.displaying == 0);
+        /* start filling in from the end, since the first data shifted in will*/
+        /* end up at the highest number column.                               */
+        txColumn = disp->displayInfo.columns;
+        column = 0;
+        /* increment the slice.                                               */
+        disp->address.slice++;
+        do {        
+            txColumn--;
+            row = disp->address.slice;
+            displayPixel.w=0;
+            displayPixel.red0   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>  (disp->displayInfo.PWMLevel));
+            displayPixel.green0 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+            displayPixel.blue0  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue> (disp->displayInfo.PWMLevel));
+            row += DISP_NUMBER_SLICES;
+            displayPixel.red1   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>  (disp->displayInfo.PWMLevel));
+            displayPixel.green1 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+            displayPixel.blue1  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue> (disp->displayInfo.PWMLevel));
+            row += DISP_NUMBER_SLICES;
+            displayPixel.red2   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>  (disp->displayInfo.PWMLevel));
+            displayPixel.green2 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+            displayPixel.blue2  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue> (disp->displayInfo.PWMLevel));
+            row += DISP_NUMBER_SLICES;
+            displayPixel.red3   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>  (disp->displayInfo.PWMLevel));
+            displayPixel.green3 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
+            displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue> (disp->displayInfo.PWMLevel));
+            sliceBuffer[disp->slice.filling][txColumn] = displayPixel;
+            column++;
+        } while (txColumn != 0); /* when it's zero, stop                      */
+        /* is it the last slice? */
+        if(disp->address.slice == (DISP_NUMBER_SLICES-1)) 
         {
-            disp->displayInfo.PWMLevel = 0;
-            pwmIntervalEnd = true;
-        }
-    }    
-    disp->status.flags.sliceReady = true;
+            /* reached the last slice. time to increment the pwm reference    */
+            disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
+            if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
+            {
+                disp->displayInfo.PWMLevel = 0;
+                pwmIntervalEnd = true;
+            }
+        }    
+        disp->status.flags.sliceReady = true;
+    }
     return pwmIntervalEnd;
 }
 

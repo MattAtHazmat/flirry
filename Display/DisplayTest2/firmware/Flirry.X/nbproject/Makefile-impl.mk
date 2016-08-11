@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=DisplayTest2.X
+PROJECTNAME=Flirry.X
 
 # Active Configuration
 DEFAULTCONF=default
