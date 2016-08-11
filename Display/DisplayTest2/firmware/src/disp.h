@@ -254,8 +254,8 @@ typedef struct
         PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
-        DMA_CHANNEL channel[3];
-        SYS_DMA_CHANNEL_HANDLE handle[3];
+        DMA_CHANNEL channel;
+        SYS_DMA_CHANNEL_HANDLE handle;
         SYS_MODULE_OBJ object;    
         DMA_MODULE_ID module;
     } dma;
@@ -269,14 +269,15 @@ typedef struct
     }slice;
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
     struct {
-        uint32_t sliceSent;
+        //uint32_t slicesFilled;
+        //uint32_t sliceSent;
         uint32_t blankSliceSent;
         uint32_t imageCheck;
         uint32_t imagesCopied;
         uint32_t imageSent;
-        uint32_t timerOverrun;
-        uint32_t timerCallback;
-        uint32_t DMANotReady;
+        //uint32_t timerOverrun;
+        //uint32_t timerCallback;
+        uint32_t DMANotReady;        
     } counters;
 } DISP_DATA;
 
@@ -325,7 +326,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, DMA_CHANNEL, DMA_CHANNEL, DMA_CHANNEL );
+bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, DMA_CHANNEL );
 
 
 /*******************************************************************************

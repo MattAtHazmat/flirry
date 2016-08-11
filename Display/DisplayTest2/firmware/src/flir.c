@@ -310,12 +310,14 @@ void FLIR_Tasks ( void )
             //    flirData.state = FLIR_START_TIMER;
             //    break;
             //}
+#ifdef USE_I2C
             if ((!flirData.status.flags.I2CConfigured)&&
                 (!flirData.status.flags.I2CConfigureAttempted))
             {
                 flirData.state = FLIR_OPEN_I2C;
                 break;
             }
+#endif
             if (!flirData.status.flags.SPIConfigured)
             {
                 flirData.state = FLIR_OPEN_SPI_PORT;
@@ -336,6 +338,7 @@ void FLIR_Tasks ( void )
             flirData.state = FLIR_STATE_INIT;
             break;
         }
+        #ifdef USE_I2C
         case FLIR_OPEN_I2C:
         {
             flirData.status.flags.I2CConfigureAttempted = true;
@@ -343,6 +346,7 @@ void FLIR_Tasks ( void )
             flirData.state = FLIR_STATE_INIT;
             break;
         }
+        #endif
         case FLIR_OPEN_SPI_PORT:
         {
             flirData.status.flags.SPIConfigured = FLIR_OpenSPI(&flirData);
@@ -497,7 +501,7 @@ void FLIR_Tasks ( void )
 }
 
 /******************************************************************************/
-
+#ifdef USE_I2C
 bool FLIR_OpenI2C(FLIR_DATA *flir)
 {
     LEP_RESULT result;
@@ -505,7 +509,7 @@ bool FLIR_OpenI2C(FLIR_DATA *flir)
     
     return (result==LEP_OK);
 }
-
+#endif
 /******************************************************************************/
 
 bool FLIR_CopyImage(FLIR_DATA *flir)

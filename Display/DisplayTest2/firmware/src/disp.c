@@ -92,13 +92,11 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
     uint32_t sliceToSend;
     SetSTB();
-    dispData.counters.timerCallback++;
     if(dispData.status.flags.sliceReady)
     {
         dispData.slice.displaying = dispData.slice.filling;
         sliceToSend = dispData.slice.displaying;
         dispData.status.flags.sliceReady = false;   
-        dispData.counters.sliceSent++;     
     }
     else
     {
@@ -112,8 +110,12 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     {
         dispData.status.flags.DMAComplete = false;            
         PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
-        SYS_DMA_ChannelEnable(dispData.dma.handle[sliceToSend]);
-        SYS_DMA_ChannelForceStart(dispData.dma.handle[sliceToSend]);
+        SYS_DMA_ChannelTransferSet(dispData.dma.handle,
+                                   (void*)&dispData.slice.buffer[sliceToSend],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
+                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
+                                   sizeof(DISPLAY_PIXEL_TYPE));
+        SYS_DMA_ChannelEnable(dispData.dma.handle);
+        SYS_DMA_ChannelForceStart(dispData.dma.handle);
         dispData.status.flags.sliceSent = true;
      }
      else
@@ -175,9 +177,7 @@ static inline bool DISP_SliceSent(void)
 
 bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
                        SYS_MODULE_OBJ tmrModuleObj, SYS_MODULE_INDEX tmrIndex,
-                       SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel0,
-                                                    DMA_CHANNEL dmaChannel1,
-                                                    DMA_CHANNEL dmaChannel2)
+                       SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel)
 {
     memset(&dispData,0,sizeof(dispData));
     dispData.timer.moduleObject = tmrModuleObj;
@@ -199,9 +199,7 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.displayInfo.offset.horizontal = DISP_HORIZONTAL_OFFSET;
     dispData.displayInfo.offset.vertical = DISP_VERTICAL_OFFSET;
     dispData.dma.object = dmaModuleObj;
-    dispData.dma.channel[0] = dmaChannel0;
-    dispData.dma.channel[1] = dmaChannel1;
-    dispData.dma.channel[2] = dmaChannel2;
+    dispData.dma.channel = dmaChannel;
     dispData.dma.module = DMA_ID_0;
     dispData.status.flags.useDMA = true;
     ClearSTB();
@@ -227,53 +225,33 @@ bool DISP_InitializePMP(DISP_DATA* disp)
 {
     if(disp->status.flags.PMPInitialized == false)// pmp.driverHandle == DRV_HANDLE_INVALID)
     {
-        //DRV_PMP_MODE_CONFIG pmpConfig;
-        //disp->pmp.driverHandle = DRV_PMP_Open(disp->pmp.index,
-        //                                      DRV_IO_INTENT_EXCLUSIVE|
-        //                                      DRV_IO_INTENT_NONBLOCKING);
-        PMCONbits.ON = false;        
-        PMAEN  = 0x0F00;
-        PMMODE = 0x2e65;
-        PMCON  = 0xc270;
-        //PLIB_PMP_Disable(disp->pmp.index);
-        //PLIB_PMP_ChipSelectFunctionSelect(disp->pmp.index,PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT);
-        //PLIB_PMP_AddressIncrementModeSelect(disp->pmp.index,PMP_ADDRESS_AUTO_INCREMENT);
-        //PLIB_PMP_InterruptModeSelect(disp->pmp.index,PMP_INTERRUPT_EVERY_RW_CYCLE);
-        //PLIB_PMP_OperationModeSelect(disp->pmp.index,PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT);
-        //PLIB_PMP_DataSizeSelect(disp->pmp.index,PMP_DATA_SIZE_16_BITS);
-        //PLIB_PMP_WaitStatesDataSetUpSelect(disp->pmp.index,DISP_DATA_SETUP_WAIT);
-        //PLIB_PMP_WaitStatesStrobeSelect(disp->pmp.index,DISP_STROBE_WAIT_STATES);
-        //PLIB_PMP_WaitStatesDataHoldSelect(disp->pmp.index,DISP_DATA_HOLD_WAIT_STATES);
-        //PLIB_PMP_AddressLatchPolaritySelect(disp->pmp.index,PMP_POLARITY_ACTIVE_HIGH);
-        //PLIB_PMP_ChipSelectXPolaritySelect(disp->pmp.index,PMP_CHIP_SELECT_TWO,PMP_POLARITY_ACTIVE_HIGH);
-        //PLIB_PMP_AddressPortEnable(dispData.pmp.index, PMP_PMA8_PORT|PMP_PMA9_PORT|PMP_PMA10_PORT|PMP_PMA11_PORT);
-        //PLIB_PMP_A
-        //DRV_PMP_Tasks(dispData.pmp.driverHandle);
-        //pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-        //pmpConfig.endianMode = LITTLE; 
-        //pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
-        //pmpConfig.intMode = PMP_INTERRUPT_EVERY_RW_CYCLE; //PMP_INTERRUPT_NONE;
-        //pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT; 
-        //pmpConfig.portSize = PMP_DATA_SIZE_16_BITS;
-        //pmpConfig.waitStates.dataHoldWait = DISP_DATA_HOLD_WAIT_STATES;
-        //pmpConfig.waitStates.dataWait = DISP_DATA_SETUP_WAIT;
-        //pmpConfig.waitStates.strobeWait = DISP_STROBE_WAIT_STATES;
-        //pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
-        //DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
-        //DRV_PMP_Tasks(dispData.pmp.driverHandle);
+        //PMCONbits.ON = false;   
+
+
+        //PMMODE = 0x2e65;              
+        //PMAEN  = 0x0F00;
+        //PMCON  = 0xc270;
         
-        //PMCONbits.WRSP = true;       
-        //PLIB_PMP_Enable(disp->pmp.index);
+        PLIB_PMP_Disable(disp->pmp.index);
+        PLIB_PMP_ChipSelectFunctionSelect(disp->pmp.index,PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT);
+        PLIB_PMP_AddressIncrementModeSelect(disp->pmp.index,PMP_ADDRESS_AUTO_INCREMENT);
+        PLIB_PMP_InterruptModeSelect(disp->pmp.index,PMP_INTERRUPT_EVERY_RW_CYCLE);
+        PLIB_PMP_OperationModeSelect(disp->pmp.index,PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT);
+        PLIB_PMP_DataSizeSelect(disp->pmp.index,PMP_DATA_SIZE_16_BITS);
+        PLIB_PMP_WaitStatesDataSetUpSelect(disp->pmp.index,DISP_DATA_SETUP_WAIT);
+        PLIB_PMP_WaitStatesStrobeSelect(disp->pmp.index,DISP_STROBE_WAIT_STATES);
+        PLIB_PMP_WaitStatesDataHoldSelect(disp->pmp.index,DISP_DATA_HOLD_WAIT_STATES);
+        PLIB_PMP_AddressLatchPolaritySelect(disp->pmp.index,PMP_POLARITY_ACTIVE_HIGH);
+        PLIB_PMP_ChipSelectXPolaritySelect(disp->pmp.index,PMP_CHIP_SELECT_TWO,PMP_POLARITY_ACTIVE_HIGH);
+        PLIB_PMP_AddressPortEnable(dispData.pmp.index, PMP_PMA8_PORT|PMP_PMA9_PORT|PMP_PMA10_PORT|PMP_PMA11_PORT);
+        PLIB_PMP_ReadWriteStrobePortDisable(dispData.pmp.index);
+        PLIB_PMP_WriteEnableStrobePortEnable(dispData.pmp.index);
+        PLIB_PMP_WriteEnableStrobePolaritySelect(dispData.pmp.index,PMP_POLARITY_ACTIVE_HIGH);
+        PLIB_PMP_Enable(disp->pmp.index);
+
         dispData.status.flags.displayArrayFilled = true;
-        //PLIB_PMP_Enable(disp->pmp.index);
-        
         return true;
     }
-    //if(disp->pmp.driverHandle != DRV_HANDLE_INVALID)
-    //{
-    //    /* filled with empty */
-    //    dispData.status.flags.displayArrayFilled = true;
-    //}
     //return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
     return false;
 }
@@ -282,25 +260,25 @@ bool DISP_InitializePMP(DISP_DATA* disp)
 
 bool DISP_InitializeDMA(DISP_DATA* disp)
 {
-    uint32_t index;
-    for (index=0;index<3;index++)
+    //uint32_t index;
+    //for (index=0;index<3;index++)
     {
-        disp->dma.handle[index] = SYS_DMA_ChannelAllocate(disp->dma.channel[index]);
-        if(disp->dma.handle[index] == SYS_DMA_CHANNEL_HANDLE_INVALID)
+        disp->dma.handle = SYS_DMA_ChannelAllocate(disp->dma.channel);
+        if(disp->dma.handle == SYS_DMA_CHANNEL_HANDLE_INVALID)
         {
             return false;
         }    
-        SYS_DMA_ChannelSetup(disp->dma.handle[index],
+        SYS_DMA_ChannelSetup(disp->dma.handle,
                              SYS_DMA_CHANNEL_OP_MODE_BASIC|SYS_DMA_CHANNEL_OP_MODE_AUTO, 
                              DMA_TRIGGER_PARALLEL_PORT);
-        SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle[index],
+        SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle,
                                                (void*)DISP_DMATransferComplete,
-                                               index);
-        SYS_DMA_ChannelTransferSet(disp->dma.handle[index],
-                                   (void*)&disp->slice.buffer[index],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
-                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
-                                   sizeof(DISPLAY_PIXEL_TYPE));
-        PLIB_DMA_ChannelXINTSourceEnable(disp->dma.module,disp->dma.channel[index],DMA_INT_BLOCK_TRANSFER_COMPLETE);
+                                               NULL);
+//        SYS_DMA_ChannelTransferSet(disp->dma.handle[index],
+//                                   (void*)&disp->slice.buffer[index],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
+//                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
+//                                   sizeof(DISPLAY_PIXEL_TYPE));
+        //PLIB_DMA_ChannelXINTSourceEnable(disp->dma.module,disp->dma.channel[index],DMA_INT_BLOCK_TRANSFER_COMPLETE);
     }
     dispData.status.flags.DMAComplete = true;
     return true;
@@ -525,14 +503,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
     uint32_t column;   
     uint32_t txColumn;
     DISPLAY_PIXEL_TYPE displayPixel;
-    if(disp->slice.displaying == 0)
-    {
-        disp->slice.filling = 1;
-    }
-    else
-    {
-        disp->slice.filling = 0;
-    }
+    disp->slice.filling = (disp->slice.displaying == 0);
     /* start filling in from the end, since the first data shifted in will    */
     /* end up at the highest number column.                                   */
     txColumn = disp->displayInfo.columns;

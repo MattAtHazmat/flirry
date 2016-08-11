@@ -301,6 +301,7 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();        
 
     /* Initialize Drivers                                                     */
+#ifdef USE_I2C
     sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
 
 
@@ -308,9 +309,9 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_MASTER, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_BUS, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
+#endif
 
-
-    //sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
+    sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
     
     /*** SPI Driver Index 0 initialization***/
 
@@ -324,14 +325,14 @@ void SYS_Initialize ( void* data )
     sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
     SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA1, INT_PRIORITY_LEVEL6);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA1, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA2, INT_PRIORITY_LEVEL6);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA2, INT_SUBPRIORITY_LEVEL0);
+    //SYS_INT_VectorPrioritySet(INT_VECTOR_DMA1, INT_PRIORITY_LEVEL6);
+    //SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA1, INT_SUBPRIORITY_LEVEL0);
+    //SYS_INT_VectorPrioritySet(INT_VECTOR_DMA2, INT_PRIORITY_LEVEL6);
+    //SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA2, INT_SUBPRIORITY_LEVEL0);
 
     SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
-    SYS_INT_SourceEnable(INT_SOURCE_DMA_1);
-    SYS_INT_SourceEnable(INT_SOURCE_DMA_2);
+    //SYS_INT_SourceEnable(INT_SOURCE_DMA_1);
+    //SYS_INT_SourceEnable(INT_SOURCE_DMA_2);
 
 
 
@@ -364,9 +365,7 @@ void SYS_Initialize ( void* data )
     /* Initialize the Application                                             */
     DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,
                     sysObj.drvTmr0,DISP_TIMER_INSTANCE,
-                    sysObj.sysDma,DISP_DMA_CHANNEL_0,
-                                  DISP_DMA_CHANNEL_1,
-                                  DISP_DMA_CHANNEL_2);
+                    sysObj.sysDma,DISP_DMA_CHANNEL);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
     FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_I2C_INSTANCE,FLIR_SPI_INSTANCE);
 }
