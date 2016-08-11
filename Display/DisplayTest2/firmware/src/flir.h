@@ -177,6 +177,7 @@ typedef struct __attribute__((packed)) {
             unsigned resync:1;
             unsigned resyncComplete:1;
             unsigned remadeMap:1;
+            unsigned manualRecalculate:1;
             unsigned calculateStatistics:1;
             unsigned resetStatistics:1;            
             unsigned statisticsComplete:1;
@@ -185,6 +186,7 @@ typedef struct __attribute__((packed)) {
     }status;
     VOSPI_TYPE VoSPI;
     FLIR_IMAGE_TYPE image;
+    #ifdef __DEBUG
     struct {
         uint32_t imagesStarted;
         uint32_t imagesCopied;
@@ -202,6 +204,7 @@ typedef struct __attribute__((packed)) {
             uint32_t mysteryLine;
         }failure;
     }counters;
+    #endif
     struct{
         PIXEL_TYPE LUT[FLIR_LUT_SIZE];
         uint32_t minimum;

@@ -111,7 +111,6 @@ typedef struct
     SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvTmr2;
     SYS_MODULE_OBJ  drvI2C0;
-    SYS_MODULE_OBJ  drvPMP0;
 
     /*** SPI Object for Index 0 ***/
     SYS_MODULE_OBJ				spiObjectIdx0;

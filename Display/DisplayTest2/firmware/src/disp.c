@@ -81,7 +81,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 DISP_DATA dispData;
 extern FLIR_DATA flirData;
 
-
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -103,7 +102,9 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
         /* not ready or forcing a blank slice- send a blank line so we */
         /* don't  get a bright streak */
         sliceToSend = BLANK_SLICE;
+        #ifdef __DEBUG
         dispData.counters.blankSliceSent++;
+        #endif
     }
     ClearSTB();
     if(dispData.status.flags.DMAComplete)
@@ -118,10 +119,12 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
         SYS_DMA_ChannelForceStart(dispData.dma.handle);
         dispData.status.flags.sliceSent = true;
      }
-     else
-     {
-         dispData.counters.DMANotReady++;
-     }      
+    #ifdef __DEBUG
+    else
+    {
+        dispData.counters.DMANotReady++;
+    }      
+    #endif
 }
 
 /******************************************************************************/
@@ -147,11 +150,11 @@ void DISP_DMATransferComplete( SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HAN
 }
 
 
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 // Section: Application Local Functions
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 
 static inline bool DISP_SliceSent(void)
 {
@@ -175,14 +178,13 @@ static inline bool DISP_SliceSent(void)
 /*                                                                            */
 /******************************************************************************/
 
-bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
+bool DISP_Initialize ( DRV_PMP_INDEX pmpIndex,
                        SYS_MODULE_OBJ tmrModuleObj, SYS_MODULE_INDEX tmrIndex,
                        SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel)
 {
     memset(&dispData,0,sizeof(dispData));
     dispData.timer.moduleObject = tmrModuleObj;
     dispData.timer.index = tmrIndex;
-    dispData.pmp.moduleObject = pmpModuleObj;
     dispData.pmp.index = pmpIndex;
     dispData.state = DISP_STATE_INIT;
     dispData.displayInfo.rows = DISPLAY_ROWS;
@@ -223,15 +225,8 @@ bool DISP_InitializeTimer(DISP_DATA* disp)
 
 bool DISP_InitializePMP(DISP_DATA* disp)
 {
-    if(disp->status.flags.PMPInitialized == false)// pmp.driverHandle == DRV_HANDLE_INVALID)
-    {
-        //PMCONbits.ON = false;   
-
-
-        //PMMODE = 0x2e65;              
-        //PMAEN  = 0x0F00;
-        //PMCON  = 0xc270;
-        
+    if(disp->status.flags.PMPInitialized == false)
+    {        
         PLIB_PMP_Disable(disp->pmp.index);
         PLIB_PMP_ChipSelectFunctionSelect(disp->pmp.index,PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT);
         PLIB_PMP_AddressIncrementModeSelect(disp->pmp.index,PMP_ADDRESS_AUTO_INCREMENT);
@@ -248,11 +243,9 @@ bool DISP_InitializePMP(DISP_DATA* disp)
         PLIB_PMP_WriteEnableStrobePortEnable(dispData.pmp.index);
         PLIB_PMP_WriteEnableStrobePolaritySelect(dispData.pmp.index,PMP_POLARITY_ACTIVE_HIGH);
         PLIB_PMP_Enable(disp->pmp.index);
-
         dispData.status.flags.displayArrayFilled = true;
         return true;
     }
-    //return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
     return false;
 }
 
@@ -260,26 +253,17 @@ bool DISP_InitializePMP(DISP_DATA* disp)
 
 bool DISP_InitializeDMA(DISP_DATA* disp)
 {
-    //uint32_t index;
-    //for (index=0;index<3;index++)
+    disp->dma.handle = SYS_DMA_ChannelAllocate(disp->dma.channel);
+    if(disp->dma.handle == SYS_DMA_CHANNEL_HANDLE_INVALID)
     {
-        disp->dma.handle = SYS_DMA_ChannelAllocate(disp->dma.channel);
-        if(disp->dma.handle == SYS_DMA_CHANNEL_HANDLE_INVALID)
-        {
-            return false;
-        }    
-        SYS_DMA_ChannelSetup(disp->dma.handle,
-                             SYS_DMA_CHANNEL_OP_MODE_BASIC|SYS_DMA_CHANNEL_OP_MODE_AUTO, 
-                             DMA_TRIGGER_PARALLEL_PORT);
-        SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle,
-                                               (void*)DISP_DMATransferComplete,
-                                               NULL);
-//        SYS_DMA_ChannelTransferSet(disp->dma.handle[index],
-//                                   (void*)&disp->slice.buffer[index],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
-//                                   (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
-//                                   sizeof(DISPLAY_PIXEL_TYPE));
-        //PLIB_DMA_ChannelXINTSourceEnable(disp->dma.module,disp->dma.channel[index],DMA_INT_BLOCK_TRANSFER_COMPLETE);
-    }
+        return false;
+    }    
+    SYS_DMA_ChannelSetup(disp->dma.handle,
+                         SYS_DMA_CHANNEL_OP_MODE_BASIC|SYS_DMA_CHANNEL_OP_MODE_AUTO, 
+                         DMA_TRIGGER_PARALLEL_PORT);
+    SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle,
+                                           (void*)DISP_DMATransferComplete,
+                                           NULL);
     dispData.status.flags.DMAComplete = true;
     return true;
 }
@@ -331,12 +315,6 @@ void DISP_StopTimer(DISP_DATA* disp)
 
 void DISP_Tasks ( void )
 {
-//    if(DRV_PMP_Status(dispData.pmp.moduleObject)==SYS_STATUS_BUSY)// (dispData.status.flags.firstPMPSliceSent)
-//    {
-//        /* appears to break if the tasks gets called before anything has      */
-//        /* been put in the queue                                              */
-//        DRV_PMP_Tasks(dispData.pmp.moduleObject);
-//    }
     switch ( dispData.state )
     {        
         // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
@@ -404,23 +382,10 @@ void DISP_Tasks ( void )
         {
             if(dispData.status.flags.displayArrayFilled)
             {
-                dispData.state = DISP_STATE_FILL_SLICE;//DISP_STATE_FILL_FIRST_SLICE;                
+                dispData.state = DISP_STATE_FILL_SLICE;         
             }
             break;
-        }
-        case DISP_STATE_FILL_FIRST_SLICE:
-        {
-            //if((dispData.status.flags.useDMA)||(DRV_PMP_CLIENT_STATUS_OPEN == DRV_PMP_ClientStatus(dispData.pmp.driverHandle)))
-            //{
-                /* fill the first slice with display data */
-                dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
-                dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
-            //}
-            //else
-            //{
-                break;
-            //}
-        }        
+        }      
         case DISP_STATE_WAIT_SLICE_SEND_START:        
         {
             /* has the current slice been sent? */
@@ -440,11 +405,12 @@ void DISP_Tasks ( void )
         {   
             /* fill up the next slice while the current is being sent */            
             dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
+            #ifdef __DEBUG
             if(dispData.status.flags.pwmCycleComplete)
             {
                 dispData.counters.imageSent++;
-            }            
-            
+            } 
+            #endif
             if(dispData.status.flags.pwmCycleComplete)
             {
                 /* check to see if there is a new image only when we have     */
@@ -459,10 +425,14 @@ void DISP_Tasks ( void )
         }        
         case DISP_STATE_CHECK_FOR_NEW_IMAGE:
         {
+            #ifdef __DEBUG
             dispData.counters.imageCheck++;
+            #endif
             if(flirData.status.flags.imageCopied)
             {
+                #ifdef __DEBUG
                 dispData.counters.imagesCopied++;
+                #endif
                 /* tell the future state that the latest image was copied     */
                 flirData.status.flags.imageCopied = false;
                 /* make the displaying image the one we were filling          */

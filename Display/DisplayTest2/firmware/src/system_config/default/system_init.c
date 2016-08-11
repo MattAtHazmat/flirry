@@ -142,22 +142,6 @@ const DRV_I2C_INIT drvI2C0InitData =
 
 
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="DRV_PMP Initialization Data">
-    DRV_PMP_INIT     pmpInit =
-{
-    .polarity.addressLatchPolarity = PMP_POLARITY_ACTIVE_HIGH,
-    .polarity.rwStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
-    .polarity.writeEnableStrobePolarity = PMP_POLARITY_ACTIVE_LOW,
-    .polarity.chipselect1Polarity = PMP_POLARITY_ACTIVE_HIGH,
-    .polarity.chipselect2Polarity = PMP_POLARITY_ACTIVE_LOW,
-    .ports.readWriteStrobe = PORT_ENABLE,
-    .ports.writeEnableStrobe = PORT_ENABLE,
-    .moduleInit.value = SYS_MODULE_POWER_RUN_FULL,
-    .pmpID            = PMP_ID_0,
-    .stopInIdle       = false,
-    .muxMode          = PMP_MUX_NONE
-};
-// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_SPI Initialization Data"> 
  /*** SPI Driver Initialization Data ***/
   /*** Index 0  ***/
@@ -311,8 +295,8 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
 #endif
 
-    sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
     
+
     /*** SPI Driver Index 0 initialization***/
 
     SYS_INT_VectorPrioritySet(DRV_SPI_TX_INT_VECTOR_IDX0, DRV_SPI_TX_INT_PRIORITY_IDX0);
@@ -325,14 +309,8 @@ void SYS_Initialize ( void* data )
     sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
     SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
-    //SYS_INT_VectorPrioritySet(INT_VECTOR_DMA1, INT_PRIORITY_LEVEL6);
-    //SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA1, INT_SUBPRIORITY_LEVEL0);
-    //SYS_INT_VectorPrioritySet(INT_VECTOR_DMA2, INT_PRIORITY_LEVEL6);
-    //SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA2, INT_SUBPRIORITY_LEVEL0);
 
     SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
-    //SYS_INT_SourceEnable(INT_SOURCE_DMA_1);
-    //SYS_INT_SourceEnable(INT_SOURCE_DMA_2);
 
 
 
@@ -363,7 +341,7 @@ void SYS_Initialize ( void* data )
     SYS_INT_Enable();
     
     /* Initialize the Application                                             */
-    DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,
+    DISP_Initialize(DISP_PMP_INSTANCE,
                     sysObj.drvTmr0,DISP_TIMER_INSTANCE,
                     sysObj.sysDma,DISP_DMA_CHANNEL);
     //COMMS_Initialize(COMMS_USART_INSTANCE);

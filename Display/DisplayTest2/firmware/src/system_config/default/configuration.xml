@@ -4,7 +4,7 @@
     <HarmonyPath path="../../../../microchip/harmony/v1_08_01"/>
     <Processor name="PIC32MZ2048EFM144"/>
     <ForceOptimization flag="true"/>
-    <MergeStrategy flag="USER_ALL"/>
+    <MergeStrategy flag="ALL"/>
   </General>
   <Manifest>
     <Files>
@@ -19,10 +19,6 @@
       <File>
         <Name>driver_common.h</Name>
         <Path>Header Files/framework/driver</Path>
-      </File>
-      <File>
-        <Name>drv_pmp_config.h</Name>
-        <Path>Header Files/framework/driver/pmp/config</Path>
       </File>
       <File>
         <Name>sys_tmr.c</Name>
@@ -47,10 +43,6 @@
       <File>
         <Name>sys_devcon_cache.h</Name>
         <Path>Source Files/framework/system/devcon/src</Path>
-      </File>
-      <File>
-        <Name>drv_pmp_local.h</Name>
-        <Path>Header Files/framework/driver/pmp/src</Path>
       </File>
       <File>
         <Name>sys_int_pic32.c</Name>
@@ -109,10 +101,6 @@
         <Path>Header Files/bsp/pic32mz_ef_sk</Path>
       </File>
       <File>
-        <Name>drv_pmp.h</Name>
-        <Path>Header Files/framework/driver/pmp</Path>
-      </File>
-      <File>
         <Name>osal_impl_basic.h</Name>
         <Path>Header Files/framework/osal/src</Path>
       </File>
@@ -147,10 +135,6 @@
       <File>
         <Name>sys_dma_local.h</Name>
         <Path>Header Files/framework/system/dma/src</Path>
-      </File>
-      <File>
-        <Name>drv_pmp_dynamic.c</Name>
-        <Path>Source Files/framework/driver/pmp/src/dynamic</Path>
       </File>
       <File>
         <Name>sys_ports.h</Name>
@@ -242,11 +226,12 @@
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
         <Checksum>1D506B308B12B37FAE570E031E7F5D70</Checksum>
+        <ProjectFileChecksum>B5470F00BBF2F971914B62EDE4A37305</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>A1FA51CE7E0DADBDF68DAC333DDBA719</Checksum>
+        <Checksum>9FE9747BC3A0529EF555431466DB3346</Checksum>
         <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
       </Template>
       <Template>
@@ -260,13 +245,14 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>27D93FC8FD594DDB1C7374BECAF2C5B5</Checksum>
+        <Checksum>B45A487A8D10F61C23259A3343460925</Checksum>
         <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>CD782FDEE3718461156F2CD7CB6E28F3</Checksum>
+        <ProjectFileChecksum>486E7FA1B55A15191A57BF73B52DC805</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -276,6 +262,7 @@
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>0468A6AC4EF824897AA5C22F6EAFBB43</Checksum>
+        <ProjectFileChecksum>C8C50FC5DEB52B25B0B12880D4F98A9A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
@@ -294,29 +281,32 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>B9B138B76803A3823194ABEC10BE5BB0</Checksum>
+        <Checksum>1A44A3A235F417B757C090D77CF2B25A</Checksum>
         <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
         <Path>Header Files/app/system_config/default/framework/system/clk</Path>
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
+        <ProjectFileChecksum>B77D5A376E92B215BD9F73674053B0BD</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>A6E7C9CEB843AA7F977999C4AFF6AB8A</Checksum>
+        <Checksum>31EB415D07FE08ECE354F05D7D06F69C</Checksum>
         <ProjectFileChecksum>A39B60B3538176DCD1CCE32285980E75</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_master_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>4C2C868738FD74E2D6A3C8A8FD6B1381</Checksum>
+        <ProjectFileChecksum>0E41B2F261A9A974ED73B4D061F43CC2</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
         <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
+        <ProjectFileChecksum>A948CDCA2A6A164F9198B4CA221D9B60</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.h</Name>
@@ -326,6 +316,7 @@
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>B3A91E83D97E20F2E6AE74F22B6F32E1</Checksum>
+        <ProjectFileChecksum>598C8A3B4181953540A07DABC06F7E17</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>

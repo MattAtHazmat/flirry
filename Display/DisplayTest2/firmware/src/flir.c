@@ -89,11 +89,15 @@ extern DISP_DATA dispData;
 
 static void FLIR_TimerCallback (  uintptr_t context, uint32_t alarmCount )
 {
+    #ifdef __DEBUG
     flirData.counters.getImage++;
+    #endif
     if(flirData.status.flags.getImage)
     {
         flirData.status.flags.getImageMissed = true;
+        #ifdef __DEBUG
         flirData.counters.failure.getImageMissed++;
+        #endif
     }
     else
     {
@@ -124,7 +128,9 @@ static void FLIR_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_H
     else /*if (event == DRV_SPI_BUFFER_EVENT_ERROR)*/
     {
         flirData.spi.status.error = true;
+        #ifdef __DEBUG
         flirData.counters.failure.SPIStart++;
+        #endif
     }        
 }
 
@@ -142,7 +148,9 @@ static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
     else 
     {
         flirData.spi.status.error = true;
+        #ifdef __DEBUG
         flirData.counters.failure.SPIEnd++;
+        #endif
     }        
 }
 
@@ -295,6 +303,7 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, S
 
 void FLIR_Tasks ( void )
 {
+    static uint32_t images=0;
     switch ( flirData.state )
     {
         // <editor-fold defaultstate="collapsed" desc="Initialization">
@@ -361,7 +370,9 @@ void FLIR_Tasks ( void )
         case FLIR_STATE_START_NEW_IMAGE:
         {
             flirData.status.flags.receivedFirstLine = false;
+            #ifdef __DEBUG
             flirData.counters.imagesStarted++;
+            #endif
             flirData.status.lastLine = -1;
             flirData.state = FLIR_STATE_START_GET_LINE;            
         }
@@ -371,10 +382,12 @@ void FLIR_Tasks ( void )
             {
                 flirData.state = FLIR_STATE_WAIT_FOR_LINE;
             }
+            #ifdef __DEBUG
             else
             {
                 flirData.counters.failure.getLine++;
             }
+            #endif
             break;
         }        
         case FLIR_STATE_WAIT_FOR_LINE:
@@ -413,7 +426,9 @@ void FLIR_Tasks ( void )
             {
                 /* give up on this round, wait for next image */                
                 flirData.status.flags.mysteryLine = false;
+                #ifdef __DEBUG
                 flirData.counters.failure.mysteryLine++;
+                #endif
                 flirData.state = FLIR_STATE_START_RESYNC;
             }            
             if(flirData.state != FLIR_STATE_COPY_IMAGE)
@@ -425,6 +440,13 @@ void FLIR_Tasks ( void )
         case FLIR_STATE_COPY_IMAGE: 
         {               
             FLIR_CopyImage(&flirData);
+            /* if the manual calculation button hasn't been pressed, after 5  */
+            /* seconds, recalculate the image table statistically.            */
+            images++;
+            if((flirData.status.flags.manualRecalculate == false) && (images == 45))
+            {
+                flirData.status.flags.calculateStatistics = true;
+            }
             if(flirData.status.flags.calculateStatistics)
             {
                 flirData.status.flags.calculateStatistics = FLIR_CalculateStatistics(&flirData);
@@ -462,7 +484,9 @@ void FLIR_Tasks ( void )
         }
         case FLIR_STATE_START_RESYNC:
         {
+            #ifdef __DEBUG
             flirData.counters.resync++;
+            #endif
             if(FLIR_StartResync(&flirData,FLIR_RESYNC_TIME))
             {
                 flirData.state = FLIR_STATE_RESYNC_WAIT;
@@ -493,6 +517,7 @@ void FLIR_Tasks ( void )
     {
         if(false == flirData.status.flags.calculateStatistics)
         {
+            flirData.status.flags.manualRecalculate = true;
             flirData.status.flags.calculateStatistics = true;
             flirData.status.flags.resetStatistics = true;
             flirData.status.flags.statisticsComplete = false;
@@ -529,16 +554,6 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-//void FLIR_PopulateLine(FLIR_DATA *flir)
-//{
-//    memcpy(&(flir->image.buffer.pixel[flir->VoSPI.ID.line][0]),
-//                  flir->VoSPI.payload.b8,
-//                  sizeof(flir->VoSPI.payload.b8));
-//    flir->status.lastLine = flir->VoSPI.ID.line;
-//}
-
-/******************************************************************************/
-
 bool FLIR_OpenTimer(FLIR_DATA *flir)
 {            
     if (flir->timer.drvHandle == DRV_HANDLE_INVALID)
@@ -554,7 +569,7 @@ bool FLIR_OpenSPI(FLIR_DATA *flir)
 {
     bool openSuccess=false;
    flir->spi.drvHandle = DRV_SPI_Open(DRV_SPI_INDEX_0,
-                                      /*DRV_IO_INTENT_BLOCKING|*/DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
+                                      DRV_IO_INTENT_EXCLUSIVE|DRV_IO_INTENT_READ);
     if(DRV_HANDLE_INVALID != flir->spi.drvHandle)
     {
         DRV_SPI_CLIENT_DATA clientData;
@@ -589,7 +604,6 @@ inline bool FLIR_SPIComplete(FLIR_DATA *flir)
 bool FLIR_StartSPIRead(FLIR_DATA *flir,int32_t RXSize)
 {
 
-    bool success = false;
     if((!flir->spi.status.started)&&
        (!flir->spi.status.running)&&
        (RXSize < flir->RXBuffer.size.max.b8))
@@ -606,14 +620,15 @@ bool FLIR_StartSPIRead(FLIR_DATA *flir,int32_t RXSize)
         {           
             flir->spi.status.started = true;
             /* running gets set in the callback */
-            success = true;
         }     
     }
+    #ifdef __DEBUG
     else
     {
         flir->counters.failure.readStart++;
     }
-    return success;
+    #endif
+    return flir->spi.status.started;
 }
 
 /******************************************************************************/
@@ -643,7 +658,9 @@ bool FLIR_GetVoSPI(FLIR_DATA *flir)
     flir->VoSPI.b8[0]=flir->RXBuffer.b8[1];
     if(DISCARD == flir->VoSPI.ID.discard)
     {
+        #ifdef __DEBUG
         flir->counters.discardLine++;
+        #endif
         /* it will be discarded once we return*/            
         return false;
     } 
@@ -652,7 +669,9 @@ bool FLIR_GetVoSPI(FLIR_DATA *flir)
     {
         /* this will also be discarded, since it is the same as a line    */
         /*  already received.       */
-        flir->counters.duplicateLine++;         
+        #ifdef __DEBUG
+        flir->counters.duplicateLine++;    
+        #endif
         return false;
     }
     flir->status.lastLine = line; 
@@ -696,7 +715,7 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         flir->colorMap.minimum = 0;
         flir->colorMap.maxIntensity.w = 0;
         flir->colorMap.maxIntensity.blue  = FLIR_PEAK_INTENSITY;
-        flir->colorMap.maxIntensity.green = FLIR_PEAK_INTENSITY;
+        flir->colorMap.maxIntensity.green = FLIR_PEAK_INTENSITY>>1;
         flir->colorMap.maxIntensity.red   = FLIR_PEAK_INTENSITY;
     }
     else
@@ -797,15 +816,12 @@ uint32_t SquareRootRounded(uint32_t a_nInput)
 {
     uint32_t op  = a_nInput;
     uint32_t res = 0;
-    uint32_t one = 1uL << 30; // The second-to-top bit is set: use 1u << 14 for uint16_t type; use 1uL<<30 for uint32_t type
-
-
-    // "one" starts at the highest power of four <= than the argument.
+    uint32_t one = 1uL << 30; /* The second-to-top bit is set: */
+    /* "one" starts at the highest power of four <= than the argument.*/
     while (one > op)
     {
         one >>= 2;
     }
-
     while (one != 0)
     {
         if (op >= res + one)
@@ -816,13 +832,11 @@ uint32_t SquareRootRounded(uint32_t a_nInput)
         res >>= 1;
         one >>= 2;
     }
-
     /* Do arithmetic rounding to nearest integer */
     if (op > res)
     {
         res++;
     }
-
     return res;
 }
 

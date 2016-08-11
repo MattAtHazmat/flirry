@@ -125,7 +125,6 @@ typedef enum
     DISP_STATE_SET_TIMER_ALARM,
     DISP_STATE_START_TIMER,
     DISP_STATE_WAIT_FOR_IMAGE,
-    DISP_STATE_FILL_FIRST_SLICE,
     DISP_STATE_WAIT_SLICE_SEND_START,
     DISP_STATE_FILL_SLICE,    
     DISP_STATE_CHECK_FOR_NEW_IMAGE,
@@ -248,10 +247,11 @@ typedef struct
         uint32_t divider;
     } timer;
     struct {
-        DRV_PMP_INDEX index;
+        //DRV_PMP_INDEX index;
+        uint32_t index;
         DRV_HANDLE driverHandle;
         SYS_MODULE_OBJ moduleObject;
-        PMP_QUEUE_ELEMENT_OBJECT* pQueue;
+        //PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
         DMA_CHANNEL channel;
@@ -268,17 +268,15 @@ typedef struct
         uint32_t filling;
     }slice;
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
+#ifdef __DEBUG
     struct {
-        //uint32_t slicesFilled;
-        //uint32_t sliceSent;
         uint32_t blankSliceSent;
         uint32_t imageCheck;
         uint32_t imagesCopied;
         uint32_t imageSent;
-        //uint32_t timerOverrun;
-        //uint32_t timerCallback;
         uint32_t DMANotReady;        
     } counters;
+#endif
 } DISP_DATA;
 
 
@@ -326,7 +324,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, DMA_CHANNEL );
+bool DISP_Initialize ( DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, DMA_CHANNEL );
 
 
 /*******************************************************************************
