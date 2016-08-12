@@ -102,32 +102,6 @@ void __ISR(_SPI1_FAULT_VECTOR, ipl1AUTO) _IntHandlerSPIFaultInstance0(void)
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
 
-
-     
-void __ISR(_I2C4_MASTER_VECTOR, ipl1AUTO) _IntHandlerDrvI2CMasterInstance0(void)
-{
-    DRV_I2C_Tasks(sysObj.drvI2C0);
-}
-      
-
-void __ISR(_I2C4_BUS_VECTOR, ipl1AUTO) _IntHandlerDrvI2CErrorInstance0(void)
-{
-    SYS_ASSERT(false, "I2C Driver Instance 0 Error");
-}
-    
-     
-   
-  
-   
-   
-   
-  
- 
-
-  
-  
-  
-  
 /*******************************************************************************
  End of File
 */

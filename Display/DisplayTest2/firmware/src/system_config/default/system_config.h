@@ -18,7 +18,7 @@
     definitions for build-time configuration options that are not instantiated
     until used by another MPLAB Harmony module or application.
     
-    Created with MPLAB Harmony Version 1.08
+    Created with MPLAB Harmony Version 1.08.01
 *******************************************************************************/
 
 // DOM-IGNORE-BEGIN
@@ -58,9 +58,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
     define this configuration.
 */
 #include "bsp_config.h"
-#include "LEPTON_SDK.h"
-#include "commonHeader.h"
 
+#include "commonHeader.h"
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
 
@@ -225,42 +224,6 @@ extern "C" {
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX2     false
 #define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
 
- // *****************************************************************************
-/* I2C Driver Configuration Options
-*/
-#define DRV_I2C_INTERRUPT_MODE                    		true
-#define DRV_I2C_CLIENTS_NUMBER                    		1
-#define DRV_I2C_INSTANCES_NUMBER                  		1
-
-#define DRV_I2C_PERIPHERAL_ID_IDX0                		I2C_ID_4
-#define DRV_I2C_OPERATION_MODE_IDX0               		DRV_I2C_MODE_MASTER
-#define DRV_SCL_PORT_IDX0                               PORT_CHANNEL_G
-#define DRV_SCL_PIN_POSITION_IDX0                       PORTS_BIT_POS_8
-#define DRV_SDA_PORT_IDX0                               PORT_CHANNEL_G
-#define DRV_SDA_PIN_POSITION_IDX0                       PORTS_BIT_POS_7
-#define DRV_I2C_BIT_BANG_IDX0                           false
-#define DRV_I2C_STOP_IN_IDLE_IDX0                       false
-#define DRV_I2C_SMBus_SPECIFICATION_IDX0			    false
-#define DRV_I2C_BAUD_RATE_IDX0                    		50000
-#define DRV_I2C_BRG_CLOCK_IDX0	                  		100000000
-#define DRV_I2C_SLEW_RATE_CONTROL_IDX0      			false
-#define DRV_I2C_MASTER_INT_SRC_IDX0               		INT_SOURCE_I2C_4_MASTER
-#define DRV_I2C_SLAVE_INT_SRC_IDX0                		
-#define DRV_I2C_ERR_MZ_INT_SRC_IDX0               		INT_SOURCE_I2C_4_BUS
-#define DRV_I2C_MASTER_INT_VECTOR_IDX0            		INT_VECTOR_I2C4_MASTER
-#define DRV_I2C_MASTER_ISR_VECTOR_IDX0                  _I2C4_MASTER_VECTOR
-#define DRV_I2C_MASTER_INT_PRIORITY_IDX0          		INT_PRIORITY_LEVEL1
-#define DRV_I2C_MASTER_INT_SUB_PRIORITY_IDX0      		INT_SUBPRIORITY_LEVEL0
-#define DRV_I2C_SLAVE_INT_VECTOR_IDX0             		INT_VECTOR_I2C4_SLAVE
-#define DRV_I2C_SLAVE_ISR_VECTOR_IDX0			  	    _I2C4_SLAVE_VECTOR
-#define DRV_I2C_SLAVE_INT_PRIORITY_IDX0           		
-#define DRV_I2C_SLAVE_INT_SUB_PRIORITY_IDX0       		
-#define DRV_I2C_ERR_INT_VECTOR_IDX0               		INT_VECTOR_I2C4_BUS
-#define DRV_I2C_ERR_ISR_VECTOR_IDX0                     _I2C4_BUS_VECTOR
-#define DRV_I2C_ERR_INT_PRIORITY_IDX0             		INT_PRIORITY_LEVEL1
-#define DRV_I2C_ERR_INT_SUB_PRIORITY_IDX0         		INT_SUBPRIORITY_LEVEL0
-#define DRV_I2C_POWER_STATE_IDX0                  		SYS_MODULE_POWER_RUN_FULL
-
 
 #define USE_16BIT_PMP
 
@@ -281,9 +244,9 @@ extern "C" {
 #define DRV_SPI_DMA 				0
 
 /*** SPI Driver Static Allocation Options ***/
-#define DRV_SPI_INSTANCES_NUMBER 		1
-#define DRV_SPI_CLIENTS_NUMBER 			1
-#define DRV_SPI_ELEMENTS_PER_QUEUE 		10
+#define DRV_SPI_INSTANCES_NUMBER            1
+#define DRV_SPI_CLIENTS_NUMBER              1
+#define DRV_SPI_ELEMENTS_PER_QUEUE          10
 /* SPI Driver Instance 0 Configuration */
 #define DRV_SPI_SPI_ID_IDX0 				SPI_ID_1
 #define DRV_SPI_TASK_MODE_IDX0 				DRV_SPI_TASK_MODE_ISR
@@ -337,8 +300,8 @@ extern "C" {
 #define DISP_TIMER_INSTANCE         DRV_TMR_INDEX_1
 #define DISP_PMP_INSTANCE           DRV_PMP_INDEX_0
 #define DISP_DATA_SETUP_WAIT        PMP_DATA_WAIT_TWO
-#define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_10
-#define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_1
+#define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_2
+#define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_2
 #define DISP_NUMBER_SLICES          (16)
 #define DISP_DISPLAY_UPDATE_RATE    (480) /* Hz */
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
@@ -353,7 +316,6 @@ extern "C" {
 #define APPLICATION_INSTANCE_2      FLIR
 #define FLIR_TIMER_PERIOD_MS        (125) /* 125 ms for 8 Hz */
 #define FLIR_TIMER_INSTANCE         DRV_TMR_INDEX_2
-#define FLIR_I2C_INSTANCE           DRV_I2C_INDEX_0
 #define FLIR_SPI_INSTANCE           DRV_SPI_INDEX_1
 #define FLIR_I2C_SPEED              (100000)
 #define FLIR_RESYNC_TIME            (190) /* ms */

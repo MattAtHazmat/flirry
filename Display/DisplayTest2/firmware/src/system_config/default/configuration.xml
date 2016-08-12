@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration version="1.0.8.7">
   <General>
-    <HarmonyPath path="../../../../microchip/harmony/v1_08"/>
+    <HarmonyPath path="../../../../microchip/harmony/v1_08_01"/>
     <Processor name="PIC32MZ2048EFM144"/>
     <ForceOptimization flag="true"/>
-    <MergeStrategy flag="USER_ALL"/>
+    <MergeStrategy flag="ALL"/>
   </General>
   <Manifest>
     <Files>
@@ -27,10 +27,6 @@
       <File>
         <Name>sys_tmr.c</Name>
         <Path>Source Files/framework/system/tmr/src</Path>
-      </File>
-      <File>
-        <Name>drv_i2c.c</Name>
-        <Path>Source Files/framework/driver/i2c/src/dynamic</Path>
       </File>
       <File>
         <Name>drv_spi.h</Name>
@@ -87,10 +83,6 @@
       <File>
         <Name>system.h</Name>
         <Path>Header Files/framework/system</Path>
-      </File>
-      <File>
-        <Name>drv_i2c.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
         <Name>drv_spi_variant_mapping.h</Name>
@@ -153,16 +145,8 @@
         <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
-        <Name>drv_i2c_compatibility.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
-      </File>
-      <File>
         <Name>osal_impl_none.h</Name>
         <Path>Header Files/framework/osal/src</Path>
-      </File>
-      <File>
-        <Name>drv_i2c_variant_mapping.h</Name>
-        <Path>Header Files/framework/driver/i2c/src</Path>
       </File>
       <File>
         <Name>sys_clk_mapping.h</Name>
@@ -193,20 +177,12 @@
         <Path>Header Files/framework/gfx</Path>
       </File>
       <File>
-        <Name>drv_i2c_local.h</Name>
-        <Path>Header Files/framework/driver/i2c/src</Path>
-      </File>
-      <File>
         <Name>sys_devcon.h</Name>
         <Path>Header Files/framework/system/devcon</Path>
       </File>
       <File>
         <Name>sys_debug.h</Name>
         <Path>Header Files/framework/system/debug</Path>
-      </File>
-      <File>
-        <Name>drv_i2c_mapping.h</Name>
-        <Path>Header Files/framework/driver/i2c</Path>
       </File>
       <File>
         <Name>sys_devcon_pic32mz.c</Name>
@@ -230,12 +206,13 @@
         <Name>sys_ports_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/ports/src</Path>
         <Checksum>1D506B308B12B37FAE570E031E7F5D70</Checksum>
+        <ProjectFileChecksum>57E1327355C12C8A7BC0A4A3C8C9C623</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>00BE02701840F62A006BB4A65BA95F2B</Checksum>
-        <ProjectFileChecksum>740A289E3B46BAE5BB92ACFBB728BC23</ProjectFileChecksum>
+        <Checksum>5CD963AFD0B8D7ABB128446FE517D6B0</Checksum>
+        <ProjectFileChecksum>7B595A65F4813CF7D587E5B3EB246BE3</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>main.c</Name>
@@ -248,13 +225,14 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>4FAE77622E353DC824F16DEF8343C6F9</Checksum>
-        <ProjectFileChecksum>A344795A51606D3F9AD8EAA5731CBAF3</ProjectFileChecksum>
+        <Checksum>FC830C5868A22219CDD4BE819802F778</Checksum>
+        <ProjectFileChecksum>C5624B9A2536B450BFBB06061F81CF92</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_exceptions.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>C111969CA43D6CEA1E9E33A6164E7AE0</Checksum>
+        <ProjectFileChecksum>C3E1AB0AA956F497FE62D87B1D242F4C</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>flir.c</Name>
@@ -264,12 +242,13 @@
         <Name>drv_spi_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>0468A6AC4EF824897AA5C22F6EAFBB43</Checksum>
+        <ProjectFileChecksum>D59E5CD17F800C44730269106568E37A</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_tasks.c</Name>
         <Path>Source Files/app/system_config/default</Path>
         <Checksum>9224C29CBC391E71826039F335282BBF</Checksum>
-        <ProjectFileChecksum>410487826AD867C4215D48988C685A8B</ProjectFileChecksum>
+        <ProjectFileChecksum>51ED5EED26C35A19DE76AC2865AA7CCD</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.c</Name>
@@ -282,28 +261,32 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>D7D40CA14AA6BF915DFCBF8D1498DFEF</Checksum>
-        <ProjectFileChecksum>B8F283403FA05A6507106C7B4F1D4301</ProjectFileChecksum>
+        <Checksum>F108E75F86833F02EF0599CB361D351C</Checksum>
+        <ProjectFileChecksum>BE1718E320521CDC215FEEA30F95755D</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.h</Name>
         <Path>Header Files/app/system_config/default/framework/system/clk</Path>
         <Checksum>B4BD59D8D7C4DA95DC5E3B57755FD352</Checksum>
+        <ProjectFileChecksum>A280BBA8E2C9C5772A3FB6538CE22080</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>675BE1FF6653D80BABF21BA4B278F285</Checksum>
+        <Checksum>4842B920E50FB54F20912EF057C4EB01</Checksum>
+        <ProjectFileChecksum>EEF9D71018B258BD4F7D307369F74DA0</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>drv_spi_master_ebm_tasks.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>4C2C868738FD74E2D6A3C8A8FD6B1381</Checksum>
+        <ProjectFileChecksum>7A314112C968A7C9BD5E91E3058C4A38</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>sys_clk_static.c</Name>
         <Path>Source Files/app/system_config/default/framework/system/clk/src</Path>
         <Checksum>4681B98AC85858FD3FFA130908EDA5D0</Checksum>
+        <ProjectFileChecksum>85C0CF96A83960430A4BA1530C967FFE</ProjectFileChecksum>
       </Template>
       <Template>
         <Name>disp.h</Name>
@@ -313,21 +296,22 @@
         <Name>drv_spi_api.c</Name>
         <Path>Source Files/app/system_config/default/framework/driver/spi/dynamic</Path>
         <Checksum>B3A91E83D97E20F2E6AE74F22B6F32E1</Checksum>
+        <ProjectFileChecksum>72453D3989842A3920A79EE16E2EFE16</ProjectFileChecksum>
       </Template>
     </Templates>
     <CompilerItems>
       <C32>
-        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src"/>
-        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default"/>
-        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/default"/>
-        <Include value="/home/mjb/microchip/harmony/v1_08/framework"/>
-        <Include value="/home/mjb/Projects/flirry/Display/DisplayTest2/firmware/src/system_config/default/framework"/>
-        <Include value="../../../../../../microchip/harmony/v1_08/bsp/pic32mz_ef_sk"/>
+        <Include value="/home/mjb/Projects/flirryNew/Display/DisplayTest2/firmware/src"/>
+        <Include value="/home/mjb/Projects/flirryNew/Display/DisplayTest2/firmware/src/system_config/default"/>
+        <Include value="/home/mjb/Projects/flirryNew/Display/DisplayTest2/firmware/src/default"/>
+        <Include value="/home/mjb/microchip/harmony/v1_08_01/framework"/>
+        <Include value="/home/mjb/Projects/flirryNew/Display/DisplayTest2/firmware/src/system_config/default/framework"/>
+        <Include value="../../../../../../microchip/harmony/v1_08_01/bsp/pic32mz_ef_sk"/>
       </C32>
     </CompilerItems>
     <Libraries>
-      <Library value="../../../../../../microchip/harmony/v1_08/framework/tcpip/src/crypto/aes_pic32mx.a"/>
-      <Library value="../../../../../../microchip/harmony/v1_08/bin/framework/peripheral/PIC32MZ2048EFM144_peripherals.a"/>
+      <Library value="../../../../../../microchip/harmony/v1_08_01/framework/tcpip/src/crypto/aes_pic32mx.a"/>
+      <Library value="../../../../../../microchip/harmony/v1_08_01/bin/framework/peripheral/PIC32MZ2048EFM144_peripherals.a"/>
     </Libraries>
   </Manifest>
 </configuration>

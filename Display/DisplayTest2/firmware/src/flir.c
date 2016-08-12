@@ -263,15 +263,13 @@ static bool FLIR_StartResync( FLIR_DATA* flir, uint32_t periodMS )
 /*    See prototype in flir.h.                                                */
 /******************************************************************************/
 
-void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX I2CIndex, SYS_MODULE_INDEX SPIIndex )
+void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX SPIIndex )
 {
     FLIR_SPISlaveDeselect();
     memset(&flirData,0,sizeof(flirData));
     /* Place the App state machine in its initial state.                      */
     flirData.state = FLIR_STATE_INIT;
     flirData.timer.index = timerIndex;
-    flirData.i2c.index = I2CIndex;
-    flirData.i2c.pFlirPort = &flirData.i2c.FlirPort;
     flirData.spi.index = SPIIndex;
     flirData.timer.drvHandle = DRV_HANDLE_INVALID; 
     flirData.RXBuffer.size.max.b8 = BUFFER_SIZE_8;
@@ -305,17 +303,6 @@ void FLIR_Tasks ( void )
                 flirData.state = FLIR_OPEN_TIMER;
                 break;
             }
-            //if (!flirData.status.flags.timerRunning)
-            //{
-            //    flirData.state = FLIR_START_TIMER;
-            //    break;
-            //}
-            if ((!flirData.status.flags.I2CConfigured)&&
-                (!flirData.status.flags.I2CConfigureAttempted))
-            {
-                flirData.state = FLIR_OPEN_I2C;
-                break;
-            }
             if (!flirData.status.flags.SPIConfigured)
             {
                 flirData.state = FLIR_OPEN_SPI_PORT;
@@ -333,13 +320,6 @@ void FLIR_Tasks ( void )
         case FLIR_START_TIMER:
         {
             flirData.status.flags.timerRunning = FLIR_TimerSetup(&flirData, FLIR_TIMER_PERIOD_MS);
-            flirData.state = FLIR_STATE_INIT;
-            break;
-        }
-        case FLIR_OPEN_I2C:
-        {
-            flirData.status.flags.I2CConfigureAttempted = true;
-            flirData.status.flags.I2CConfigured = FLIR_OpenI2C(&flirData);
             flirData.state = FLIR_STATE_INIT;
             break;
         }
@@ -494,16 +474,6 @@ void FLIR_Tasks ( void )
             flirData.status.flags.statisticsComplete = false;
         }
     }
-}
-
-/******************************************************************************/
-
-bool FLIR_OpenI2C(FLIR_DATA *flir)
-{
-    LEP_RESULT result;
-    result = LEP_OpenPort(flir->i2c.index,LEP_CCI_TWI,FLIR_I2C_SPEED/1000,flir->i2c.pFlirPort);
-    
-    return (result==LEP_OK);
 }
 
 /******************************************************************************/

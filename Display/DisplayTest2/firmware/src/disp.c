@@ -447,6 +447,8 @@ bool DISP_FillSlice(DISP_DATA *disp)
     /* end up at the highest number column.                                   */
     txColumn = disp->displayInfo.columns;
     column = 0;
+    /* increment the slice.                                                   */
+    disp->address.slice++;
     do {        
         txColumn--;
         row = disp->address.slice;
@@ -469,15 +471,15 @@ bool DISP_FillSlice(DISP_DATA *disp)
         disp->slice.buffer[disp->slice.filling].pixel[txColumn] = displayPixel;
         column++;
     } while (txColumn != 0); /* when it's zero, stop                          */
-    /* increment the slice.                                                   */
-    disp->address.slice++;
-    if(disp->address.slice == 0) /* it is only 4 bits, so it rolls over       */
+    
+    if(disp->address.slice == (DISP_NUMBER_SLICES-1)) /* last slice       */
     {
-        disp->address.w = 0;
         /* reached the last slice. time to increment the pwm reference        */
         disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
         if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
         {
+            /* it is the end of the PWM interval, so the end of the image */
+            /* cycle*/
             disp->displayInfo.PWMLevel = 0;
             pwmIntervalEnd = true;
         }

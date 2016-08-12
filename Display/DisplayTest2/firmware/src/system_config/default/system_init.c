@@ -121,27 +121,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // Section: Driver Initialization Data
 // *****************************************************************************
 // *****************************************************************************
-// <editor-fold defaultstate="collapsed" desc="DRV_I2C Initialization Data">
-// *****************************************************************************
-/* I2C Driver Initialization Data
-*/
-
-const DRV_I2C_INIT drvI2C0InitData =
-{
-    .i2cId = DRV_I2C_PERIPHERAL_ID_IDX0,
-    .i2cMode = DRV_I2C_OPERATION_MODE_IDX0,
-    .baudRate = DRV_I2C_BAUD_RATE_IDX0,
-    .busspeed = DRV_I2C_SLEW_RATE_CONTROL_IDX0,
-    .buslevel = DRV_I2C_SMBus_SPECIFICATION_IDX0,
-    .mstrInterruptSource = DRV_I2C_MASTER_INT_SRC_IDX0,
-    .errInterruptSource = DRV_I2C_ERR_MZ_INT_SRC_IDX0,
-
-};
-
-
-
-
-// </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="DRV_PMP Initialization Data">
     DRV_PMP_INIT     pmpInit =
 {
@@ -292,15 +271,6 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();        
 
     /* Initialize Drivers                                                     */
-    sysObj.drvI2C0 = DRV_I2C_Initialize(DRV_I2C_INDEX_0, (SYS_MODULE_INIT *)&drvI2C0InitData);
-
-
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_MASTER, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_MASTER, INT_SUBPRIORITY_LEVEL0);
-    SYS_INT_VectorPrioritySet(INT_VECTOR_I2C4_BUS, INT_PRIORITY_LEVEL1);
-    SYS_INT_VectorSubprioritySet(INT_VECTOR_I2C4_BUS, INT_SUBPRIORITY_LEVEL0);
-
-
     sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
 
     /*** SPI Driver Index 0 initialization***/
@@ -342,7 +312,7 @@ void SYS_Initialize ( void* data )
     /* Initialize the Application                                             */
     DISP_Initialize(sysObj.drvPMP0,DISP_PMP_INSTANCE,sysObj.drvTmr0,DISP_TIMER_INSTANCE);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
-    FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_I2C_INSTANCE,FLIR_SPI_INSTANCE);
+    FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_SPI_INSTANCE);
 }
 
 
