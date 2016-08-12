@@ -91,33 +91,55 @@ __attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceB
 
 void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
 {
-    uint32_t* sliceToSend;   
-    SetSTB();
-    dispData.counters.timerCallback++;
-    if(dispData.status.flags.firstSliceSent &&
-       (DRV_PMP_TransferStatus(dispData.pmp.pQueue)!=PMP_TRANSFER_FINISHED))
+    if((dispData.status.flags.DMAComplete == false)||
+       (dispData.status.flags.sliceReady == false))
     {
-        dispData.counters.timerOverrun++;
+        /* nothing to do. */
+        return;
     }
-    else
-    {
-        if(dispData.status.flags.sliceReady)
-        {
-            dispData.slice.displaying = dispData.slice.filling;
-            sliceToSend = (uint32_t*)&sliceBuffer[dispData.slice.displaying][0];
-            dispData.status.flags.sliceReady = false;   
-            dispData.counters.sliceSent++;     
-            ClearSTB();
-            PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
-            dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
-                                                0,
-                                                sliceToSend,
-                                                (sizeof(DISPLAY_PIXEL_TYPE)*DISPLAY_BUFFER_SIZE), 
-                                                0);
-            dispData.status.flags.sliceSent = true;
-            dispData.status.flags.firstSliceSent = true;   
-        }
-    }
+    /* prepare to start the next DMA of data to the panel. Clear the strobe.  */
+    ClearSTB();
+    dispData.slice.displaying = dispData.slice.filling;
+    dispData.status.flags.sliceReady = false;   
+    dispData.status.flags.DMAComplete = false;      
+    PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
+    SYS_DMA_ChannelTransferSet(dispData.dma.handle,
+                               (void*)&sliceBuffer[dispData.slice.displaying][0],sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE),
+                               (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
+                               sizeof(DISPLAY_PIXEL_TYPE));
+    SYS_DMA_ChannelEnable(dispData.dma.handle);
+    SYS_DMA_ChannelForceStart(dispData.dma.handle);
+    dispData.status.flags.sliceSent = true;
+    dispData.status.flags.firstSliceSent = true;
+    
+    
+//    uint32_t* sliceToSend;   
+//    SetSTB();
+//    dispData.counters.timerCallback++;
+//    if(dispData.status.flags.firstSliceSent &&
+//       (DRV_PMP_TransferStatus(dispData.pmp.pQueue)!=PMP_TRANSFER_FINISHED))
+//    {
+//        dispData.counters.timerOverrun++;
+//    }
+//    else
+//    {
+//        if(dispData.status.flags.sliceReady)
+//        {
+//            dispData.slice.displaying = dispData.slice.filling;
+//            sliceToSend = (uint32_t*)&sliceBuffer[dispData.slice.displaying][0];
+//            dispData.status.flags.sliceReady = false;   
+//            dispData.counters.sliceSent++;     
+//            ClearSTB();
+//            PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
+//            dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
+//                                                0,
+//                                                sliceToSend,
+//                                                (sizeof(DISPLAY_PIXEL_TYPE)*DISPLAY_BUFFER_SIZE), 
+//                                                0);
+//            dispData.status.flags.sliceSent = true;
+//            dispData.status.flags.firstSliceSent = true;   
+//        }
+//    }
 }
 
 void DISP_DMATransferComplete( SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HANDLE handle, uint32_t channel )
@@ -216,33 +238,55 @@ bool DISP_InitializeTimer(DISP_DATA* disp)
 
 bool DISP_InitializePMP(DISP_DATA* disp)
 {
-    if(disp->pmp.driverHandle == DRV_HANDLE_INVALID)
-    {
-        DRV_PMP_MODE_CONFIG pmpConfig;
-        disp->pmp.driverHandle = DRV_PMP_Open(disp->pmp.index,
-                                              DRV_IO_INTENT_EXCLUSIVE|
-                                              DRV_IO_INTENT_NONBLOCKING);
-        pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
-        pmpConfig.endianMode = LITTLE; 
-        pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
-        pmpConfig.intMode = PMP_INTERRUPT_NONE;
-        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT; 
-        pmpConfig.portSize = PMP_DATA_SIZE_16_BITS;
-        pmpConfig.waitStates.dataHoldWait = DISP_DATA_HOLD_WAIT_STATES;
-        pmpConfig.waitStates.dataWait = DISP_DATA_SETUP_WAIT;
-        pmpConfig.waitStates.strobeWait = DISP_STROBE_WAIT_STATES;
-        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
-        DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
+    if(disp->status.flags.PMPInitialized == false)
+    {        
+        PLIB_PMP_Disable(disp->pmp.index);
+        PLIB_PMP_ChipSelectFunctionSelect(disp->pmp.index,PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT);
+        PLIB_PMP_AddressIncrementModeSelect(disp->pmp.index,PMP_ADDRESS_AUTO_INCREMENT);
+        PLIB_PMP_InterruptModeSelect(disp->pmp.index,PMP_INTERRUPT_EVERY_RW_CYCLE);
+        PLIB_PMP_OperationModeSelect(disp->pmp.index,PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT);
+        PLIB_PMP_DataSizeSelect(disp->pmp.index,PMP_DATA_SIZE_16_BITS);
+        PLIB_PMP_WaitStatesDataSetUpSelect(disp->pmp.index,DISP_DATA_SETUP_WAIT);
+        PLIB_PMP_WaitStatesStrobeSelect(disp->pmp.index,DISP_STROBE_WAIT_STATES);
+        PLIB_PMP_WaitStatesDataHoldSelect(disp->pmp.index,DISP_DATA_HOLD_WAIT_STATES);
+        PLIB_PMP_AddressLatchPolaritySelect(disp->pmp.index,PMP_POLARITY_ACTIVE_HIGH);
+        PLIB_PMP_ChipSelectXPolaritySelect(disp->pmp.index,PMP_CHIP_SELECT_TWO,PMP_POLARITY_ACTIVE_HIGH);
         PLIB_PMP_AddressPortEnable(dispData.pmp.index, PMP_PMA8_PORT|PMP_PMA9_PORT|PMP_PMA10_PORT|PMP_PMA11_PORT);
-        PMCONbits.WRSP = true;       
+        PLIB_PMP_ReadWriteStrobePortDisable(dispData.pmp.index);
+        PLIB_PMP_WriteEnableStrobePortEnable(dispData.pmp.index);
+        PLIB_PMP_WriteEnableStrobePolaritySelect(dispData.pmp.index,PMP_POLARITY_ACTIVE_HIGH);
         PLIB_PMP_Enable(disp->pmp.index);
-    }
-    if(disp->pmp.driverHandle != DRV_HANDLE_INVALID)
-    {
-        /* filled with empty */
         dispData.status.flags.displayArrayFilled = true;
+        return true;
     }
-    return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
+    return false;
+//    if(disp->pmp.driverHandle == DRV_HANDLE_INVALID)
+//    {
+//        DRV_PMP_MODE_CONFIG pmpConfig;
+//        disp->pmp.driverHandle = DRV_PMP_Open(disp->pmp.index,
+//                                              DRV_IO_INTENT_EXCLUSIVE|
+//                                              DRV_IO_INTENT_NONBLOCKING);
+//        pmpConfig.chipSelect = PMCS1_AS_ADDRESS_LINE_PMCS2_AS_CHIP_SELECT;
+//        pmpConfig.endianMode = LITTLE; 
+//        pmpConfig.incrementMode = PMP_ADDRESS_AUTO_INCREMENT;
+//        pmpConfig.intMode = PMP_INTERRUPT_NONE;
+//        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT; 
+//        pmpConfig.portSize = PMP_DATA_SIZE_16_BITS;
+//        pmpConfig.waitStates.dataHoldWait = DISP_DATA_HOLD_WAIT_STATES;
+//        pmpConfig.waitStates.dataWait = DISP_DATA_SETUP_WAIT;
+//        pmpConfig.waitStates.strobeWait = DISP_STROBE_WAIT_STATES;
+//        pmpConfig.pmpMode = PMP_MASTER_READ_WRITE_STROBES_INDEPENDENT;
+//        DRV_PMP_ModeConfig ( dispData.pmp.driverHandle, pmpConfig );
+//        PLIB_PMP_AddressPortEnable(dispData.pmp.index, PMP_PMA8_PORT|PMP_PMA9_PORT|PMP_PMA10_PORT|PMP_PMA11_PORT);
+//        PMCONbits.WRSP = true;       
+//        PLIB_PMP_Enable(disp->pmp.index);
+//    }
+//    if(disp->pmp.driverHandle != DRV_HANDLE_INVALID)
+//    {
+//        /* filled with empty */
+//        dispData.status.flags.displayArrayFilled = true;
+//    }
+//    return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
 }
 
 /******************************************************************************/
@@ -310,12 +354,12 @@ void DISP_StopTimer(DISP_DATA* disp)
 
 void DISP_Tasks ( void )
 {
-    if(dispData.status.flags.firstSliceSent)
-    {
-        /* appears to break if the tasks gets called before anything has      */
-        /* been put in the queue                                              */
-        DRV_PMP_Tasks(dispData.pmp.moduleObject);
-    }
+    //if(dispData.status.flags.firstSliceSent)
+    //{
+    //    /* appears to break if the tasks gets called before anything has      */
+    //    /* been put in the queue                                              */
+    //    DRV_PMP_Tasks(dispData.pmp.moduleObject);
+    //}
     switch ( dispData.state )
     {        
         // <editor-fold defaultstate="collapsed" desc="Initialization Cases">
@@ -383,23 +427,10 @@ void DISP_Tasks ( void )
         {
             if(dispData.status.flags.displayArrayFilled)
             {
-                dispData.state = DISP_STATE_FILL_FIRST_SLICE;                
+                dispData.state = DISP_STATE_FILL_SLICE;                
             }
             break;
-        }
-        case DISP_STATE_FILL_FIRST_SLICE:
-        {
-            if(DRV_PMP_CLIENT_STATUS_OPEN == DRV_PMP_ClientStatus(dispData.pmp.driverHandle))
-            {
-                /* fill the first slice with display data */
-                dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
-                dispData.state = DISP_STATE_WAIT_SLICE_SEND_START;
-            }
-            else
-            {
-                break;
-            }
-        }        
+        }    
         case DISP_STATE_WAIT_SLICE_SEND_START:        
         {
             /* has the current slice been sent? */

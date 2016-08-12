@@ -280,7 +280,7 @@ void SYS_Initialize ( void* data )
     BSP_Initialize();        
 
     /* Initialize Drivers                                                     */
-    sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
+    //sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
 
     /*** SPI Driver Index 0 initialization***/
 
