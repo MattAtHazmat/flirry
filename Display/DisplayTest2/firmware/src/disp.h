@@ -121,6 +121,7 @@ typedef enum
 	DISP_STATE_INIT=0,
     DISP_STATE_INITIALIZE_TIMER,
     DISP_STATE_INITIALIZE_PMP,
+    DISP_STATE_INITIALIZE_DMA,
     DISP_STATE_SET_TIMER_ALARM,
     DISP_STATE_START_TIMER,
     DISP_STATE_WAIT_FOR_IMAGE,
@@ -203,15 +204,16 @@ typedef struct
     union {
         struct {
             unsigned PMPInitialized:1;
+            unsigned DMAInitialized:1;
             unsigned timerInitialized:1;
             unsigned timerStarted:1;
             unsigned timerAlarmSet:1;  
             unsigned displayArrayFilled:1;        
             unsigned firstSliceSent:1; 
             unsigned sliceReady:1;
-            unsigned sliceSent:1;
-            unsigned forceBlankSlice:1;
+            unsigned sliceSent:1;            
             unsigned pwmCycleComplete:1;
+            unsigned DMAComplete:1;
         } flags;
         uint32_t w;
     }status;   
@@ -250,10 +252,11 @@ typedef struct
         PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
-        union __attribute__ ((packed)){
-            DISPLAY_PIXEL_TYPE pixel[DISPLAY_BUFFER_SIZE];
-            uint8_t  b8[sizeof(DISPLAY_PIXEL_TYPE)*(DISPLAY_BUFFER_SIZE)];
-        } buffer[3];
+        SYS_MODULE_OBJ moduleObject;
+        SYS_DMA_CHANNEL_HANDLE handle;
+        DMA_CHANNEL channel;
+    } dma;
+    struct {
         uint32_t displaying;
         uint32_t filling;
     }slice;
@@ -314,7 +317,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX );
+bool DISP_Initialize ( SYS_MODULE_OBJ, DMA_CHANNEL, SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX );
 
 
 /*******************************************************************************
@@ -349,8 +352,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE
 
 void DISP_Tasks( void );
 
-bool DISP_FillSlice(DISP_DATA *displayData);
-
+bool DISP_FillSlice(DISP_DATA*);
+bool DISP_InitializeDMA(DISP_DATA*);
 #endif /* _DISP_H                                                             */
 
 //DOM-IGNORE-BEGIN

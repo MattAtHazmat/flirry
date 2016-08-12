@@ -81,7 +81,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 DISP_DATA dispData;
 extern FLIR_DATA flirData;
-
+__attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceBuffer[2][DISPLAY_BUFFER_SIZE];
 
 // *****************************************************************************
 // *****************************************************************************
@@ -101,30 +101,44 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     }
     else
     {
-        if(dispData.status.flags.sliceReady&(!dispData.status.flags.forceBlankSlice))
+        if(dispData.status.flags.sliceReady)
         {
             dispData.slice.displaying = dispData.slice.filling;
-            sliceToSend = (uint32_t*)&dispData.slice.buffer[dispData.slice.displaying];
+            sliceToSend = (uint32_t*)&sliceBuffer[dispData.slice.displaying][0];
             dispData.status.flags.sliceReady = false;   
             dispData.counters.sliceSent++;     
+            ClearSTB();
+            PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
+            dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
+                                                0,
+                                                sliceToSend,
+                                                (sizeof(DISPLAY_PIXEL_TYPE)*DISPLAY_BUFFER_SIZE), 
+                                                0);
+            dispData.status.flags.sliceSent = true;
+            dispData.status.flags.firstSliceSent = true;   
         }
-        else
+    }
+}
+
+void DISP_DMATransferComplete( SYS_DMA_TRANSFER_EVENT event, SYS_DMA_CHANNEL_HANDLE handle, uint32_t channel )
+{    
+    switch(event)
+    {
+        case SYS_DMA_TRANSFER_EVENT_COMPLETE:
         {
-            /* not ready or forcing a blank slice- send a blank line so we */
-            /* don't  get a bright streak */
-            sliceToSend = (uint32_t*)&dispData.slice.buffer[BLANK_SLICE];    
-            dispData.counters.blankSliceSent++;
+            /* latch the data into the panel */
+            SetSTB();
+            dispData.status.flags.DMAComplete = true;
+            break;
         }
-        ClearSTB();
-        PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
-        dispData.pmp.pQueue = DRV_PMP_Write(&dispData.pmp.driverHandle,
-                                            0,
-                                            sliceToSend,
-                                            sizeof(dispData.slice.buffer[0].b8), 
-                                            0);
-        
-        dispData.status.flags.sliceSent = true;
-        dispData.status.flags.firstSliceSent = true;   
+        case SYS_DMA_TRANSFER_EVENT_ERROR:
+        {
+            break;
+        }
+        default:
+        {
+            break;
+        }
     }
 }
 
@@ -156,7 +170,8 @@ static inline bool DISP_SliceSent(void)
 /*                                                                            */
 /******************************************************************************/
 
-bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
+bool DISP_Initialize ( SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel,
+                       SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
                        SYS_MODULE_OBJ tmrModuleObj, SYS_MODULE_INDEX tmrIndex )
 {
     memset(&dispData,0,sizeof(dispData));
@@ -178,6 +193,8 @@ bool DISP_Initialize ( SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
     dispData.slice.displaying = 1;
     dispData.displayInfo.offset.horizontal = DISP_HORIZONTAL_OFFSET;
     dispData.displayInfo.offset.vertical = DISP_VERTICAL_OFFSET;
+    dispData.dma.moduleObject = dmaModuleObj;
+    dispData.dma.channel = dmaChannel;
     ClearSTB();
     return true;
 }
@@ -226,6 +243,25 @@ bool DISP_InitializePMP(DISP_DATA* disp)
         dispData.status.flags.displayArrayFilled = true;
     }
     return (disp->pmp.driverHandle != DRV_HANDLE_INVALID);
+}
+
+/******************************************************************************/
+
+bool DISP_InitializeDMA(DISP_DATA* disp)
+{
+    disp->dma.handle = SYS_DMA_ChannelAllocate(disp->dma.channel);
+    if(disp->dma.handle == SYS_DMA_CHANNEL_HANDLE_INVALID)
+    {
+        return false;
+    }    
+    SYS_DMA_ChannelSetup(disp->dma.handle,
+                         SYS_DMA_CHANNEL_OP_MODE_BASIC|SYS_DMA_CHANNEL_OP_MODE_AUTO, 
+                         DMA_TRIGGER_PARALLEL_PORT);
+    SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle,
+                                           (void*)DISP_DMATransferComplete,
+                                           NULL);
+    dispData.status.flags.DMAComplete = true;
+    return true;
 }
 
 /******************************************************************************/
@@ -300,6 +336,11 @@ void DISP_Tasks ( void )
                 dispData.state = DISP_STATE_INITIALIZE_PMP;
                 break;
             }
+            if(!dispData.status.flags.DMAInitialized)
+            {
+                dispData.state = DISP_STATE_INITIALIZE_DMA;
+                break;
+            }
             if(!dispData.status.flags.timerStarted)
             {
                 dispData.state = DISP_STATE_START_TIMER;
@@ -317,6 +358,12 @@ void DISP_Tasks ( void )
         case DISP_STATE_INITIALIZE_PMP:
         {
             dispData.status.flags.PMPInitialized = DISP_InitializePMP(&dispData);
+            dispData.state = DISP_STATE_INIT;
+            break;
+        }
+        case DISP_STATE_INITIALIZE_DMA:
+        {
+            dispData.status.flags.DMAInitialized = DISP_InitializeDMA(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }
@@ -468,7 +515,7 @@ bool DISP_FillSlice(DISP_DATA *disp)
         displayPixel.red3   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
         displayPixel.green3 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
         displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        disp->slice.buffer[disp->slice.filling].pixel[txColumn] = displayPixel;
+        sliceBuffer[disp->slice.filling][txColumn] = displayPixel;
         column++;
     } while (txColumn != 0); /* when it's zero, stop                          */
     

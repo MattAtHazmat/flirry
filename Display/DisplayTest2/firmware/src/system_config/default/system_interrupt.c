@@ -102,6 +102,12 @@ void __ISR(_SPI1_FAULT_VECTOR, ipl1AUTO) _IntHandlerSPIFaultInstance0(void)
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
 }
 
+void __ISR(_DMA0_VECTOR, ipl6AUTO) _IntHandlerSysDmaCh0(void)
+{          
+    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_0);
+}
+
+ 
 /*******************************************************************************
  End of File
 */

@@ -89,6 +89,10 @@
         <Path>Header Files/framework/driver/spi/src</Path>
       </File>
       <File>
+        <Name>sys_dma.c</Name>
+        <Path>Source Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_int.h</Name>
         <Path>Header Files/framework/system/int</Path>
       </File>
@@ -121,12 +125,20 @@
         <Path>Source Files/framework/system/devcon/src</Path>
       </File>
       <File>
+        <Name>sys_dma.h</Name>
+        <Path>Header Files/framework/system/dma</Path>
+      </File>
+      <File>
         <Name>sys_tmr.h</Name>
         <Path>Header Files/framework/system/tmr</Path>
       </File>
       <File>
         <Name>osal.h</Name>
         <Path>Header Files/framework/osal</Path>
+      </File>
+      <File>
+        <Name>sys_dma_local.h</Name>
+        <Path>Header Files/framework/system/dma/src</Path>
       </File>
       <File>
         <Name>drv_pmp_dynamic.c</Name>
@@ -211,7 +223,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>5CD963AFD0B8D7ABB128446FE517D6B0</Checksum>
+        <Checksum>F86ADDA9E6A41A8C0D42F71E9C3916C0</Checksum>
         <ProjectFileChecksum>7B595A65F4813CF7D587E5B3EB246BE3</ProjectFileChecksum>
       </Template>
       <Template>
@@ -225,7 +237,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>FC830C5868A22219CDD4BE819802F778</Checksum>
+        <Checksum>20F8B6BE6399ABCB0AF081E0C1FCCDD7</Checksum>
         <ProjectFileChecksum>C5624B9A2536B450BFBB06061F81CF92</ProjectFileChecksum>
       </Template>
       <Template>
@@ -261,7 +273,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>F108E75F86833F02EF0599CB361D351C</Checksum>
+        <Checksum>4CAABAE6C40C7C14BA1F37380D5872A3</Checksum>
         <ProjectFileChecksum>BE1718E320521CDC215FEEA30F95755D</ProjectFileChecksum>
       </Template>
       <Template>
@@ -273,7 +285,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>4842B920E50FB54F20912EF057C4EB01</Checksum>
+        <Checksum>C8B08DCBC0E4729EA726522DA997EEAB</Checksum>
         <ProjectFileChecksum>EEF9D71018B258BD4F7D307369F74DA0</ProjectFileChecksum>
       </Template>
       <Template>

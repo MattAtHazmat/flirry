@@ -141,7 +141,7 @@ extern "C" {
 #define SYS_PORT_F_CNPD         0x0
 #define SYS_PORT_F_CNEN         0x0
 
-#define SYS_PORT_G_ANSEL        0x40
+#define SYS_PORT_G_ANSEL        0x0
 #define SYS_PORT_G_TRIS         0x33c3
 #define SYS_PORT_G_LAT          0x0
 #define SYS_PORT_G_ODC          0x0
@@ -299,6 +299,7 @@ extern "C" {
 #define APPLICATION_INSTANCE_0      DISP
 #define DISP_TIMER_INSTANCE         DRV_TMR_INDEX_1
 #define DISP_PMP_INSTANCE           DRV_PMP_INDEX_0
+#define DISP_DMA_CHANNEL            DMA_CHANNEL_0
 #define DISP_DATA_SETUP_WAIT        PMP_DATA_WAIT_TWO
 #define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_2
 #define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_2
