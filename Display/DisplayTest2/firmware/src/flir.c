@@ -495,16 +495,6 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-//void FLIR_PopulateLine(FLIR_DATA *flir)
-//{
-//    memcpy(&(flir->image.buffer.pixel[flir->VoSPI.ID.line][0]),
-//                  flir->VoSPI.payload.b8,
-//                  sizeof(flir->VoSPI.payload.b8));
-//    flir->status.lastLine = flir->VoSPI.ID.line;
-//}
-
-/******************************************************************************/
-
 bool FLIR_OpenTimer(FLIR_DATA *flir)
 {            
     if (flir->timer.drvHandle == DRV_HANDLE_INVALID)

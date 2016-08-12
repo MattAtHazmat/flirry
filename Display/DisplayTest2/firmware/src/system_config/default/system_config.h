@@ -182,7 +182,7 @@ extern "C" {
 // *****************************************************************************
 /*** Timer Driver Configuration ***/
 #define DRV_TMR_INTERRUPT_MODE             true
-#define DRV_TMR_INSTANCES_NUMBER           3
+#define DRV_TMR_INSTANCES_NUMBER           4
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
@@ -224,7 +224,20 @@ extern "C" {
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX2     false
 #define DRV_TMR_POWER_STATE_IDX2            SYS_MODULE_POWER_RUN_FULL
 
+/*** Timer Driver 3 Configuration ***/
+#define DRV_TMR_PERIPHERAL_ID_IDX3          TMR_ID_6
+#define DRV_TMR_INTERRUPT_SOURCE_IDX3       INT_SOURCE_TIMER_6
+#define DRV_TMR_INTERRUPT_VECTOR_IDX3       INT_VECTOR_T6
+#define DRV_TMR_ISR_VECTOR_IDX3             _TIMER_6_VECTOR
+#define DRV_TMR_INTERRUPT_PRIORITY_IDX3     INT_PRIORITY_LEVEL1
+#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX3 INT_SUBPRIORITY_LEVEL0
+#define DRV_TMR_CLOCK_SOURCE_IDX3           DRV_TMR_CLKSOURCE_INTERNAL
+#define DRV_TMR_PRESCALE_IDX3               TMR_PRESCALE_VALUE_1
+#define DRV_TMR_OPERATION_MODE_IDX3         DRV_TMR_OPERATION_MODE_16_BIT
+#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX3     false
+#define DRV_TMR_POWER_STATE_IDX3            SYS_MODULE_POWER_RUN_FULL
 
+ 
 #define USE_16BIT_PMP
 
 
@@ -299,10 +312,11 @@ extern "C" {
 #define APPLICATION_INSTANCE_0      DISP
 #define DISP_TIMER_INSTANCE         DRV_TMR_INDEX_1
 #define DISP_PMP_INSTANCE           DRV_PMP_INDEX_0
-#define DISP_DMA_CHANNEL            DMA_CHANNEL_0
+#define DISP_DMA_CHANNEL1           DMA_CHANNEL_0
+#define DISP_DMA_CHANNEL0           DMA_CHANNEL_1
 #define DISP_DATA_SETUP_WAIT        PMP_DATA_WAIT_TWO
 #define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_2
-#define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_2
+#define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_1
 #define DISP_NUMBER_SLICES          (16)
 #define DISP_DISPLAY_UPDATE_RATE    (480) /* Hz */
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
@@ -310,6 +324,8 @@ extern "C" {
 #define DISP_PWM_INCREMENT          (DISP_PEAK_INTENSITY>>3)
 #define DISP_HORIZONTAL_OFFSET      (8)
 #define DISP_VERTICAL_OFFSET        (0)
+#define DISP_BIT_CLOCK_TIMER_INSTANCE DRV_TMR_INDEX_3
+#define DISP_BIT_CLOCK              (5000000)
     
 /*** Application Instance 1 Configuration ***/
     

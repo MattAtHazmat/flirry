@@ -193,6 +193,16 @@ const DRV_TMR_INIT drvTmr2InitData =
     .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX2,
     .asyncWriteEnable = false,
 };
+const DRV_TMR_INIT drvTmr3InitData =
+{
+    .moduleInit.sys.powerState = DRV_TMR_POWER_STATE_IDX3,
+    .tmrId = DRV_TMR_PERIPHERAL_ID_IDX3,
+    .clockSource = DRV_TMR_CLOCK_SOURCE_IDX3, 
+    .prescale = DRV_TMR_PRESCALE_IDX3,
+    .mode = DRV_TMR_OPERATION_MODE_IDX3,
+    .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX3,
+    .asyncWriteEnable = false,
+};
 // </editor-fold>
 
 // *****************************************************************************
@@ -281,7 +291,9 @@ void SYS_Initialize ( void* data )
 
     /* Initialize Drivers                                                     */
     //sysObj.drvPMP0 = DRV_PMP_Initialize (DRV_PMP_INDEX_0, (SYS_MODULE_INIT *)&pmpInit);
-
+    //SYS_INT_VectorPrioritySet(INT_VECTOR_PMP,INT_PRIORITY_LEVEL6);
+    //SYS_INT_VectorSubprioritySet(INT_VECTOR_PMP,INT_SUBPRIORITY_LEVEL0);
+    
     /*** SPI Driver Index 0 initialization***/
 
     SYS_INT_VectorPrioritySet(DRV_SPI_TX_INT_VECTOR_IDX0, DRV_SPI_TX_INT_PRIORITY_IDX0);
@@ -294,14 +306,18 @@ void SYS_Initialize ( void* data )
     sysObj.sysDma = SYS_DMA_Initialize((SYS_MODULE_INIT *)&sysDmaInit);
     SYS_INT_VectorPrioritySet(INT_VECTOR_DMA0, INT_PRIORITY_LEVEL6);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA0, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_DMA1, INT_PRIORITY_LEVEL6);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_DMA1, INT_SUBPRIORITY_LEVEL0);
 
     SYS_INT_SourceEnable(INT_SOURCE_DMA_0);
+    SYS_INT_SourceEnable(INT_SOURCE_DMA_1);
 
 
 
     sysObj.drvTmr0 = DRV_TMR_Initialize(DRV_TMR_INDEX_0, (SYS_MODULE_INIT *)&drvTmr0InitData);
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
     sysObj.drvTmr2 = DRV_TMR_Initialize(DRV_TMR_INDEX_2, (SYS_MODULE_INIT *)&drvTmr2InitData);
+    sysObj.drvTmr3 = DRV_TMR_Initialize(DRV_TMR_INDEX_3, (SYS_MODULE_INIT *)&drvTmr3InitData);
 
     SYS_INT_VectorPrioritySet(INT_VECTOR_T2, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T2, INT_SUBPRIORITY_LEVEL0);
@@ -309,6 +325,8 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T3, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T5, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T5, INT_SUBPRIORITY_LEVEL0);
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T6, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T6, INT_SUBPRIORITY_LEVEL0);
  
  
 
@@ -326,7 +344,10 @@ void SYS_Initialize ( void* data )
     SYS_INT_Enable();
     
     /* Initialize the Application                                             */
-    DISP_Initialize(sysObj.sysDma,DISP_DMA_CHANNEL,sysObj.drvPMP0,DISP_PMP_INSTANCE,sysObj.drvTmr0,DISP_TIMER_INSTANCE);
+    DISP_Initialize(sysObj.sysDma,DISP_DMA_CHANNEL0,DISP_DMA_CHANNEL1,
+                    sysObj.drvPMP0,DISP_PMP_INSTANCE,
+                    sysObj.drvTmr0,DISP_TIMER_INSTANCE,
+                    sysObj.drvTmr3,DISP_BIT_CLOCK_TIMER_INSTANCE);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
     FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_SPI_INSTANCE);
 }

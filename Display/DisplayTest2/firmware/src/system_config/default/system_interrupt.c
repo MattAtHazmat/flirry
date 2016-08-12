@@ -89,6 +89,11 @@ void __ISR(_TIMER_5_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance2(void)
     DRV_TMR_Tasks(sysObj.drvTmr2);
 }
  
+void __ISR(_TIMER_6_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance3(void)
+{
+    DRV_TMR_Tasks(sysObj.drvTmr3);
+}
+ 
 void __ISR(_SPI1_RX_VECTOR, ipl1AUTO) _IntHandlerSPIRxInstance0(void)
 {
     DRV_SPI_Tasks(sysObj.spiObjectIdx0);
@@ -106,6 +111,12 @@ void __ISR(_DMA0_VECTOR, ipl6AUTO) _IntHandlerSysDmaCh0(void)
 {          
     SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_0);
 }
+
+void __ISR(_DMA1_VECTOR, ipl6AUTO) _IntHandlerSysDmaCh1(void)
+{          
+    SYS_DMA_TasksISR(sysObj.sysDma, DMA_CHANNEL_1);
+}
+ 
 
  
 /*******************************************************************************

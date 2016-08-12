@@ -122,6 +122,9 @@ typedef enum
     DISP_STATE_INITIALIZE_TIMER,
     DISP_STATE_INITIALIZE_PMP,
     DISP_STATE_INITIALIZE_DMA,
+    DISP_STATE_INITIALIZE_BIT_CLOCK,
+            DISP_STATE_START_BIT_CLOCK,
+            DISP_STATE_SET_BIT_CLOCK_ALARM,
     DISP_STATE_SET_TIMER_ALARM,
     DISP_STATE_START_TIMER,
     DISP_STATE_WAIT_FOR_IMAGE,
@@ -205,10 +208,12 @@ typedef struct
             unsigned PMPInitialized:1;
             unsigned DMAInitialized:1;
             unsigned timerInitialized:1;
+            unsigned bitClockInitialized:1;
+            unsigned bitClockAlarmSet:1;
+            unsigned bitClockStarted:1;
             unsigned timerStarted:1;
             unsigned timerAlarmSet:1;  
-            unsigned displayArrayFilled:1;        
-            unsigned firstSliceSent:1; 
+            unsigned displayArrayFilled:1;     
             unsigned sliceReady:1;
             unsigned sliceSent:1;            
             unsigned pwmCycleComplete:1;
@@ -244,6 +249,12 @@ typedef struct
         SYS_MODULE_OBJ moduleObject;
         uint32_t divider;
     } timer;
+        struct {
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE driverHandle;
+        SYS_MODULE_OBJ moduleObject;
+        uint32_t divider;
+    } bitClockTimer;
     struct {
         DRV_PMP_INDEX index;
         DRV_HANDLE driverHandle;
@@ -252,8 +263,8 @@ typedef struct
     } pmp;
     struct {
         SYS_MODULE_OBJ moduleObject;
-        SYS_DMA_CHANNEL_HANDLE handle;
-        DMA_CHANNEL channel;
+        SYS_DMA_CHANNEL_HANDLE handle[2];
+        DMA_CHANNEL channel[2];
     } dma;
     struct {
         uint32_t displaying;
@@ -316,7 +327,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DMA_CHANNEL, SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX );
+bool DISP_Initialize ( SYS_MODULE_OBJ, DMA_CHANNEL,DMA_CHANNEL, SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, SYS_MODULE_INDEX  );
 
 
 /*******************************************************************************
