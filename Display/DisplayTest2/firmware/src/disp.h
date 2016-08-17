@@ -125,7 +125,7 @@ typedef enum
     DISP_STATE_INITIALIZE_BIT_CLOCK,
             DISP_STATE_START_BIT_CLOCK,
             DISP_STATE_SET_BIT_CLOCK_ALARM,
-    DISP_STATE_SET_TIMER_ALARM,
+    DISP_STATE_SET_SLICE_TIMER,
     DISP_STATE_START_TIMER,
     DISP_STATE_WAIT_FOR_IMAGE,
     DISP_STATE_WAIT_SLICE_SEND_START,
@@ -212,7 +212,7 @@ typedef struct
             unsigned bitClockAlarmSet:1;
             unsigned bitClockStarted:1;
             unsigned timerStarted:1;
-            unsigned timerAlarmSet:1;  
+            unsigned sliceTimerSet:1;  
             unsigned displayArrayFilled:1;     
             unsigned sliceReady:1;
             unsigned sliceSent:1;            
@@ -245,30 +245,25 @@ typedef struct
     } address;
     struct {
         SYS_MODULE_INDEX index;
-        DRV_HANDLE driverHandle;
-        SYS_MODULE_OBJ moduleObject;
-        uint32_t divider;
+        DRV_HANDLE handle;
     } timer;
         struct {
         SYS_MODULE_INDEX index;
-        DRV_HANDLE driverHandle;
-        SYS_MODULE_OBJ moduleObject;
-        uint32_t divider;
+        DRV_HANDLE handle;        
     } bitClockTimer;
     struct {
         DRV_PMP_INDEX index;
-        DRV_HANDLE driverHandle;
-        SYS_MODULE_OBJ moduleObject;
+        DRV_HANDLE handle;
         PMP_QUEUE_ELEMENT_OBJECT* pQueue;
     } pmp;
     struct {
-        SYS_MODULE_OBJ moduleObject;
-        SYS_DMA_CHANNEL_HANDLE handle[2];
-        DMA_CHANNEL channel[2];
+        SYS_DMA_CHANNEL_HANDLE handle;
+        DMA_CHANNEL channel;
     } dma;
     struct {
         uint32_t displaying;
         uint32_t filling;
+        uint32_t address[2];
     }slice;
     PIXEL_TYPE display[2][DISPLAY_ROWS][DISPLAY_COLUMNS];    
     struct {
@@ -327,7 +322,7 @@ typedef struct
     This routine must be called from the SYS_Initialize function.
 */
 
-bool DISP_Initialize ( SYS_MODULE_OBJ, DMA_CHANNEL,DMA_CHANNEL, SYS_MODULE_OBJ, DRV_PMP_INDEX, SYS_MODULE_OBJ, SYS_MODULE_INDEX,SYS_MODULE_OBJ, SYS_MODULE_INDEX  );
+bool DISP_Initialize ( DMA_CHANNEL, DRV_PMP_INDEX, SYS_MODULE_INDEX, SYS_MODULE_INDEX );
 
 
 /*******************************************************************************

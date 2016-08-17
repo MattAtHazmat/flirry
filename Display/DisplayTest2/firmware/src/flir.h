@@ -81,6 +81,8 @@ typedef enum
 	FLIR_STATE_INIT=0,
     FLIR_OPEN_TIMER,
     FLIR_START_TIMER,
+    FLIR_OPEN_TIMEOUT_TIMER,
+    FLIR_START_TIMEOUT_TIMER,
     FLIR_OPEN_SPI_PORT,
     FLIR_START,
     FLIR_STATE_START_NEW_IMAGE,
@@ -132,6 +134,10 @@ typedef struct __attribute__((packed)) {
     struct {
         SYS_MODULE_INDEX index;
         DRV_HANDLE drvHandle;
+    } timeoutTimer;
+    struct {
+        SYS_MODULE_INDEX index;
+        DRV_HANDLE drvHandle;
         DRV_SPI_BUFFER_HANDLE bufferHandle;
         struct{
             unsigned complete:1;
@@ -154,10 +160,10 @@ typedef struct __attribute__((packed)) {
     }RXBuffer;
     struct {
         struct {
+            unsigned timeoutTimerConfigured:1;
+            unsigned timeoutTimerRunning:1;
             unsigned timerConfigured:1;
             unsigned SPIConfigured:1;
-            unsigned I2CConfigured:1;
-            unsigned I2CConfigureAttempted:1;
             unsigned timerRunning:1;
             unsigned receivedFirstLine:1;
             unsigned getImage:1;
@@ -170,6 +176,8 @@ typedef struct __attribute__((packed)) {
             unsigned calculateStatistics:1;
             unsigned resetStatistics:1;            
             unsigned statisticsComplete:1;
+            unsigned timeout:1;
+            unsigned timeoutOccurred:1;
         } flags;
         int32_t lastLine;
     }status;
@@ -250,7 +258,7 @@ typedef struct __attribute__((packed)) {
     This routine must be called from the SYS_Initialize function.
 */
 
-void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX SPIIndex );
+void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX timeoutTimerIndex, SYS_MODULE_INDEX SPIIndex );
 
 
 /*******************************************************************************
@@ -284,21 +292,20 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX SPIIndex );
  */
 
 void FLIR_Tasks( void );
-bool FLIR_OpenI2C(FLIR_DATA *flir);
 bool FLIR_OpenSPI(FLIR_DATA *flir);
 bool FLIR_GetVoSPI(FLIR_DATA *flir);
 bool FLIR_StartGetVoSPI(FLIR_DATA *flir);
-#define FLIR_SPISlaveSelect()       LATECLR = 1<<9
-#define FLIR_SPISlaveDeselect()     LATESET = 1<<9
 void FLIR_PopulateLine(FLIR_DATA *flir);
 bool FLIR_CopyImage(FLIR_DATA *flir);
-//inline bool FLIR_DiscardLine(FLIR_DATA *flir);
 bool FLIR_OpenTimer(FLIR_DATA *flir);
 static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS );
 static inline bool FLIR_ImageTimerTriggered(void);
 bool FLIR_CheckSPIReadDone(FLIR_DATA *flir);
 bool FLIR_MakeIntensityMap(FLIR_DATA *flir,bool initial);
 bool FLIR_CalculateStatistics(FLIR_DATA *flir);
+
+#define FLIR_SPISlaveSelect()       LATECLR = 1<<9
+#define FLIR_SPISlaveDeselect()     LATESET = 1<<9
 
 #endif /* _FLIR_H */
 

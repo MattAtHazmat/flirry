@@ -131,11 +131,11 @@ void _general_exception_handler ( void )
 
     SYS_DEBUG_PRINT(SYS_ERROR_ERROR, "\nGeneral Exception %s (cause=%d, addr=%x).\n", 
                     _cause_str, _excep_code, _excep_addr);
-
-    while (1)
-    {
-        SYS_DEBUG_BreakPoint();
-    }
+    BSP_LEDOn(BSP_LED_1);
+    BSP_LEDOn(BSP_LED_2);
+    BSP_LEDOn(BSP_LED_3);
+    SYS_DEBUG_BreakPoint();
+    while (1);
 }
 
 /*******************************************************************************

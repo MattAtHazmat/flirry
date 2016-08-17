@@ -73,6 +73,9 @@ int main ( void )
     while ( true )
     {
         SYS_Tasks ( );
+        #ifndef __DEBUG
+            SYS_WDT_TimerClear();
+        #endif
     }
     return ( EXIT_FAILURE );
 }

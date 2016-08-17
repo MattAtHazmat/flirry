@@ -60,6 +60,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system/int/sys_int.h"
 #include "system/dma/sys_dma.h"
 #include "system/tmr/sys_tmr.h"
+#include "system/wdt/sys_wdt.h"
 #include "driver/tmr/drv_tmr.h"
 #include "driver/pmp/drv_pmp.h"
 #include "system/ports/sys_ports.h"
@@ -110,6 +111,7 @@ typedef struct
     SYS_MODULE_OBJ  drvTmr1;
     SYS_MODULE_OBJ  drvTmr2;
     SYS_MODULE_OBJ  drvTmr3;
+    SYS_MODULE_OBJ  drvTmr4;
     SYS_MODULE_OBJ  drvPMP0;
     
     /*** SPI Object for Index 0 ***/

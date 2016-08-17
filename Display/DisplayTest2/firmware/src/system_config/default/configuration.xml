@@ -97,6 +97,10 @@
         <Path>Header Files/framework/system/int</Path>
       </File>
       <File>
+        <Name>sys_wdt_local.h</Name>
+        <Path>Header Files/framework/system/wdt/src</Path>
+      </File>
+      <File>
         <Name>bsp_config.h</Name>
         <Path>Header Files/bsp/pic32mz_ef_sk</Path>
       </File>
@@ -157,6 +161,10 @@
         <Path>Header Files/framework/driver/spi/private</Path>
       </File>
       <File>
+        <Name>sys_wdt.c</Name>
+        <Path>Source Files/framework/system/wdt/src</Path>
+      </File>
+      <File>
         <Name>osal_impl_none.h</Name>
         <Path>Header Files/framework/osal/src</Path>
       </File>
@@ -187,6 +195,10 @@
       <File>
         <Name>gfx_palette.h</Name>
         <Path>Header Files/framework/gfx</Path>
+      </File>
+      <File>
+        <Name>sys_wdt.h</Name>
+        <Path>Header Files/framework/system/wdt</Path>
       </File>
       <File>
         <Name>sys_devcon.h</Name>
@@ -223,7 +235,7 @@
       <Template>
         <Name>system_init.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>CA57B45A7F4EBB41B25362F8525F1B9F</Checksum>
+        <Checksum>3B686867FC3C1138798A988708D8E6C1</Checksum>
         <ProjectFileChecksum>7B595A65F4813CF7D587E5B3EB246BE3</ProjectFileChecksum>
       </Template>
       <Template>
@@ -237,7 +249,7 @@
       <Template>
         <Name>system_definitions.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>8499F956688D243428BB80AD6208BD03</Checksum>
+        <Checksum>84B2D7E9CAF7F32503D72C3B52BF47BE</Checksum>
         <ProjectFileChecksum>C5624B9A2536B450BFBB06061F81CF92</ProjectFileChecksum>
       </Template>
       <Template>
@@ -273,7 +285,7 @@
       <Template>
         <Name>system_config.h</Name>
         <Path>Header Files/app/system_config/default</Path>
-        <Checksum>63DC2D1EC13C13ADB0AEA3FABE870FEB</Checksum>
+        <Checksum>735E13C828245F98E4075B2273E77E1E</Checksum>
         <ProjectFileChecksum>BE1718E320521CDC215FEEA30F95755D</ProjectFileChecksum>
       </Template>
       <Template>
@@ -285,7 +297,7 @@
       <Template>
         <Name>system_interrupt.c</Name>
         <Path>Source Files/app/system_config/default</Path>
-        <Checksum>3D73A3B3E9661D30BFA146EDF000EEAC</Checksum>
+        <Checksum>1201E6B85E97CEFD1D417087E594B976</Checksum>
         <ProjectFileChecksum>EEF9D71018B258BD4F7D307369F74DA0</ProjectFileChecksum>
       </Template>
       <Template>

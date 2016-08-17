@@ -1,4 +1,3 @@
-// <editor-fold defaultstate="collapsed" desc="SLA">
 /*******************************************************************************
   System Initialization File
 
@@ -45,7 +44,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 // Section: Included Files
 // *****************************************************************************
-// *****************************************************************************// </editor-fold>
+// *****************************************************************************
 
 #include "system_config.h"
 #include "system_definitions.h"
@@ -85,9 +84,13 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #pragma config POSCMOD =    EC
 #pragma config OSCIOFNC =   OFF
 #pragma config FCKSM =      CSDCMD
-#pragma config WDTPS =      PS1048576
+#pragma config WDTPS =      PS8192
 #pragma config WDTSPGM =    STOP
-#pragma config FWDTEN =     OFF
+#ifdef __DEBUG
+    #pragma config FWDTEN =     OFF
+#else
+    #pragma config FWDTEN =     ON
+#endif
 #pragma config WINDIS =     NORMAL
 #pragma config FWDTWINSZ =  WINSZ_25
 #pragma config DMTCNT =     DMT31
@@ -105,10 +108,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #pragma config USERID =     0xffff
 #pragma config FMIIEN =     OFF
 #pragma config FETHIO =     ON
-#pragma config PGL1WAY =    ON
-#pragma config PMDL1WAY =   ON
-#pragma config IOL1WAY =    ON
-#pragma config FUSBIDIO =   ON
+#pragma config PGL1WAY =    OFF
+#pragma config PMDL1WAY =   OFF
+#pragma config IOL1WAY =    OFF
+#pragma config FUSBIDIO =   OFF
 
 /*** BF1SEQ0 ***/
 
@@ -201,6 +204,16 @@ const DRV_TMR_INIT drvTmr3InitData =
     .prescale = DRV_TMR_PRESCALE_IDX3,
     .mode = DRV_TMR_OPERATION_MODE_IDX3,
     .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX3,
+    .asyncWriteEnable = false,
+};
+const DRV_TMR_INIT drvTmr4InitData =
+{
+    .moduleInit.sys.powerState = DRV_TMR_POWER_STATE_IDX4,
+    .tmrId = DRV_TMR_PERIPHERAL_ID_IDX4,
+    .clockSource = DRV_TMR_CLOCK_SOURCE_IDX4, 
+    .prescale = DRV_TMR_PRESCALE_IDX4,
+    .mode = DRV_TMR_OPERATION_MODE_IDX4,
+    .interruptSource = DRV_TMR_INTERRUPT_SOURCE_IDX4,
     .asyncWriteEnable = false,
 };
 // </editor-fold>
@@ -318,6 +331,7 @@ void SYS_Initialize ( void* data )
     sysObj.drvTmr1 = DRV_TMR_Initialize(DRV_TMR_INDEX_1, (SYS_MODULE_INIT *)&drvTmr1InitData);
     sysObj.drvTmr2 = DRV_TMR_Initialize(DRV_TMR_INDEX_2, (SYS_MODULE_INIT *)&drvTmr2InitData);
     sysObj.drvTmr3 = DRV_TMR_Initialize(DRV_TMR_INDEX_3, (SYS_MODULE_INIT *)&drvTmr3InitData);
+    sysObj.drvTmr4 = DRV_TMR_Initialize(DRV_TMR_INDEX_4, (SYS_MODULE_INIT *)&drvTmr4InitData);
 
     SYS_INT_VectorPrioritySet(INT_VECTOR_T2, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T2, INT_SUBPRIORITY_LEVEL0);
@@ -327,9 +341,11 @@ void SYS_Initialize ( void* data )
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T5, INT_SUBPRIORITY_LEVEL0);
     SYS_INT_VectorPrioritySet(INT_VECTOR_T6, INT_PRIORITY_LEVEL1);
     SYS_INT_VectorSubprioritySet(INT_VECTOR_T6, INT_SUBPRIORITY_LEVEL0);
- 
- 
+    SYS_INT_VectorPrioritySet(INT_VECTOR_T9, INT_PRIORITY_LEVEL1);
+    SYS_INT_VectorSubprioritySet(INT_VECTOR_T9, INT_SUBPRIORITY_LEVEL0); 
 
+ 
+ 
     /* Initialize System Services                                             */
 
     /*** Interrupt Service Initialization Code ***/
@@ -344,12 +360,14 @@ void SYS_Initialize ( void* data )
     SYS_INT_Enable();
     
     /* Initialize the Application                                             */
-    DISP_Initialize(sysObj.sysDma,DISP_DMA_CHANNEL0,DISP_DMA_CHANNEL1,
-                    sysObj.drvPMP0,DISP_PMP_INSTANCE,
-                    sysObj.drvTmr0,DISP_TIMER_INSTANCE,
-                    sysObj.drvTmr3,DISP_BIT_CLOCK_TIMER_INSTANCE);
+    DISP_Initialize(DISP_DMA_CHANNEL0,
+                    DISP_PMP_INSTANCE,
+                    DISP_TIMER_INSTANCE,
+                    DISP_BIT_CLOCK_TIMER_INSTANCE);
     //COMMS_Initialize(COMMS_USART_INSTANCE);
-    FLIR_Initialize(FLIR_TIMER_INSTANCE,FLIR_SPI_INSTANCE);
+    FLIR_Initialize(FLIR_TIMER_INSTANCE,
+                    FLIR_TIMEOUT_TIMER_INSTANCE,
+                    FLIR_SPI_INSTANCE);
 }
 
 

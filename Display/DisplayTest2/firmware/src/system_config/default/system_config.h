@@ -175,6 +175,11 @@ extern "C" {
 #define SYS_TMR_INTERRUPT_NOTIFICATION  false
 
 
+/*** WDT System Service Configuration ***/
+
+#define WDT_PLIB_ID     				WDT_ID_0
+
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Driver Configuration
@@ -182,7 +187,7 @@ extern "C" {
 // *****************************************************************************
 /*** Timer Driver Configuration ***/
 #define DRV_TMR_INTERRUPT_MODE             true
-#define DRV_TMR_INSTANCES_NUMBER           4
+#define DRV_TMR_INSTANCES_NUMBER           5
 #define DRV_TMR_CLIENTS_NUMBER             1
 
 /*** Timer Driver 0 Configuration ***/
@@ -237,6 +242,19 @@ extern "C" {
 #define DRV_TMR_ASYNC_WRITE_ENABLE_IDX3     false
 #define DRV_TMR_POWER_STATE_IDX3            SYS_MODULE_POWER_RUN_FULL
 
+/*** Timer Driver 4 Configuration ***/
+#define DRV_TMR_PERIPHERAL_ID_IDX4          TMR_ID_8
+#define DRV_TMR_INTERRUPT_SOURCE_IDX4       INT_SOURCE_TIMER_9
+#define DRV_TMR_INTERRUPT_VECTOR_IDX4       INT_VECTOR_T9
+#define DRV_TMR_ISR_VECTOR_IDX4             _TIMER_9_VECTOR
+#define DRV_TMR_INTERRUPT_PRIORITY_IDX4     INT_PRIORITY_LEVEL1
+#define DRV_TMR_INTERRUPT_SUB_PRIORITY_IDX4 INT_SUBPRIORITY_LEVEL0
+#define DRV_TMR_CLOCK_SOURCE_IDX4           DRV_TMR_CLKSOURCE_INTERNAL
+#define DRV_TMR_PRESCALE_IDX4               TMR_PRESCALE_VALUE_256
+#define DRV_TMR_OPERATION_MODE_IDX4         DRV_TMR_OPERATION_MODE_32_BIT
+#define DRV_TMR_ASYNC_WRITE_ENABLE_IDX4     false
+#define DRV_TMR_POWER_STATE_IDX4            SYS_MODULE_POWER_RUN_FULL
+ 
  
 #define USE_16BIT_PMP
 
@@ -318,7 +336,7 @@ extern "C" {
 #define DISP_STROBE_WAIT_STATES     PMP_STROBE_WAIT_2
 #define DISP_DATA_HOLD_WAIT_STATES  PMP_DATA_HOLD_1
 #define DISP_NUMBER_SLICES          (16)
-#define DISP_DISPLAY_UPDATE_RATE    (480) /* Hz */
+#define DISP_DISPLAY_UPDATE_RATE    (600) /* Hz */
 #define DISP_SLICE_UPDATE_RATE      (DISP_NUMBER_SLICES*DISP_DISPLAY_UPDATE_RATE)
 #define DISP_PEAK_INTENSITY         (0x1F)
 #define DISP_PWM_INCREMENT          (DISP_PEAK_INTENSITY>>3)
@@ -333,13 +351,17 @@ extern "C" {
 #define APPLICATION_INSTANCE_2      FLIR
 #define FLIR_TIMER_PERIOD_MS        (125) /* 125 ms for 8 Hz */
 #define FLIR_TIMER_INSTANCE         DRV_TMR_INDEX_2
+#define FLIR_TIMEOUT_TIMER_INSTANCE DRV_TMR_INDEX_4
 #define FLIR_SPI_INSTANCE           DRV_SPI_INDEX_1
-#define FLIR_I2C_SPEED              (100000)
 #define FLIR_RESYNC_TIME            (190) /* ms */
 #define FLIR_LUT_SIZE               (0x4000)
 #define FLIR_PEAK_INTENSITY         DISP_PEAK_INTENSITY    
+#define FLIR_PEAK_INTENSITY_RED     FLIR_PEAK_INTENSITY
+#define FLIR_PEAK_INTENSITY_GREEN   (FLIR_PEAK_INTENSITY>>2)
+#define FLIR_PEAK_INTENSITY_BLUE    (FLIR_PEAK_INTENSITY>>1)
 #define FLIR_STATISTICS_SIZE        (16)
-
+#define FLIR_AUTO_CALIBRATE_IMAGES  (50)
+#define FLIR_TIMEOUT_PERIOD_MS      (500)
     
 /* useful macros */    
 #define mBitClear(a,b)              (a ## CLR = 1<<b)

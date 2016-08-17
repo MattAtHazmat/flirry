@@ -43,26 +43,26 @@ INCLUDING BUT NOT LIMITED TO ANY INCIDENTAL, SPECIAL, INDIRECT, PUNITIVE OR
 CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF PROCUREMENT OF
 SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
- *******************************************************************************/
+*******************************************************************************/
 // DOM-IGNORE-END
 
 
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 // Section: Included Files 
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 
 #include "flir.h"
 #include "bsp_config.h"
 #include "commonHeader.h"
 #include "disp.h"
 
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 // Section: Global Data Definitions
-// *****************************************************************************
-// *****************************************************************************
+/******************************************************************************/
+/******************************************************************************/
 
 /******************************************************************************/
 /* Application Data                                                           */
@@ -87,7 +87,8 @@ extern DISP_DATA dispData;
 /******************************************************************************/
 /* Timer Callback                                                             */
 
-static void FLIR_TimerCallback (  uintptr_t context, uint32_t alarmCount )
+static void FLIR_TimerCallback ( uintptr_t context, 
+                                 uint32_t alarmCount )
 {
     flirData.counters.getImage++;
     if(flirData.status.flags.getImage)
@@ -102,18 +103,26 @@ static void FLIR_TimerCallback (  uintptr_t context, uint32_t alarmCount )
 }
 
 /******************************************************************************/
-/* Timer used for Resync callback                                             */
 
-static void FLIR_ResyncCallback ( uintptr_t context, uint32_t alarmCount )
+static void FLIR_TimeoutTimerCallback ( uintptr_t context, 
+                                        uint32_t alarmCount )
+{
+    flirData.status.flags.timeout= true;
+}
+
+/******************************************************************************/
+
+static void FLIR_ResyncCallback ( uintptr_t context, 
+                                  uint32_t alarmCount )
 {
     flirData.status.flags.timerRunning=false;
     flirData.status.flags.resyncComplete=true;
 }
 
 /******************************************************************************/
-/* SPI Callbacks                                                              */
 
-static void FLIR_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void FLIR_SPIStartedCallback( DRV_SPI_BUFFER_EVENT event, 
+                                     DRV_SPI_BUFFER_HANDLE handle)
 {
     
     if(event == DRV_SPI_BUFFER_EVENT_PROCESSING)
@@ -130,7 +139,8 @@ static void FLIR_SPIStartedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_H
 
 /******************************************************************************/
 
-static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER_HANDLE handle)
+static void FLIR_SPICompletedCallback( DRV_SPI_BUFFER_EVENT event, 
+                                       DRV_SPI_BUFFER_HANDLE handle)
 {
     FLIR_SPISlaveDeselect();
     flirData.spi.status.running = false;
@@ -147,6 +157,20 @@ static void FLIR_SPICompletedCallback(DRV_SPI_BUFFER_EVENT event, DRV_SPI_BUFFER
 }
 
 /******************************************************************************/
+
+static inline bool FLIR_ResyncComplete(void)
+{
+    __builtin_disable_interrupts();
+    if(flirData.status.flags.resyncComplete)
+    {
+        __builtin_enable_interrupts();
+        return true;
+    }
+    __builtin_enable_interrupts();
+    return false;
+}
+
+/******************************************************************************/
 /* Section: Application Local Functions                                       */
 /******************************************************************************/
 
@@ -156,20 +180,6 @@ static inline bool FLIR_ImageTimerTriggered(void)
     if(flirData.status.flags.getImage)
     {
         flirData.status.flags.getImage = false;
-        __builtin_enable_interrupts();
-        return true;
-    }
-    __builtin_enable_interrupts();
-    return false;
-}
-
-/******************************************************************************/
-
-static inline bool FLIR_ResyncComplete(void)
-{
-    __builtin_disable_interrupts();
-    if(flirData.status.flags.resyncComplete)
-    {
         __builtin_enable_interrupts();
         return true;
     }
@@ -196,7 +206,8 @@ static inline bool FLIR_ImageTimerMissed(void)
 /******************************************************************************/
 /* Application's Timer Setup Function                                         */
 
-static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS )
+static bool FLIR_TimerSetup( FLIR_DATA* flir, 
+                             uint32_t periodMS )
 {
     uint32_t period;
     if(flir->status.flags.timerRunning)
@@ -223,7 +234,19 @@ static bool FLIR_TimerSetup( FLIR_DATA* flir, uint32_t periodMS )
 
 /******************************************************************************/
 
-static bool FLIR_StartResync( FLIR_DATA* flir, uint32_t periodMS )
+bool FLIR_OpenTimer(FLIR_DATA *flir)
+{            
+    if (flir->timer.drvHandle == DRV_HANDLE_INVALID)
+    {
+        flir->timer.drvHandle = DRV_TMR_Open(flir->timer.index, DRV_IO_INTENT_EXCLUSIVE);
+    }        
+    return ( DRV_HANDLE_INVALID != flir->timer.drvHandle );            
+}
+
+/******************************************************************************/
+
+static bool FLIR_StartResync( FLIR_DATA* flir, 
+                              uint32_t periodMS )
 {
     uint32_t period;
     FLIR_SPISlaveDeselect();
@@ -231,9 +254,8 @@ static bool FLIR_StartResync( FLIR_DATA* flir, uint32_t periodMS )
     {
         DRV_TMR_Stop(flir->timer.drvHandle);
         flir->status.flags.timerRunning = false;
-    }    
-    TMR4=0;
-    TMR5=0;
+    }   
+    PLIB_TMR_Counter32BitClear(flir->timer.index);
     period = (periodMS * DRV_TMR_CounterFrequencyGet(flir->timer.drvHandle)/1000);
     DRV_TMR_Alarm32BitRegister(flir->timer.drvHandle, 
                               period, 
@@ -244,16 +266,9 @@ static bool FLIR_StartResync( FLIR_DATA* flir, uint32_t periodMS )
     if(flir->status.flags.timerRunning)
     {
         flir->status.flags.resyncComplete = false;
-        return true;
     }   
-    return false;
-    
+    return flir->status.flags.timerRunning;    
 }
-/******************************************************************************/
-/******************************************************************************/
-/* Section: Application Initialization and State Machine Functions            */
-/******************************************************************************/
-/******************************************************************************/
 
 /******************************************************************************/
 /*  Function:                                                                 */
@@ -263,15 +278,19 @@ static bool FLIR_StartResync( FLIR_DATA* flir, uint32_t periodMS )
 /*    See prototype in flir.h.                                                */
 /******************************************************************************/
 
-void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX SPIIndex )
+void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, 
+                       SYS_MODULE_INDEX timeoutTimerIndex, 
+                       SYS_MODULE_INDEX SPIIndex )
 {
     FLIR_SPISlaveDeselect();
     memset(&flirData,0,sizeof(flirData));
     /* Place the App state machine in its initial state.                      */
     flirData.state = FLIR_STATE_INIT;
     flirData.timer.index = timerIndex;
+    flirData.timeoutTimer.index = timeoutTimerIndex;
     flirData.spi.index = SPIIndex;
     flirData.timer.drvHandle = DRV_HANDLE_INVALID; 
+    flirData.timeoutTimer.drvHandle = DRV_HANDLE_INVALID; 
     flirData.RXBuffer.size.max.b8 = BUFFER_SIZE_8;
     flirData.RXBuffer.size.max.b16 = BUFFER_SIZE_16;
     flirData.RXBuffer.size.max.b32 = BUFFER_SIZE_32;
@@ -282,198 +301,6 @@ void FLIR_Initialize ( SYS_MODULE_INDEX timerIndex, SYS_MODULE_INDEX SPIIndex )
     flirData.image.properties.size.bytes = sizeof(FLIR_IMAGE_TYPE);
     flirData.statistics.size = FLIR_STATISTICS_SIZE;
     FLIR_MakeIntensityMap(&flirData, true);
-}
-
-/******************************************************************************/
-/*  Function:                                                                 */
-/*    void FLIR_Tasks ( void )                                                */
-/*                                                                            */
-/*  Remarks:                                                                  */
-/******************************************************************************/
-
-void FLIR_Tasks ( void )
-{
-    switch ( flirData.state )
-    {
-        // <editor-fold defaultstate="collapsed" desc="Initialization">
-        case FLIR_STATE_INIT:
-        {
-            if (!flirData.status.flags.timerConfigured)
-            {
-                flirData.state = FLIR_OPEN_TIMER;
-                break;
-            }
-            if (!flirData.status.flags.SPIConfigured)
-            {
-                flirData.state = FLIR_OPEN_SPI_PORT;
-                break;
-            }
-            flirData.state = FLIR_START;
-            break;
-        }
-        case FLIR_OPEN_TIMER:
-        {
-            flirData.status.flags.timerConfigured = FLIR_OpenTimer(&flirData);
-            flirData.state = FLIR_STATE_INIT;
-            break;
-        }
-        case FLIR_START_TIMER:
-        {
-            flirData.status.flags.timerRunning = FLIR_TimerSetup(&flirData, FLIR_TIMER_PERIOD_MS);
-            flirData.state = FLIR_STATE_INIT;
-            break;
-        }
-        case FLIR_OPEN_SPI_PORT:
-        {
-            flirData.status.flags.SPIConfigured = FLIR_OpenSPI(&flirData);
-            flirData.state = FLIR_STATE_INIT;
-            break;
-        }// </editor-fold>
-        case FLIR_START:
-        {
-            flirData.state = FLIR_STATE_START_RESYNC;
-            break;
-        }        
-        case FLIR_STATE_START_NEW_IMAGE:
-        {
-            flirData.status.flags.receivedFirstLine = false;
-            flirData.counters.imagesStarted++;
-            flirData.status.lastLine = -1;
-            flirData.state = FLIR_STATE_START_GET_LINE;            
-        }
-        case FLIR_STATE_START_GET_LINE:
-        {
-            if(FLIR_StartGetVoSPI(&flirData))
-            {
-                flirData.state = FLIR_STATE_WAIT_FOR_LINE;
-            }
-            else
-            {
-                flirData.counters.failure.getLine++;
-            }
-            break;
-        }        
-        case FLIR_STATE_WAIT_FOR_LINE:
-        {
-            if(FLIR_CheckSPIReadDone(&flirData))
-            {
-                flirData.state = FLIR_STATE_GET_LINE;
-            }
-            else
-            {
-                break;
-            }                
-        }
-        case FLIR_STATE_GET_LINE:
-        {
-            flirData.state = FLIR_STATE_START_GET_LINE;
-            /* we have a line of data from the camera. Check to see if    */
-            /* it is valid data (not something to be discarded) */
-            if(FLIR_GetVoSPI(&flirData))
-            {
-                /* it's a valid line, part of the image to build */
-                //FLIR_PopulateLine(&flirData);
-                /* did we get the first line of an image? */
-                if(flirData.VoSPI.ID.line == 0)
-                {          
-                    flirData.status.flags.receivedFirstLine = true;
-                }   /* did we get the last line of an image? */  
-                else if((flirData.status.flags.receivedFirstLine)&&
-                        (flirData.VoSPI.ID.line == (flirData.image.properties.dimensions.vertical-1)))
-                {
-                    /* got the last line of a full image */   
-                    flirData.state = FLIR_STATE_COPY_IMAGE;
-                }                            
-            }      
-            else if(flirData.status.flags.mysteryLine)
-            {
-                /* give up on this round, wait for next image */                
-                flirData.status.flags.mysteryLine = false;
-                flirData.counters.failure.mysteryLine++;
-                flirData.state = FLIR_STATE_START_RESYNC;
-            }            
-            if(flirData.state != FLIR_STATE_COPY_IMAGE)
-            {                
-                break;
-            }
-            /* else drop through to copying the image. */
-        }   
-        case FLIR_STATE_COPY_IMAGE: 
-        {               
-            FLIR_CopyImage(&flirData);
-            if(flirData.status.flags.calculateStatistics)
-            {
-                flirData.status.flags.calculateStatistics = FLIR_CalculateStatistics(&flirData);
-                if(flirData.status.flags.calculateStatistics == false)
-                {
-                    FLIR_MakeIntensityMap(&flirData,false);
-                }
-            }
-            flirData.status.flags.imageCopied = true;
-            flirData.state = FLIR_STATE_PULL_DUMMY_LINE;            
-            break;            
-        }        
-        case FLIR_STATE_PULL_DUMMY_LINE:
-        {
-            if(FLIR_StartGetVoSPI(&flirData))
-            {
-                flirData.state = FLIR_STATE_WAIT_FOR_DUMMY_LINE;
-            }            
-            break;
-        }
-        case FLIR_STATE_WAIT_FOR_DUMMY_LINE:
-        {
-            if(FLIR_CheckSPIReadDone(&flirData))
-            {
-                if(FLIR_ImageTimerTriggered())
-                {
-                    flirData.state = FLIR_STATE_START_NEW_IMAGE;
-                }
-                else
-                {
-                    flirData.state = FLIR_STATE_PULL_DUMMY_LINE;
-                }
-            }            
-            break;
-        }
-        case FLIR_STATE_START_RESYNC:
-        {
-            flirData.counters.resync++;
-            if(FLIR_StartResync(&flirData,FLIR_RESYNC_TIME))
-            {
-                flirData.state = FLIR_STATE_RESYNC_WAIT;
-            }
-            break;
-        }
-        case FLIR_STATE_RESYNC_WAIT:
-        {
-            if(FLIR_ResyncComplete())
-            {
-                if(FLIR_TimerSetup(&flirData, FLIR_TIMER_PERIOD_MS))
-                {
-                    flirData.state = FLIR_STATE_START_NEW_IMAGE;
-                }
-            }
-            break;
-        }
-        case FLIR_ERROR:
-        default:
-        {
-            BSP_LEDOn(BSP_LED_1);
-            BSP_LEDOn(BSP_LED_2);
-            BSP_LEDOn(BSP_LED_3);
-            break;
-        }
-    }
-    if(BSP_SWITCH_STATE_PRESSED == BSP_SwitchStateGet(BSP_SWITCH_1))
-    {
-        if(false == flirData.status.flags.calculateStatistics)
-        {
-            flirData.status.flags.calculateStatistics = true;
-            flirData.status.flags.resetStatistics = true;
-            flirData.status.flags.statisticsComplete = false;
-        }
-    }
 }
 
 /******************************************************************************/
@@ -489,19 +316,42 @@ bool FLIR_CopyImage(FLIR_DATA *flir)
                 flir->colorMap.LUT[(flir->image.buffer.pixel[y][x])&(FLIR_LUT_SIZE-1)].w;
         }
     }
+    flir->counters.imagesCopied++;
     BSP_LEDToggle(BSP_LED_3);
     return true;
 }
 
 /******************************************************************************/
 
-bool FLIR_OpenTimer(FLIR_DATA *flir)
+bool FLIR_OpenTimeoutTimer(FLIR_DATA *flir)
 {            
-    if (flir->timer.drvHandle == DRV_HANDLE_INVALID)
+    if (flir->timeoutTimer.drvHandle == DRV_HANDLE_INVALID)
     {
-        flir->timer.drvHandle = DRV_TMR_Open(flir->timer.index, DRV_IO_INTENT_EXCLUSIVE);
+        flir->timeoutTimer.drvHandle = DRV_TMR_Open(flir->timeoutTimer.index, DRV_IO_INTENT_EXCLUSIVE);
     }        
-    return ( DRV_HANDLE_INVALID != flir->timer.drvHandle );            
+    return ( DRV_HANDLE_INVALID != flir->timeoutTimer.drvHandle );            
+}
+
+/******************************************************************************/
+
+static bool FLIR_TimeoutTimerSetup( FLIR_DATA* flir, 
+                                    uint32_t periodMS )
+{
+    uint32_t period;
+    if(flir->status.flags.timeoutTimerRunning)
+    {
+        DRV_TMR_Stop(flir->timeoutTimer.drvHandle);
+        flir->status.flags.timeoutTimerRunning = false;
+    }       
+    period = (periodMS * DRV_TMR_CounterFrequencyGet(flir->timeoutTimer.drvHandle)/1000);
+    DRV_TMR_Alarm32BitRegister(flir->timeoutTimer.drvHandle, 
+                              period, 
+                              true,
+                              (uintptr_t)NULL, 
+                              FLIR_TimeoutTimerCallback);
+    flir->status.flags.timeoutTimerRunning = DRV_TMR_Start(flir->timeoutTimer.drvHandle);    
+    flir->status.flags.timeout = false;
+    return flir->status.flags.timeoutTimerRunning;
 }
 
 /******************************************************************************/
@@ -542,9 +392,20 @@ inline bool FLIR_SPIComplete(FLIR_DATA *flir)
 
 /******************************************************************************/
 
+inline bool FLIR_Timeout(FLIR_DATA *flir)
+{
+    bool timeout;
+    __builtin_disable_interrupts();
+    timeout = flir->status.flags.timeout;
+    flir->status.flags.timeout=false;
+    __builtin_enable_interrupts();
+    return timeout;
+}
+
+/******************************************************************************/
+
 bool FLIR_StartSPIRead(FLIR_DATA *flir,int32_t RXSize)
 {
-
     bool success = false;
     if((!flir->spi.status.started)&&
        (!flir->spi.status.running)&&
@@ -638,66 +499,6 @@ bool FLIR_StartGetVoSPI(FLIR_DATA *flir)
 
 /******************************************************************************/
 
-//bool FLIR_MakeIntensityMap(FLIR_DATA *flir)
-//{
-//    uint32_t index;
-//    int32_t red,green,blue;
-//    for(index=0;index<(FLIR_LUT_SIZE>>1);index++)
-//    {
-//        /* calculate red negative slope */
-//        red = ((-2 * FLIR_PEAK_INTENSITY * index)/(FLIR_LUT_SIZE)) +FLIR_PEAK_INTENSITY;       
-//        if(red<0)
-//        {
-//            red=0;
-//        }
-//        else if (red>FLIR_PEAK_INTENSITY)
-//        {
-//            red = FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].blue = red;
-//        /* calculate green positive slope */
-//        green = ((2*FLIR_PEAK_INTENSITY*index)/(FLIR_LUT_SIZE));
-//        if(green<0)
-//        {
-//            green = 0;
-//        }
-//        else if (green>FLIR_PEAK_INTENSITY)
-//        {
-//            green=FLIR_PEAK_INTENSITY;
-//        }        
-//        flir->colorMap.LUT[index].green = green;        
-//    }
-//    for(;index<FLIR_LUT_SIZE;index++)
-//    {
-//        /* calculate green negative slope */
-//        green = ((-2 * FLIR_PEAK_INTENSITY * index)/(FLIR_LUT_SIZE))+ (2*FLIR_PEAK_INTENSITY);
-//        if(green<0)
-//        {
-//            green = 0;
-//        }
-//        else if (green>FLIR_PEAK_INTENSITY)
-//        {
-//            green=FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].green = green;
-//        /* calculate blue positive slope */
-//        blue = ((2*FLIR_PEAK_INTENSITY*index)/(FLIR_LUT_SIZE)) - FLIR_PEAK_INTENSITY;
-//        if(blue<0)
-//        {
-//            blue = 0;
-//        }
-//        else if (blue>FLIR_PEAK_INTENSITY)
-//        {
-//            blue = FLIR_PEAK_INTENSITY;
-//        }
-//        flir->colorMap.LUT[index].red = blue;        
-//    }
-//    return true;
-//}
-
-/******************************************************************************/
-
-
 bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
 {
     double red;
@@ -711,14 +512,15 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
         flir->colorMap.maximum = FLIR_LUT_SIZE - 1;
         flir->colorMap.minimum = 0;
         flir->colorMap.maxIntensity.w = 0;
-        flir->colorMap.maxIntensity.blue  = FLIR_PEAK_INTENSITY;
-        flir->colorMap.maxIntensity.green = FLIR_PEAK_INTENSITY;
-        flir->colorMap.maxIntensity.red   = FLIR_PEAK_INTENSITY;
+        flir->colorMap.maxIntensity.blue  = FLIR_PEAK_INTENSITY_BLUE;
+        flir->colorMap.maxIntensity.green = FLIR_PEAK_INTENSITY_GREEN;
+        flir->colorMap.maxIntensity.red   = FLIR_PEAK_INTENSITY_RED;
     }
     else
     {
         flir->colorMap.maximum = flir->statistics.mean.median + flir->statistics.mean.standardDeviation;
         flir->colorMap.minimum = flir->statistics.mean.median - flir->statistics.mean.standardDeviation;
+        flir->status.flags.remadeMap = true;
     }
     size = flir->colorMap.maximum - flir->colorMap.minimum;
     midpoint = flir->colorMap.minimum + (size/2);
@@ -790,25 +592,254 @@ bool FLIR_MakeIntensityMap(FLIR_DATA *flir, bool initialMap)
 }
 
 /******************************************************************************/
+/*  Function:                                                                 */
+/*    void FLIR_Tasks ( void )                                                */
+/*                                                                            */
+/*  Remarks:                                                                  */
+/******************************************************************************/
+
+void FLIR_Tasks ( void )
+{
+    switch ( flirData.state )
+    {
+        // <editor-fold defaultstate="collapsed" desc="Initialization">
+        case FLIR_STATE_INIT:
+        {
+            if (!flirData.status.flags.timerConfigured)
+            {
+                flirData.state = FLIR_OPEN_TIMER;
+                break;
+            }
+            if(!flirData.status.flags.timeoutTimerConfigured)
+            {
+                flirData.state = FLIR_OPEN_TIMEOUT_TIMER;
+                break;
+            }
+            if(!flirData.status.flags.timeoutTimerRunning)
+            {
+                flirData.state = FLIR_START_TIMEOUT_TIMER;
+                break;
+            }
+            if (!flirData.status.flags.SPIConfigured)
+            {
+                flirData.state = FLIR_OPEN_SPI_PORT;
+                break;
+            }
+            flirData.state = FLIR_START;
+            break;
+        }
+        case FLIR_OPEN_TIMER:
+        {
+            flirData.status.flags.timerConfigured = FLIR_OpenTimer(&flirData);
+            flirData.state = FLIR_STATE_INIT;
+            break;
+        }
+        //case FLIR_START_TIMER:
+        //{
+        //    flirData.status.flags.timerRunning = FLIR_TimerSetup(&flirData, FLIR_TIMER_PERIOD_MS);
+        //    flirData.state = FLIR_STATE_INIT;
+        //    break;
+        //}
+        case FLIR_OPEN_TIMEOUT_TIMER:
+        {
+            flirData.status.flags.timeoutTimerConfigured = FLIR_OpenTimeoutTimer(&flirData);
+            flirData.state = FLIR_STATE_INIT;
+            break;
+        }
+        case FLIR_START_TIMEOUT_TIMER:
+        {
+            flirData.status.flags.timeoutTimerRunning = FLIR_TimeoutTimerSetup(&flirData, FLIR_TIMEOUT_PERIOD_MS);
+            flirData.state = FLIR_STATE_INIT;
+            break;
+        }
+        case FLIR_OPEN_SPI_PORT:
+        {
+            flirData.status.flags.SPIConfigured = FLIR_OpenSPI(&flirData);
+            flirData.state = FLIR_STATE_INIT;
+            break;
+        }// </editor-fold>
+        case FLIR_START:
+        {
+            flirData.state = FLIR_STATE_START_RESYNC;
+            break;
+        }        
+        case FLIR_STATE_START_NEW_IMAGE:
+        {
+            flirData.status.flags.receivedFirstLine = false;
+            flirData.counters.imagesStarted++;
+            flirData.status.lastLine = -1;
+            flirData.state = FLIR_STATE_START_GET_LINE;            
+        }
+        case FLIR_STATE_START_GET_LINE:
+        {
+            if(FLIR_StartGetVoSPI(&flirData))
+            {
+                flirData.state = FLIR_STATE_WAIT_FOR_LINE;
+            }
+            else
+            {
+                flirData.counters.failure.getLine++;
+            }
+            break;
+        }        
+        case FLIR_STATE_WAIT_FOR_LINE:
+        {
+            if(FLIR_CheckSPIReadDone(&flirData))
+            {
+                PLIB_TMR_Counter32BitClear(flirData.timeoutTimer.index);
+                flirData.state = FLIR_STATE_GET_LINE;
+            }
+            else
+            {
+                if(FLIR_Timeout(&flirData))
+                {
+                    flirData.status.flags.timeoutOccurred = true;
+                    flirData.state = FLIR_STATE_START_RESYNC;
+                }
+                break;
+            }                
+        }
+        case FLIR_STATE_GET_LINE:
+        {
+            flirData.state = FLIR_STATE_START_GET_LINE;
+            /* we have a line of data from the camera. Check to see if    */
+            /* it is valid data (not something to be discarded) */
+            if(FLIR_GetVoSPI(&flirData))
+            {
+                /* it's a valid line, part of the image to build */
+                //FLIR_PopulateLine(&flirData);
+                /* did we get the first line of an image? */
+                if(flirData.VoSPI.ID.line == 0)
+                {          
+                    flirData.status.flags.receivedFirstLine = true;
+                }   /* did we get the last line of an image? */  
+                else if((flirData.status.flags.receivedFirstLine)&&
+                        (flirData.VoSPI.ID.line == (flirData.image.properties.dimensions.vertical-1)))
+                {
+                    /* got the last line of a full image */   
+                    flirData.state = FLIR_STATE_COPY_IMAGE;
+                }                            
+            }      
+            else if(flirData.status.flags.mysteryLine)
+            {
+                /* give up on this round, wait for next image */                
+                flirData.status.flags.mysteryLine = false;
+                flirData.counters.failure.mysteryLine++;
+                flirData.state = FLIR_STATE_START_RESYNC;
+            }            
+            if(flirData.state != FLIR_STATE_COPY_IMAGE)
+            {                
+                break;
+            }
+            /* else drop through to copying the image. */
+        }   
+        case FLIR_STATE_COPY_IMAGE: 
+        {               
+            FLIR_CopyImage(&flirData);
+            if(flirData.status.flags.calculateStatistics)
+            {
+                flirData.status.flags.calculateStatistics = FLIR_CalculateStatistics(&flirData);
+                if(flirData.status.flags.calculateStatistics == false)
+                {
+                    FLIR_MakeIntensityMap(&flirData,false);
+                }
+            }
+            flirData.status.flags.imageCopied = true;
+            flirData.state = FLIR_STATE_PULL_DUMMY_LINE;            
+            break;            
+        }        
+        case FLIR_STATE_PULL_DUMMY_LINE:
+        {
+            if(FLIR_StartGetVoSPI(&flirData))
+            {
+                flirData.state = FLIR_STATE_WAIT_FOR_DUMMY_LINE;
+            }            
+            break;
+        }
+        case FLIR_STATE_WAIT_FOR_DUMMY_LINE:
+        {
+            if(FLIR_CheckSPIReadDone(&flirData))
+            {
+                if(FLIR_ImageTimerTriggered())
+                {
+                    flirData.state = FLIR_STATE_START_NEW_IMAGE;
+                }
+                else
+                {
+                    flirData.state = FLIR_STATE_PULL_DUMMY_LINE;
+                }
+            }            
+            break;
+        }
+        case FLIR_STATE_START_RESYNC:
+        {
+            flirData.counters.resync++;
+            if(FLIR_StartResync(&flirData,FLIR_RESYNC_TIME))
+            {
+                flirData.state = FLIR_STATE_RESYNC_WAIT;
+            }
+            break;
+        }
+        case FLIR_STATE_RESYNC_WAIT:
+        {
+            if(FLIR_ResyncComplete())
+            {
+                flirData.status.flags.timerRunning = FLIR_TimerSetup(&flirData, FLIR_TIMER_PERIOD_MS);
+                if(flirData.status.flags.timerRunning)
+                {
+                    flirData.state = FLIR_STATE_START_NEW_IMAGE;
+                }
+                else
+                {
+                    flirData.state = FLIR_STATE_START_RESYNC;
+                }
+            }
+            break;
+        }
+        case FLIR_ERROR:
+        default:
+        {
+            BSP_LEDOn(BSP_LED_1);
+            BSP_LEDOn(BSP_LED_2);
+            BSP_LEDOn(BSP_LED_3);
+            break;
+        }
+    }
+    if((BSP_SWITCH_STATE_PRESSED == BSP_SwitchStateGet(BSP_SWITCH_1))||
+       (false == flirData.status.flags.remadeMap ) &&
+       (false == flirData.status.flags.calculateStatistics) && 
+       (flirData.counters.imagesCopied == FLIR_AUTO_CALIBRATE_IMAGES))
+    {
+        if(false == flirData.status.flags.calculateStatistics)
+        {
+            flirData.status.flags.calculateStatistics = true;
+            flirData.status.flags.resetStatistics = true;
+            flirData.status.flags.statisticsComplete = false;
+        }
+    }
+}
+
+/******************************************************************************/
 /* from:http://stackoverflow.com/questions/1100090/looking-for-an-efficient-integer-square-root-algorithm-for-arm-thumb2 */
-/**
- * \brief    Fast Square root algorithm, with rounding
- *
- * This does arithmetic rounding of the result. That is, if the real answer
- * would have a fractional part of 0.5 or greater, the result is rounded up to
- * the next integer.
- *      - SquareRootRounded(2) --> 1
- *      - SquareRootRounded(3) --> 2
- *      - SquareRootRounded(4) --> 2
- *      - SquareRootRounded(6) --> 2
- *      - SquareRootRounded(7) --> 3
- *      - SquareRootRounded(8) --> 3
- *      - SquareRootRounded(9) --> 3
- *
- * \param[in] a_nInput - unsigned integer for which to find the square root
- *
- * \return Integer square root of the input value.
- */
+/*                                                                            */
+/* \brief    Fast Square root algorithm, with rounding                        */
+/*                                                                            */
+/* This does arithmetic rounding of the result. That is, if the real answer   */
+/* would have a fractional part of 0.5 or greater, the result is rounded up to*/
+/* the next integer.                                                          */
+/*      - SquareRootRounded(2) --> 1                                          */
+/*      - SquareRootRounded(3) --> 2                                          */
+/*      - SquareRootRounded(4) --> 2                                          */
+/*      - SquareRootRounded(6) --> 2                                          */
+/*      - SquareRootRounded(7) --> 3                                          */
+/*      - SquareRootRounded(8) --> 3                                          */
+/*      - SquareRootRounded(9) --> 3                                          */
+/*                                                                            */
+/* \param[in] a_nInput - unsigned integer for which to find the square root   */
+/*                                                                            */
+/* \return Integer square root of the input value.                            */
+/******************************************************************************/
+
 uint32_t SquareRootRounded(uint32_t a_nInput)
 {
     uint32_t op  = a_nInput;
@@ -844,7 +875,7 @@ uint32_t SquareRootRounded(uint32_t a_nInput)
 
 /******************************************************************************/
 
-int compare (const void * a, const void * b)
+int Compare (const void * a, const void * b)
 {
     if(*(int16_t*)a == *(int16_t*)b)
     {
@@ -898,7 +929,7 @@ bool FLIR_CalculateStatistics(FLIR_DATA *flir)
     qsort(medianArray.vector,
           flir->image.properties.dimensions.horizontal*flir->image.properties.dimensions.vertical,
           sizeof(FLIR_PIXEL_TYPE),
-          compare);
+          Compare);
     flir->statistics.history[flir->statistics.count].minimum = medianArray.vector[0];
     flir->statistics.history[flir->statistics.count].maximum = medianArray.vector[(sizeof(IMAGE_BUFFER_TYPE)/sizeof(PIXEL_TYPE))-1];
     flir->statistics.history[flir->statistics.count].depth = flir->statistics.history[flir->statistics.count].maximum -flir->statistics.history[flir->statistics.count].minimum; 

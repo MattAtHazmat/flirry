@@ -84,8 +84,7 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 DISP_DATA dispData;
 extern FLIR_DATA flirData;
-__attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceBuffer0[DISPLAY_BUFFER_SIZE];
-__attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceBuffer1[DISPLAY_BUFFER_SIZE];
+__attribute__((coherent)) __attribute__((aligned(16))) DISPLAY_PIXEL_TYPE sliceBuffer[2][DISPLAY_BUFFER_SIZE];
 
 // *****************************************************************************
 // *****************************************************************************
@@ -106,9 +105,14 @@ void DISP_TimerAlarmCallback(uintptr_t context, uint32_t alarmCount)
     dispData.slice.displaying = dispData.slice.filling;
     dispData.status.flags.sliceReady = false;   
     dispData.status.flags.DMAComplete = false;      
-    PLIB_PMP_AddressSet(dispData.pmp.index,dispData.address.w);
-    SYS_DMA_ChannelEnable(dispData.dma.handle[dispData.slice.displaying]);
-    SYS_DMA_ChannelForceStart(dispData.dma.handle[dispData.slice.displaying]);
+    PLIB_PMP_AddressSet(dispData.pmp.index,dispData.slice.address[dispData.slice.displaying]);
+    SYS_DMA_ChannelTransferSet(dispData.dma.handle,
+                               (void*)&sliceBuffer[dispData.slice.displaying][0],sizeof(DISPLAY_PIXEL_TYPE)*DISPLAY_BUFFER_SIZE,
+                               (const void*)&PMDIN,sizeof(DISPLAY_PIXEL_TYPE),
+                               sizeof(DISPLAY_PIXEL_TYPE));
+    SYS_DMA_ChannelEnable(dispData.dma.handle);
+    SYS_DMA_ChannelForceStart(dispData.dma.handle);
+    
     dispData.status.flags.sliceSent = true;  
 }
 
@@ -164,38 +168,33 @@ static inline bool DISP_SliceSent(void)
 /*                                                                            */
 /******************************************************************************/
 
-bool DISP_Initialize ( SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel0, DMA_CHANNEL dmaChannel1,
-                       SYS_MODULE_OBJ pmpModuleObj, DRV_PMP_INDEX pmpIndex,
-                       SYS_MODULE_OBJ tmrModuleObj, SYS_MODULE_INDEX tmrIndex,
-                       SYS_MODULE_OBJ bitClockModuleObj, SYS_MODULE_INDEX bitClockIndex)
+bool DISP_Initialize ( DMA_CHANNEL dmaChannel,
+                       DRV_PMP_INDEX pmpIndex,
+                       SYS_MODULE_INDEX tmrIndex,
+                       SYS_MODULE_INDEX bitClockIndex)
 {
     memset(&dispData,0,sizeof(dispData));
-    memset(sliceBuffer0,0,sizeof(sliceBuffer0));
-    memset(sliceBuffer1,0,sizeof(sliceBuffer1));
-    dispData.timer.moduleObject = tmrModuleObj;
-    dispData.timer.index = tmrIndex;
-    dispData.pmp.moduleObject = pmpModuleObj;
-    dispData.pmp.index = pmpIndex;
+    memset(sliceBuffer,0,sizeof(sliceBuffer));
     dispData.state = DISP_STATE_INIT;
-    dispData.displayInfo.rows = DISPLAY_ROWS;
-    dispData.displayInfo.columns = DISPLAY_COLUMNS;
-    dispData.displayInfo.PWMLevel=0;
-    dispData.displayInfo.PWMIncrement = DISP_PWM_INCREMENT;
-    dispData.address.w = 0; /* the address we start sending from the PMP each time */
-    dispData.timer.driverHandle = DRV_HANDLE_INVALID;
-    dispData.pmp.driverHandle = DRV_HANDLE_INVALID;
-    dispData.displayInfo.buffer.displaying = 0;
-    dispData.displayInfo.buffer.filling = 1;
+    dispData.timer.index = tmrIndex;
+    dispData.timer.handle = DRV_HANDLE_INVALID;
+    dispData.pmp.index = pmpIndex;
+    dispData.pmp.handle = DRV_HANDLE_INVALID;
+    dispData.bitClockTimer.index = bitClockIndex;
+    dispData.bitClockTimer.handle = DRV_HANDLE_INVALID;
+    dispData.dma.channel = dmaChannel;
+    dispData.dma.handle = DRV_HANDLE_INVALID;
+    dispData.address.w = 0; 
     dispData.slice.filling = 0;
     dispData.slice.displaying = 1;
+    dispData.displayInfo.rows = DISPLAY_ROWS;
+    dispData.displayInfo.columns = DISPLAY_COLUMNS;
+    dispData.displayInfo.PWMLevel = 0;
+    dispData.displayInfo.PWMIncrement = DISP_PWM_INCREMENT;
     dispData.displayInfo.offset.horizontal = DISP_HORIZONTAL_OFFSET;
     dispData.displayInfo.offset.vertical = DISP_VERTICAL_OFFSET;
-    dispData.dma.moduleObject = dmaModuleObj;
-    dispData.dma.channel[0] = dmaChannel0;
-    dispData.dma.channel[1] = dmaChannel1;
-    dispData.bitClockTimer.moduleObject = bitClockModuleObj;
-    dispData.bitClockTimer.index = bitClockIndex;
-    dispData.bitClockTimer.driverHandle = DRV_HANDLE_INVALID;
+    dispData.displayInfo.buffer.displaying = 0;
+    dispData.displayInfo.buffer.filling = 1;    
     ClearSTB();
     return true;
 }
@@ -204,43 +203,45 @@ bool DISP_Initialize ( SYS_MODULE_OBJ dmaModuleObj, DMA_CHANNEL dmaChannel0, DMA
 
 bool DISP_InitializeTimer(DISP_DATA* disp)
 {
-    if(disp->timer.driverHandle == DRV_HANDLE_INVALID)
+    if(disp->timer.handle == DRV_HANDLE_INVALID)
     {    
-        disp->timer.driverHandle = DRV_TMR_Open(disp->timer.index,
+        disp->timer.handle = DRV_TMR_Open(disp->timer.index,
                                                 DRV_IO_INTENT_EXCLUSIVE|
                                                 DRV_IO_INTENT_NONBLOCKING);
     }        
-    return (disp->timer.driverHandle != DRV_HANDLE_INVALID);
+    return (disp->timer.handle != DRV_HANDLE_INVALID);
 }
 
 /******************************************************************************/
 
 bool DISP_InitializeBitClock(DISP_DATA* disp)
 {
-    if(disp->bitClockTimer.driverHandle == DRV_HANDLE_INVALID)
+    if(disp->bitClockTimer.handle == DRV_HANDLE_INVALID)
     {    
-        disp->bitClockTimer.driverHandle = DRV_TMR_Open(disp->bitClockTimer.index,
+        disp->bitClockTimer.handle = DRV_TMR_Open(disp->bitClockTimer.index,
                                                 DRV_IO_INTENT_EXCLUSIVE|
                                                 DRV_IO_INTENT_NONBLOCKING);
     }        
-    return (disp->bitClockTimer.driverHandle != DRV_HANDLE_INVALID);
+    return (disp->bitClockTimer.handle != DRV_HANDLE_INVALID);
 }
 
 /******************************************************************************/
 
 bool DISP_SetBitClockAlarm(DISP_DATA* disp)
 {
-    if(disp->bitClockTimer.driverHandle == DRV_HANDLE_INVALID)
+    uint32_t divider;
+    if(disp->bitClockTimer.handle == DRV_HANDLE_INVALID)
     {    
         return false;
     }
-    disp->bitClockTimer.divider = DRV_TMR_CounterFrequencyGet(disp->bitClockTimer.driverHandle)/(DISP_BIT_CLOCK);    
-    if(disp->bitClockTimer.divider<3)
+    divider = DRV_TMR_CounterFrequencyGet(disp->bitClockTimer.handle)/(DISP_BIT_CLOCK);    
+    /* if the divider is really small, there is an issue.                     */
+    if(divider<3)
     {
         return false;
     }
     PLIB_TMR_PrescaleSelect(disp->bitClockTimer.index,TMR_PRESCALE_VALUE_1);
-    PLIB_TMR_Period16BitSet(disp->bitClockTimer.index,(disp->bitClockTimer.divider-1));
+    PLIB_TMR_Period16BitSet(disp->bitClockTimer.index,(divider-1));
     return true;
 }
 
@@ -248,9 +249,15 @@ bool DISP_SetBitClockAlarm(DISP_DATA* disp)
 
 bool DISP_StartBitClock(DISP_DATA* disp)
 {
-    PLIB_TMR_Start(disp->bitClockTimer.index);
-    return true;
+    return DRV_TMR_Start(disp->bitClockTimer.handle);
+    //if(disp->bitClockTimer.handle == DRV_HANDLE_INVALID)
+    //{
+    //    return false;
+    //}
+    //PLIB_TMR_Start(disp->bitClockTimer.index);
+    //return true;
 }
+
 /******************************************************************************/
 
 bool DISP_InitializePMP(DISP_DATA* disp)
@@ -283,65 +290,39 @@ bool DISP_InitializePMP(DISP_DATA* disp)
 
 bool DISP_InitializeDMA(DISP_DATA* disp)
 {
-    uint32_t channel;
-    for(channel=0;channel<2;channel++)
+    disp->dma.handle = SYS_DMA_ChannelAllocate(disp->dma.channel);
+    if(disp->dma.handle == SYS_DMA_CHANNEL_HANDLE_INVALID)
     {
-        disp->dma.handle[channel] = SYS_DMA_ChannelAllocate(disp->dma.channel[channel]);
-        if(disp->dma.handle[channel] == SYS_DMA_CHANNEL_HANDLE_INVALID)
-        {
-            return false;
-        }    
-        SYS_DMA_ChannelSetup(disp->dma.handle[channel],
-                             SYS_DMA_CHANNEL_OP_MODE_BASIC, 
-                             DMA_TRIGGER_TIMER_6);//DMA_TRIGGER_PARALLEL_PORT);
-        SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle[channel],
-                                               (void*)DISP_DMATransferComplete,
-                                               channel);
-        switch(channel)
-        {
-            case 0:
-            {
-                SYS_DMA_ChannelTransferAdd(dispData.dma.handle[channel],
-                               (void*)sliceBuffer0,sizeof(sliceBuffer0),
-                               (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
-                               sizeof(DISPLAY_PIXEL_TYPE));
-                break;
-            }
-            case 1:
-            {
-                SYS_DMA_ChannelTransferAdd(dispData.dma.handle[channel],
-                               (void*)sliceBuffer1,sizeof(sliceBuffer1),
-                               (const void*)KVA_TO_PA(&PMDIN),sizeof(DISPLAY_PIXEL_TYPE),
-                               sizeof(DISPLAY_PIXEL_TYPE));
-                break;
-            }
-            default:
-            {
-                return false;
-            }
-        }        
-    }
+        return false;
+    }    
+    SYS_DMA_ChannelSetup(disp->dma.handle,
+                         SYS_DMA_CHANNEL_OP_MODE_BASIC, 
+                         DMA_TRIGGER_TIMER_6);
+    SYS_DMA_ChannelTransferEventHandlerSet(disp->dma.handle,
+                                           (void*)DISP_DMATransferComplete,
+                                           disp->dma.channel);
     dispData.status.flags.DMAComplete = true;
     return true;
 }
 
 /******************************************************************************/
 
-bool DISP_SetTimerAlarm(DISP_DATA* disp)
+bool DISP_SetSliceTimer(DISP_DATA* disp)
 {
-    if(disp->timer.driverHandle == DRV_HANDLE_INVALID)
+    uint32_t divider;
+    if(disp->timer.handle == DRV_HANDLE_INVALID)
     {    
         return false;
     }
-    disp->timer.divider = DRV_TMR_CounterFrequencyGet(disp->timer.driverHandle)/(DISP_SLICE_UPDATE_RATE);
-    if((DRV_TMR_OPERATION_MODE_16_BIT ==
-       DRV_TMR_OperationModeGet(disp->timer.driverHandle))&&(disp->timer.divider>0xFFFF))
+    divider = DRV_TMR_CounterFrequencyGet(disp->timer.handle)/(DISP_SLICE_UPDATE_RATE);
+    if((DRV_TMR_OPERATION_MODE_16_BIT == DRV_TMR_OperationModeGet(disp->timer.handle)) &&
+       (divider>0xFFFF))
     {
         /* the divider is not gonna work for a 16 bit timer */
         return false;
     }
-    return DRV_TMR_AlarmRegister(disp->timer.driverHandle,
-                                 disp->timer.divider,
+    return DRV_TMR_AlarmRegister(disp->timer.handle,
+                                 divider,
                                  true,
                                  0,
                                  DISP_TimerAlarmCallback);    
@@ -351,14 +332,14 @@ bool DISP_SetTimerAlarm(DISP_DATA* disp)
 
 bool DISP_StartTimer(DISP_DATA* disp)
 {
-    return DRV_TMR_Start(disp->timer.driverHandle);
+    return DRV_TMR_Start(disp->timer.handle);
 }
 
 /******************************************************************************/
 
 void DISP_StopTimer(DISP_DATA* disp)
 {
-    DRV_TMR_Stop(disp->timer.driverHandle);
+    DRV_TMR_Stop(disp->timer.handle);
 }
 
 /******************************************************************************/
@@ -381,9 +362,9 @@ void DISP_Tasks ( void )
                 dispData.state = DISP_STATE_INITIALIZE_TIMER;
                 break;
             }
-            if(!dispData.status.flags.timerAlarmSet)
+            if(!dispData.status.flags.sliceTimerSet)
             {
-                dispData.state = DISP_STATE_SET_TIMER_ALARM;
+                dispData.state = DISP_STATE_SET_SLICE_TIMER;
                 break;
             }
             if(!dispData.status.flags.PMPInitialized)
@@ -461,9 +442,9 @@ void DISP_Tasks ( void )
             dispData.state = DISP_STATE_INIT;
             break;
         }
-        case DISP_STATE_SET_TIMER_ALARM:
+        case DISP_STATE_SET_SLICE_TIMER:
         {
-            dispData.status.flags.timerAlarmSet = DISP_SetTimerAlarm(&dispData);
+            dispData.status.flags.sliceTimerSet = DISP_SetSliceTimer(&dispData);
             dispData.state = DISP_STATE_INIT;
             break;
         }// </editor-fold>
@@ -483,7 +464,7 @@ void DISP_Tasks ( void )
                 /* once the current slice has started to be sent, fill the    */
                 /* next slice */
                 dispData.state = DISP_STATE_FILL_SLICE;
-                /* and drop through                                        */
+                /* and drop through                                           */
             }
             else
             {   
@@ -492,15 +473,11 @@ void DISP_Tasks ( void )
         }
         case DISP_STATE_FILL_SLICE:
         {   
-            /* fill up the next slice while the current is being sent */            
+            /* fill up the next slice while the current is being sent         */            
             dispData.status.flags.pwmCycleComplete = DISP_FillSlice(&dispData);
             if(dispData.status.flags.pwmCycleComplete)
             {
-                dispData.counters.imageSent++;
-            }            
-            
-            if(dispData.status.flags.pwmCycleComplete)
-            {
+                dispData.counters.imageSent++;            
                 /* check to see if there is a new image only when we have     */
                 /* completed sending an image- the full PWM cycle.            */
                 dispData.state = DISP_STATE_CHECK_FOR_NEW_IMAGE;
@@ -570,7 +547,14 @@ bool DISP_FillSlice(DISP_DATA *disp)
     txColumn = disp->displayInfo.columns;
     column = 0;
     /* increment the slice.                                                   */
-    disp->address.slice++;
+    if(disp->address.slice == 0xf)
+    {
+        disp->address.slice = 0;
+    }
+    else
+    {
+        disp->address.slice++;
+    }
     do {        
         txColumn--;
         row = disp->address.slice;
@@ -590,30 +574,22 @@ bool DISP_FillSlice(DISP_DATA *disp)
         displayPixel.red3   = (disp->display[disp->displayInfo.buffer.displaying][row][column].red>(disp->displayInfo.PWMLevel));
         displayPixel.green3 = (disp->display[disp->displayInfo.buffer.displaying][row][column].green>(disp->displayInfo.PWMLevel));
         displayPixel.blue3  = (disp->display[disp->displayInfo.buffer.displaying][row][column].blue>(disp->displayInfo.PWMLevel));
-        if(disp->slice.filling == 0)
-        {
-            sliceBuffer0[txColumn] = displayPixel;
-        }
-        else
-        {
-            sliceBuffer1[txColumn] = displayPixel;
-        }
-        
+        sliceBuffer[disp->slice.filling][txColumn] = displayPixel;
         column++;
-    } while (txColumn != 0); /* when it's zero, stop                          */
-    
-    if(disp->address.slice == (DISP_NUMBER_SLICES-1)) /* last slice       */
+    } while (txColumn != 0); /* when it's zero, stop                          */    
+    if(disp->address.slice == (DISP_NUMBER_SLICES-1)) /* last slice           */
     {
         /* reached the last slice. time to increment the pwm reference        */
         disp->displayInfo.PWMLevel += disp->displayInfo.PWMIncrement;
         if(disp->displayInfo.PWMLevel>DISP_PEAK_INTENSITY)
         {
-            /* it is the end of the PWM interval, so the end of the image */
-            /* cycle*/
+            /* it is the end of the PWM interval, so the end of the image     */
+            /* cycle                                                          */
             disp->displayInfo.PWMLevel = 0;
             pwmIntervalEnd = true;
         }
     }    
+    disp->slice.address[disp->slice.filling]= disp->address.w;
     disp->status.flags.sliceReady = true;
     return pwmIntervalEnd;
 }
